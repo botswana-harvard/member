@@ -1,14 +1,14 @@
 from django import forms
 
-from ..models import SubjectHtc
+from ..models import HtcMember
 
 from edc_constants.constants import NOT_APPLICABLE
 
 
-class SubjectHtcForm(forms.ModelForm):
+class HtcMemberForm(forms.ModelForm):
 
     def clean(self):
-        cleaned_data = super(SubjectHtcForm, self).clean()
+        cleaned_data = super(HtcMemberForm, self).clean()
         if cleaned_data.get('offered') == 'Yes':
             self.offered_yes()
         else:
@@ -44,5 +44,5 @@ class SubjectHtcForm(forms.ModelForm):
                 'Household member was not offered HTC. A referral clinic should be left blank.')
 
     class Meta:
-        model = SubjectHtc
+        model = HtcMember
         fields = '__all__'

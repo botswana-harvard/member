@@ -1,10 +1,10 @@
-from ..models import SubjectRefusal
+from ..models import RefusedMember
 
 from .base_membership_form import BaseMembershipForm
 
 
-class SubjectRefusalForm(BaseMembershipForm):
+class RefusedMemberForm(BaseMembershipForm):
 
     class Meta:
-        model = SubjectRefusal
+        model = RefusedMember
         fields = '__all__'

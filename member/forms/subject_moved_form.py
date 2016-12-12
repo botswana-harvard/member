@@ -2,12 +2,12 @@ from django import forms
 
 from edc_constants.constants import YES, NO
 
-from ..models import SubjectMoved
+from ..models import MovedMember
 
 from .base_membership_form import BaseMembershipForm
 
 
-class SubjectMovedForm(BaseMembershipForm):
+class MovedMemberForm(BaseMembershipForm):
 
     def clean(self):
         cleaned_data = self.cleaned_data
@@ -28,5 +28,5 @@ class SubjectMovedForm(BaseMembershipForm):
         return self.cleaned_data
 
     class Meta:
-        model = SubjectMoved
+        model = MovedMember
         fields = '__all__'

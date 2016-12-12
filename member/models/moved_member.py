@@ -4,10 +4,10 @@ from django_crypto_fields.fields import EncryptedTextField
 from edc_base.model.models import HistoricalRecords, BaseUuidModel
 from edc_constants.choices import YES_NO_UNKNOWN
 
-from .model_mixins import HouseholdMemberModelMixin, HouseholdMemberManager
+from .model_mixins import HouseholdMemberModelMixin
 
 
-class SubjectMoved(HouseholdMemberModelMixin, BaseUuidModel):
+class MovedMember(HouseholdMemberModelMixin, BaseUuidModel):
 
     """A model completed by the user to indicate a subject has moved from the household and or community."""
 
@@ -54,15 +54,11 @@ class SubjectMoved(HouseholdMemberModelMixin, BaseUuidModel):
         help_text=('')
     )
 
-    objects = HouseholdMemberManager()
+    # objects = HouseholdMemberManager()
 
     history = HistoricalRecords()
 
-    def save(self, *args, **kwargs):
-        self.survey = self.household_member.survey
-        super(SubjectMoved, self).save(*args, **kwargs)
-
     class Meta(HouseholdMemberModelMixin.Meta):
-        app_label = 'bcpp_household_member'
-        verbose_name = "Subject Moved"
-        verbose_name_plural = "Subject Moved"
+        app_label = 'member'
+        verbose_name = "Moved Member"
+        verbose_name_plural = "Moved Member"

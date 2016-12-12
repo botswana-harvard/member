@@ -1,19 +1,19 @@
-from ..models import SubjectAbsentee, SubjectAbsenteeEntry
+from ..models import AbsentMember, AbsentMemberEntry
 
 from .base_membership_form import BaseMembershipForm
 
 
-class SubjectAbsenteeEntryForm(BaseMembershipForm):
+class AbsentMemberEntryForm(BaseMembershipForm):
 
-    household_member_fk = 'subject_absentee'
+    household_member_fk = 'absent_member'
 
     class Meta:
-        model = SubjectAbsenteeEntry
+        model = AbsentMemberEntry
         fields = '__all__'
 
 
-class SubjectAbsenteeForm(BaseMembershipForm):
+class AbsentMemberForm(BaseMembershipForm):
 
     class Meta:
-        model = SubjectAbsentee
+        model = AbsentMember
         fields = '__all__'

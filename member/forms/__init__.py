@@ -6,9 +6,9 @@ from .household_info_form import HouseholdInfoForm
 from .household_member_form import HouseholdMemberForm
 from .member_appointment_form import MemberAppointmentForm
 from .participation_form import ParticipationForm
-from .subject_absentee_form import SubjectAbsenteeEntryForm, SubjectAbsenteeForm
-from .subject_htc_form import SubjectHtcForm
-from .subject_moved_form import SubjectMovedForm
-from .subject_refusal_form import SubjectRefusalForm
-from .subject_undecided_form import SubjectUndecidedEntryForm, SubjectUndecidedForm
-from .subject_death_form import SubjectDeathForm
+from .absent_member_form import AbsentMemberEntryForm, AbsentMemberForm
+from .htc_member_form import HtcMemberForm
+from .moved_member_form import MovedMemberForm
+from .refused_member_form import RefusedMemberForm
+from .undecided_member_form import UndecidedMemberEntryForm, UndecidedMemberForm
+from .deceased_member_form import DeceasedMemberForm

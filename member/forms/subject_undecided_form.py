@@ -1,19 +1,19 @@
-from ..models import SubjectUndecided, SubjectUndecidedEntry
+from ..models import UndecidedMember, UndecidedMemberEntry
 
 from .base_membership_form import BaseMembershipForm
 
 
-class SubjectUndecidedEntryForm(BaseMembershipForm):
+class UndecidedMemberEntryForm(BaseMembershipForm):
 
-    household_member_fk = 'subject_undecided'
+    household_member_fk = 'undecided_member'
 
     class Meta:
-        model = SubjectUndecidedEntry
+        model = UndecidedMemberEntry
         fields = '__all__'
 
 
-class SubjectUndecidedForm(BaseMembershipForm):
+class UndecidedMemberForm(BaseMembershipForm):
 
     class Meta:
-        model = SubjectUndecided
+        model = UndecidedMember
         fields = '__all__'

@@ -12,16 +12,11 @@ from edc_consent.validators import AgeTodayValidator
 from edc_constants.choices import GENDER, YES_NO, YES_NO_NA
 from edc_constants.constants import NOT_APPLICABLE
 
+from ..choices import BLOCK_CONTINUE
 from ..constants import BHS_SCREEN, BHS_ELIGIBLE, NOT_ELIGIBLE, HTC_ELIGIBLE
 from ..exceptions import MemberStatusError
 
-from .model_mixins import HouseholdMemberModelMixin, HouseholdMemberManager
-
-BLOCK_CONTINUE = (
-    ('Block', 'Yes( Block from further participation)'),
-    ('Continue', 'No (Can continue and participate)'),
-    (NOT_APPLICABLE, 'Not applicable'),
-)
+from .model_mixins import HouseholdMemberModelMixin
 
 
 class EnrollmentChecklist(HouseholdMemberModelMixin, BaseUuidModel):
@@ -34,8 +29,7 @@ class EnrollmentChecklist(HouseholdMemberModelMixin, BaseUuidModel):
         validators=[
             MinLengthValidator(2),
             MaxLengthValidator(3),
-            RegexValidator("^[A-Z]{1,3}$", "Must be Only CAPS and 2 or 3 letters. No spaces or numbers allowed.")],
-        db_index=True)
+            RegexValidator("^[A-Z]{1,3}$", "Must be Only CAPS and 2 or 3 letters. No spaces or numbers allowed.")])
 
     dob = models.DateField(
         verbose_name="Date of birth",
@@ -153,7 +147,7 @@ class EnrollmentChecklist(HouseholdMemberModelMixin, BaseUuidModel):
         help_text=('Was autofilled on data conversion')
     )
 
-    objects = HouseholdMemberManager()
+    # objects = HouseholdMemberManager()
 
     history = HistoricalRecords()
 
@@ -172,11 +166,6 @@ class EnrollmentChecklist(HouseholdMemberModelMixin, BaseUuidModel):
         if not kwargs.get('update_fields'):
             self.matches_household_member_values(self, self.household_member)
         self.is_eligible, self.loss_reason = self.passes_enrollment_criteria(using)
-        try:
-            update_fields = kwargs.get('update_fields') + ['is_eligible', 'loss_reason', ]
-            kwargs.update({'update_fields': update_fields})
-        except TypeError:
-            pass
         super(EnrollmentChecklist, self).save(*args, **kwargs)
 
     def matches_household_member_values(self, enrollment_checklist, household_member, exception_cls=None):
@@ -231,6 +220,6 @@ class EnrollmentChecklist(HouseholdMemberModelMixin, BaseUuidModel):
         return (False if loss_reason else True, loss_reason)
 
     class Meta(HouseholdMemberModelMixin.Meta):
-        app_label = "bcpp_household_member"
+        app_label = "member"
         verbose_name = "Enrollment Checklist"
         unique_together = (('household_member', 'report_datetime'), )

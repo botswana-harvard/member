@@ -1,9 +1,9 @@
 from django import forms
 
-from ..models import SubjectDeath
+from ..models import DeceasedMember
 
 
-class SubjectDeathForm (forms.ModelForm):
+class DeceasedMemberForm (forms.ModelForm):
 
     def clean(self):
         cleaned_data = self.cleaned_data
@@ -15,5 +15,5 @@ class SubjectDeathForm (forms.ModelForm):
         return cleaned_data
 
     class Meta:
-        model = SubjectDeath
+        model = DeceasedMember
         fields = '__all__'

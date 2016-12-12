@@ -1,5 +1,3 @@
-import uuid
-
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
@@ -7,7 +5,6 @@ from django.apps import apps as django_apps
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
 from django.core.validators import (
     MinLengthValidator, MaxLengthValidator, MinValueValidator, MaxValueValidator, RegexValidator)
 from django.db import models
@@ -19,32 +16,21 @@ from edc_base.model.models import BaseUuidModel, HistoricalRecords
 from edc_constants.choices import YES_NO, GENDER, YES_NO_DWTA, ALIVE_DEAD_UNKNOWN
 from edc_constants.constants import NOT_APPLICABLE, ALIVE, DEAD, YES, NO
 from edc_map.site_mappers import site_mappers
+from edc_registration.model_mixins import SubjectIdentifierModelMixin, UpdatesOrCreatesRegistrationModelMixin
 
 from household.models import HouseholdStructure
 from plot.models import Plot
 from survey.models import Survey
 
 from ..choices import HOUSEHOLD_MEMBER_PARTICIPATION, RELATIONS, DETAILS_CHANGE_REASON, INABILITY_TO_PARTICIPATE_REASON
-from ..classes import HouseholdMemberHelper
 from ..constants import ABSENT, UNDECIDED, BHS_SCREEN, REFUSED, NOT_ELIGIBLE, DECEASED, HEAD_OF_HOUSEHOLD
+from ..household_member_helper import HouseholdMemberHelper
 
 
-class HouseholdMemberManager(CommunitySubsetManagerMixin, models.Manager):
-
-    to_reference_model = ['household_structure', 'household', 'plot']
-
-    def get_by_natural_key(self, household_identifier, survey_name, subject_identifier_as_pk):
-        return self.get(
-            household_structure__household__household_identifier=household_identifier,
-            registered_subject__subject_identifier_as_pk=subject_identifier_as_pk)
-
-
-class HouseholdMember(BaseUuidModel):
+class HouseholdMember(SubjectIdentifierModelMixin, UpdatesOrCreatesRegistrationModelMixin, BaseUuidModel):
     """A model completed by the user to represent an enumerated household member."""
 
     household_structure = models.ForeignKey(HouseholdStructure)
-
-    registered_subject = models.ForeignKey(RegisteredSubject, editable=False)
 
     first_name = FirstnameField(
         verbose_name='First name',
@@ -259,7 +245,7 @@ class HouseholdMember(BaseUuidModel):
         choices=DETAILS_CHANGE_REASON,
         help_text=('if personal detail changed choice a reason above.'))
 
-    objects = HouseholdMemberManager()
+    # objects = HouseholdMemberManager()
 
     history = HistoricalRecords()
 
@@ -342,30 +328,30 @@ class HouseholdMember(BaseUuidModel):
 
     @property
     def clear_death_flags(self):
-        from ..models import SubjectDeath
+        from ..models import DeceasedMember
         self.survival_status = ALIVE
         try:
-            SubjectDeath.objects.get(household_member=self).delete()
-        except SubjectDeath.DoesNotExist:
+            DeceasedMember.objects.get(household_member=self).delete()
+        except DeceasedMember.DoesNotExist:
             pass
 
     @property
     def clear_refusal(self):
-        from ..models import SubjectRefusal
+        from ..models import RefusedMember
         self.refused = False
         try:
-            SubjectRefusal.objects.get(household_member=self).delete()
-        except SubjectRefusal.DoesNotExist:
+            RefusedMember.objects.get(household_member=self).delete()
+        except RefusedMember.DoesNotExist:
             pass
 
     @property
     def clear_htc(self):
-        from ..models import SubjectHtc
+        from ..models import HtcMember
         self.htc = False
         self.eligible_htc = False
         try:
-            SubjectHtc.objects.get(household_member=self).delete()
-        except SubjectHtc.DoesNotExist:
+            HtcMember.objects.get(household_member=self).delete()
+        except HtcMember.DoesNotExist:
             pass
 
     @property
@@ -450,7 +436,7 @@ class HouseholdMember(BaseUuidModel):
     @property
     def enrollment_checklist(self):
         """Returns the enrollment checklist instance or None."""
-        EnrollmentChecklist = django_apps.get_model('bcpp_household_member', 'EnrollmentChecklist')
+        EnrollmentChecklist = django_apps.get_model('member', 'EnrollmentChecklist')
         try:
             enrollment_checklist = EnrollmentChecklist.objects.get(household_member=self)
         except EnrollmentChecklist.DoesNotExist:
@@ -458,14 +444,14 @@ class HouseholdMember(BaseUuidModel):
         return enrollment_checklist
 
     @property
-    def subject_htc(self):
-        """Returns the SubjectHtc instance or None."""
-        SubjectHtc = django_apps.get_model('bcpp_household_member', 'SubjectHtc')
+    def htc_member(self):
+        """Returns the HtcMember instance or None."""
+        HtcMember = django_apps.get_model('member', 'HtcMember')
         try:
-            subject_htc = SubjectHtc.objects.get(household_member=self)
-        except SubjectHtc.DoesNotExist:
-            subject_htc = None
-        return subject_htc
+            htc_member = HtcMember.objects.get(household_member=self)
+        except HtcMember.DoesNotExist:
+            htc_member = None
+        return htc_member
 
     @property
     def bypass_household_log(self):
@@ -484,10 +470,6 @@ class HouseholdMember(BaseUuidModel):
                 'part_time_resident': self.study_resident}
 
     @property
-    def survey(self):
-        return self.household_structure.survey
-
-    @property
     def is_minor(self):
         return (self.age_in_years >= 16 and self.age_in_years <= 17)
 
@@ -500,19 +482,14 @@ class HouseholdMember(BaseUuidModel):
         """Returns True if subject has participated by accepting HTC only."""
         pass
 
-    def dispatch_container_lookup(self, using=None):
-        return (Plot, 'household_structure__household__plot__plot_identifier')
-
-    def update_hiv_history_on_pre_save(self, using, **kwargs):
-        """Updates from lab_tracker."""
-        self.hiv_history = self.get_hiv_history()
-
-    def update_plot_on_post_save(self, household_member, members):
-        """Updates from householdmember."""
+    def update_plot_on_post_save(self):
+        """Updates plot member count from householdmember."""
+        members = HouseholdMember.objects.filter(
+            household_structure__household__plot=self.household_structure.household.plot).count()
         try:
-            plot = household_member.household_structure.household.plot
+            plot = self.household_structure.household.plot
             plot.eligible_members = members
-            plot.save()
+            plot.save()  # TODO: may want to use update_fields
         except Plot.DoesNotExist:
             pass
 
@@ -525,53 +502,15 @@ class HouseholdMember(BaseUuidModel):
             [household_member for household_member in household_members if household_member.is_consented])
         self.household_structure.save(using=using)
 
-    def update_registered_subject_on_post_save(self, using, **kwargs):
-        if not self.internal_identifier:
-            self.internal_identifier = self.id
-            # decide now, either access an existing registered_subject or create a new one
-            try:
-                registered_subject = RegisteredSubject.objects.using(using).get(
-                    registration_identifier=self.internal_identifier)
-            except RegisteredSubject.DoesNotExist:
-                # define registered_subject now as the audit trail requires access
-                # to the registered_subject object even if no subject_identifier
-                # exists. That is, it is going to call get_subject_identifier().
-                registered_subject = RegisteredSubject.objects.using(using).create(
-                    created=self.created,
-                    first_name=self.first_name,
-                    initials=self.initials,
-                    gender=self.gender,
-                    subject_type='subject',
-                    registration_identifier=self.internal_identifier,
-                    registration_datetime=self.created,
-                    user_created=self.user_created,
-                    registration_status='member',
-                    subject_identifier_as_pk=str(uuid.uuid4()),
-                    additional_key=self.additional_key)
-            # set registered_subject for this hsm
-            self.registered_subject = registered_subject
-            self.save(using=using)
-
-    def delete_subject_death_on_post_save(self):
+    def delete_deceased_member_on_post_save(self):
         """Deletes the death form if it exists when survival status
         changes from Dead to Alive """
         if self.survival_status == ALIVE:
-            SubjectDeath = django_apps.get_model('bcpp_household_member', 'SubjectDeath')
+            DeceasedMember = django_apps.get_model('member', 'DeceasedMember')
             try:
-                SubjectDeath.objects.get(registered_subject=self.registered_subject).delete()
-            except SubjectDeath.DoesNotExist:
+                DeceasedMember.objects.get(registered_subject=self.registered_subject).delete()
+            except DeceasedMember.DoesNotExist:
                 pass
-
-    def get_registered_subject(self):
-        return self.registered_subject
-
-    @property
-    def is_moved(self):
-        from ..models import SubjectMoved
-        retval = False
-        if SubjectMoved.objects.filter(household_member=self, survey=self.survey):
-            retval = True
-        return retval
 
     @property
     def member_status_choices(self):
@@ -612,215 +551,6 @@ class HouseholdMember(BaseUuidModel):
             show = True
         return show
 
-    def _get_form_url(self, model, model_pk=None, add_url=None):
-        # SubjectAbsentee would be called with model_pk=None
-        # whereas SubjectAbsenteeEntry would be called with model_pk=UUID
-        url = ''
-        app_label = 'bcpp_household_member'
-        if add_url:
-            url = reverse('admin:{0}_{1}_add'.format(app_label, model))
-            return url
-        elif not model_pk:
-            model_class = django_apps.get_model(app_label, model)
-            try:
-                instance = model_class.objects.get(household_member=self)
-                model_pk = instance.id
-            except model_class.DoesNotExist:
-                model_pk = None
-        if model_pk:
-            url = reverse('admin:{0}_{1}_change'.format(app_label, model), args=(model_pk, ))
-        else:
-            url = reverse('admin:{0}_{1}_add'.format(app_label, model))
-        return url
-
-    def render_absentee_info(self):
-        """Renders the absentee information for the template."""
-        from ..models import SubjectAbsenteeEntry
-        render = ['<A href="{0}">add another absentee log entry</A>']
-        for subject_absentee_entry, index in enumerate(SubjectAbsenteeEntry(
-                subject_absentee=self.subject_absentee_instance)):
-            url = reverse('admin:bcpp_subject_subjectabsenteeenty_change')
-            render.update('<A href="{0}">{1}</A>'.format(url, subject_absentee_entry))
-        if index < 3:  # not allowed more than three subject absentee entries
-            url = reverse('admin:bcpp_subject_subjectabsenteeenty_add')
-            render.append('<A href="{0}">add another absentee log entry</A>').format(url)
-
-    @property
-    def absentee_form_url(self):
-        """Returns a url to the subjectabsentee if an instance exists."""
-        return self._get_form_url('subjectabsentee')
-
-    @property
-    def subject_absentee_instance(self):
-        """Returns the subject absentee instance for this member
-        and creates a subject_absentee_instance if it does not exist."""
-        SubjectAbsentee = django_apps.get_model('bcpp_household_member', 'subjectabsentee')
-        try:
-            subject_absentee = SubjectAbsentee.objects.get(household_member__pk=self.pk)
-        except SubjectAbsentee.DoesNotExist:
-            subject_absentee = ''
-        return subject_absentee
-
-    @property
-    def subject_undecided_instance(self):
-        """Returns the subject undecided instance for this member
-        and creates a subject_undecided_instance if it does not exist."""
-        SubjectUndecided = django_apps.get_model('bcpp_household_member', 'subjectundecided')
-        try:
-            subject_undecided = SubjectUndecided.objects.get(household_member__pk=self.pk)
-        except SubjectUndecided.DoesNotExist:
-            subject_undecided = ''
-        return subject_undecided
-
-    @property
-    def absentee_entry_form_urls(self):
-        """Returns a url or urls to the subjectabsenteeentry(s) if an instance(s) exists.
-
-        Urls are used on the Household Composition dashboard to allow edits of existing
-        instances and an option to add one more.
-
-        Format is {pk: }"""
-        urls = {}
-        app_label = 'bcpp_household_member'
-        model = 'subjectabsenteeentry'
-        SubjectAbsentee = django_apps.get_model(app_label, 'subjectabsentee')
-        SubjectAbsenteeEntry = django_apps.get_model(app_label, model)
-        try:
-            subject_absentee = SubjectAbsentee.objects.get(household_member=self)
-            for subject_absentee_entry in SubjectAbsenteeEntry.objects.filter(
-                    subject_absentee=subject_absentee).order_by('report_datetime'):
-                # add url for each existing instance
-                urls[subject_absentee_entry.pk] = reverse(
-                    'admin:{0}_{1}_change'.format(app_label, model),
-                    args=(subject_absentee_entry.pk, ))
-            # always add an extra add url
-            urls['add new entry'] = reverse('admin:{0}_{1}_add'.format(app_label, model))
-        except SubjectAbsentee.DoesNotExist:
-            pass
-        return urls
-
-    @property
-    def undecided_entry_form_urls(self):
-        """Returns a url or urls to the subject_undecided_entry(s) if an instance(s) exists.
-
-        Urls are used on the Household Composition dashboard to allow edits of existing
-        instances and an option to add one more.
-
-        Format is {pk: }"""
-        urls = {}
-        app_label = 'bcpp_household_member'
-        model = 'subjectundecidedentry'
-        SubjectUndecided = django_apps.get_model(app_label, 'subjectundecided')
-        SubjectUndecidedEntry = django_apps.get_model(app_label, model)
-        try:
-            subject_undecided = SubjectUndecided.objects.get(household_member=self)
-            for subject_undecided_entry in SubjectUndecidedEntry.objects.filter(
-                    subject_undecided=subject_undecided).order_by('report_datetime'):
-                # add url for each existing instance
-                urls[subject_undecided_entry.pk] = reverse(
-                    'admin:{0}_{1}_change'.format(app_label, model),
-                    args=(subject_undecided_entry.pk, ))
-            # always add an extra add url
-            urls['add new entry'] = reverse('admin:{0}_{1}_add'.format(app_label, model))
-        except SubjectUndecided.DoesNotExist:
-            pass
-        return urls
-
-    def absentee_form_label(self):
-        SubjectAbsentee = django_apps.get_model('bcpp_household_member', 'subjectabsentee')
-        SubjectAbsenteeEntry = django_apps.get_model('bcpp_household_member', 'subjectabsenteeentry')
-        return self.form_label_helper(SubjectAbsentee, SubjectAbsenteeEntry)
-    absentee_form_label.allow_tags = True
-
-    def undecided_form_label(self):
-        SubjectUndecided = django_apps.get_model('bcpp_household_member', 'subjectundecided')
-        SubjectUndecidedEntry = django_apps.get_model('bcpp_household_member', 'subjectundecidedentry')
-        return self.form_label_helper(SubjectUndecided, SubjectUndecidedEntry)
-    undecided_form_label.allow_tags = True
-
-    def form_label_helper(self, model, model_entry):
-        report_datetime = []
-        model_entry_instances = []
-        if model.objects.filter(household_member=self).exists():
-            model_instance = model.objects.get(household_member=self)
-            if model._meta.module_name == 'subjectundecided':
-                model_entry_instances = model_entry.objects.filter(
-                    subject_undecided=model_instance).order_by('report_datetime')
-            elif model._meta.module_name == 'subjectabsentee':
-                model_entry_instances = model_entry.objects.filter(
-                    subject_absentee=model_instance).order_by('report_datetime')
-            for subject_undecided_entry in model_entry_instances:
-                report_datetime.append((subject_undecided_entry.report_datetime.strftime('%Y-%m-%d'),
-                                        subject_undecided_entry.id))
-            if self.visit_attempts < 3:
-                report_datetime.append(('add new entry', 'add new entry'))
-        if not report_datetime:
-            report_datetime.append(('add new entry', 'add new entry'))
-        return report_datetime
-
-    @property
-    def refused_form_url(self):
-        return self._get_form_url('subjectrefusal')
-
-    @property
-    def death_form_url(self):
-        url = self._get_form_url('subjectdeath')
-        return url
-
-    @property
-    def moved_form_url(self):
-        return self._get_form_url('subjectmoved')
-
-    def get_form_label(self, model_name):
-        model = django_apps.get_model('bcpp_household_member', model_name)
-        if model.objects.filter(household_member=self):
-            return model.objects.get(household_member=self)
-        else:
-            return 'Add "{0}" report'.format(model_name)
-
-    def refused_form_label(self):
-        return self.get_form_label('SubjectRefusal')
-    refused_form_label.allow_tags = True
-
-    def death_form_label(self):
-        return self.get_form_label('SubjectDeath')
-    refused_form_label.allow_tags = True
-
-    def moved_form_label(self):
-        return self.get_form_label('SubjectMoved')
-    moved_form_label.allow_tags = True
-
-    def to_locator(self):
-        retval = ''
-        if self.registered_subject:
-            if self.registered_subject.subject_identifier:
-                url = reverse('admin:bcpp_subject_subjectlocator_changelist')
-                retval = '<a href="{0}?q={1}">locator</A>'.format(
-                    url, self.registered_subject.subject_identifier)
-        return retval
-    to_locator.allow_tags = True
-
-    def get_subject_identifier(self):
-        """ Uses the hsm internal_identifier to locate the subject identifier in
-        registered_subject OR return the hsm.id"""
-        try:
-            registered_subject = RegisteredSubject.objects.get(
-                registration_identifier=self.internal_identifier)
-            subject_identifier = registered_subject.subject_identifier
-            if not subject_identifier:
-                subject_identifier = registered_subject.registration_identifier
-        except RegisteredSubject.DoesNotExist:
-            # this should not be an option as all hsm's have a registered_subject instance
-            subject_identifier = self.id
-        return subject_identifier
-
-    @property
-    def consents(self):
-        """ Returns the subject_consent instance or None."""
-        SubjectConsent = django_apps.get_model('bcpp_subject', 'subjectconsent')
-        return SubjectConsent.objects.filter(
-            household_member__internal_identifier=self.internal_identifier)
-
     @property
     def is_bhs(self):
         """Returns True if the member was survey as part of the BHS."""
@@ -828,15 +558,6 @@ class HouseholdMember(BaseUuidModel):
         clinic_plot_identifier = site_mappers.get_mapper(site_mappers.current_map_area).clinic_plot.plot_identifier
         is_bhs = plot_identifier != clinic_plot_identifier
         return is_bhs
-
-    def updated(self):
-        if self.auto_filled:
-            if self.updated_after_auto_filled:
-                return '<img src="/static/admin/img/icon-yes.gif" alt="True" />'
-            else:
-                return '<img src="/static/admin/img/icon-no.gif" alt="False" />'
-        return ' '
-    updated.allow_tags = True
 
     def is_the_household_member_for_current_survey(self):
         """ This traps that a household member is not created for an incorrect survey setting. Edit is OK."""

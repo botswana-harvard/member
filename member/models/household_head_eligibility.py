@@ -19,10 +19,6 @@ class HouseholdHeadEligibility(RepresentativeEligibilityMixin, HouseholdMemberMo
         return str(self.household_member)
 
     def natural_key(self):
-        if not self.household_member:
-            raise AttributeError("household_member cannot be None for "
-                                 "household_head_eligibility "
-                                 "with pk='\{0}\'".format(self.pk))
         return self.household_member.natural_key()
     natural_key.dependencies = ['member.household_member']
 

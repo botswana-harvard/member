@@ -5,16 +5,14 @@ from edc_base.model.models import HistoricalRecords, BaseUuidModel
 from edc_base.model.validators import date_not_future
 from edc_constants.choices import DEATH_RELATIONSIP_TO_STUDY
 
-from .model_mixins import HouseholdMemberManager
+from .model_mixins import HouseholdMemberModelMixin
 
 
-class SubjectDeath(BaseUuidModel):
+class DeceasedMember(HouseholdMemberModelMixin, BaseUuidModel):
 
-    """A model completed by the user to report the death of a participant."""
+    """A model completed by the user to report the death of a member."""
 
-    subject_identifier = models.CharField(
-        verbose_name="Subject Identifier",
-        max_length=50)
+    # TODO: was this a subject form???
 
     death_date = models.DateField(
         verbose_name="Date of Death:",
@@ -65,11 +63,11 @@ class SubjectDeath(BaseUuidModel):
         help_text="",
     )
 
-    objects = models.Manager()
+    # objects = models.Manager()
 
     history = HistoricalRecords()
 
     class Meta:
-        app_label = "bcpp_household_member"
-        verbose_name = "Subject Death"
-        verbose_name_plural = "Subject Death"
+        app_label = "member"
+        verbose_name = "Deceased Member"
+        verbose_name_plural = "Deceased Members"

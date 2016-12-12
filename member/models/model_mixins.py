@@ -4,10 +4,13 @@ from django_crypto_fields.fields import EncryptedCharField, EncryptedTextField
 
 from edc_base.model.fields import OtherCharField
 from edc_base.model.validators import datetime_not_future
-from edc_base.model.validators import eligible_if_yes
+from edc_base.model.validators import eligible_if_yes, date_not_future
 from edc_constants.choices import YES_NO
 
 from household.choices import NEXT_APPOINTMENT_SOURCE
+
+from ..choices import REASONS_REFUSED
+from ..constants import REFUSED
 
 from .household_member import HouseholdMember
 
@@ -36,7 +39,7 @@ class HouseholdMemberModelMixin(models.Model):
         ordering = ['-report_datetime']
 
 
-class SubjectEntryMixin(models.Model):
+class MemberEntryMixin(models.Model):
     """For absentee and undecided log models."""
 
     reason_other = OtherCharField()
@@ -96,6 +99,46 @@ class RepresentativeEligibilityMixin(models.Model):
         validators=[eligible_if_yes],
         help_text="If 'NO' respondent cannot serve as Household Head/Representative.",
     )
+
+    class Meta:
+        abstract = True
+
+
+class RefusedMemberMixin(models.Model):
+    """A model completed by the user that captures reasons for a
+    potentially eligible household member refusing participating in BHS."""
+    refusal_date = models.DateField(
+        verbose_name="Date subject refused participation",
+        validators=[date_not_future],
+        help_text="Date format is YYYY-MM-DD")
+
+    reason = models.CharField(
+        verbose_name="We respect your decision to decline. It would help us"
+                     " improve the study if you could tell us the main reason"
+                     " you do not want to participate in this study?",
+        max_length=50,
+        choices=REASONS_REFUSED,
+        help_text="")
+
+    reason_other = OtherCharField()
+
+    refused_member_status = models.CharField(
+        verbose_name="Refusal status",
+        max_length=100,
+        help_text="Change the refusal status from 'refused' to 'no longer refusing' if and"
+                  " when the subject changes their mind",
+        default=REFUSED,
+        editable=False)
+
+    comment = models.CharField(
+        verbose_name="Comment",
+        max_length=250,
+        null=True,
+        blank=True,
+        help_text='IMPORTANT: Do not include any names or other personally identifying '
+                  'information in this comment')
+
+    # objects = HouseholdMemberManager()
 
     class Meta:
         abstract = True

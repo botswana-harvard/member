@@ -8,7 +8,7 @@ from bcpp_list.models import ElectricalAppliances, TransportMode
 from bcpp_subject.choices import (
     FLOORING_TYPE, WATER_SOURCE, ENERGY_SOURCE, TOILET_FACILITY, SMALLER_MEALS)
 
-from .model_mixins import HouseholdMemberModelMixin, HouseholdMemberManager
+from .model_mixins import HouseholdMemberModelMixin
 
 
 class HouseholdInfo(HouseholdMemberModelMixin, BaseUuidModel):
@@ -111,18 +111,12 @@ class HouseholdInfo(HouseholdMemberModelMixin, BaseUuidModel):
         choices=SMALLER_MEALS,
         help_text="")
 
-    objects = HouseholdMemberManager()
+    # objects = HouseholdMemberManager()
 
     history = HistoricalRecords()
 
     def save(self, *args, **kwargs):
-        self.registered_subject = self.household_member.registered_subject
         self.verified_household_head(self.household_member)
-        try:
-            update_fields = kwargs.get('update_fields') + ['registered_subject', ]
-            kwargs.update({'update_fields': update_fields})
-        except TypeError:
-            pass
         super(HouseholdInfo, self).save(*args, **kwargs)
 
     def verified_household_head(self, household_member, exception_cls=None):
@@ -136,4 +130,4 @@ class HouseholdInfo(HouseholdMemberModelMixin, BaseUuidModel):
         return error_msg
 
     class Meta(HouseholdMemberModelMixin.Meta):
-        app_label = 'bcpp_household_member'
+        app_label = 'member'

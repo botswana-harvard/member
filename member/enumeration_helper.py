@@ -43,7 +43,7 @@ class EnumerationHelper(object):
 
         The source HouseholdStructure must be enrolled into BHS and the target household structure
         cannot be enumerated. """
-        HouseholdMember = models.get_model('bcpp_household_member', 'HouseholdMember')
+        HouseholdMember = models.get_model('member', 'HouseholdMember')
         created = 0
         if self.consented_member:
             self.representative_eligibility.auto_fill_member_id = self._consented_member.pk
@@ -78,7 +78,7 @@ class EnumerationHelper(object):
         If no one consented, e.g. the household_structure was not enrolled, self._consented_member
         is set to None"""
         if not self._consented_member:
-            HouseholdMember = models.get_model('bcpp_household_member', 'HouseholdMember')
+            HouseholdMember = models.get_model('member', 'HouseholdMember')
             SubjectConsent = models.get_model('bcpp_subject', 'SubjectConsent')
             for household_member in HouseholdMember.objects.filter(household_structure=self.source_household_structure):
                 member_consents = SubjectConsent.objects.filter(
@@ -142,7 +142,7 @@ class EnumerationHelper(object):
         If 'representative eligibility' does not exist, the household member
         will not be created.
         """
-        HouseholdMember = models.get_model('bcpp_household_member', 'HouseholdMember')
+        HouseholdMember = models.get_model('member', 'HouseholdMember')
         SubjectConsent = models.get_model('bcpp_subject', 'SubjectConsent')
         new_household_member = None
         # Get the latest consent.
