@@ -2,6 +2,7 @@
 .pydevproject
 .settings/
 db.sqlite*
+member/migrations/*
 test-*
 # Byte-compiled / optimized / DLL files
 __pycache__/
