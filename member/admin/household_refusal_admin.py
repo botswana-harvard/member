@@ -1,13 +1,13 @@
 from django.contrib import admin
 
-from ..admin_site import bcpp_household_admin
+from ..admin_site import member_admin
 from ..forms import HouseholdRefusalForm
 from ..models import HouseholdRefusal
 
 from .modeladmin_mixins import ModelAdminMixin
 
 
-@admin.register(HouseholdRefusal, site=bcpp_household_admin)
+@admin.register(HouseholdRefusal, site=member_admin)
 class HouseholdRefusalAdmin(ModelAdminMixin):
 
     form = HouseholdRefusalForm

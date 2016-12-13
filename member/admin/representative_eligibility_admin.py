@@ -1,13 +1,13 @@
 from django.contrib import admin
 
-from ..admin_site import bcpp_household_admin
+from ..admin_site import member_admin
 from ..forms import RepresentativeEligibilityForm
 from ..models import RepresentativeEligibility
 
 from .modeladmin_mixins import ModelAdminMixin
 
 
-@admin.register(RepresentativeEligibility, site=bcpp_household_admin)
+@admin.register(RepresentativeEligibility, site=member_admin)
 class RepresentativeEligibilityAdmin(ModelAdminMixin):
 
     form = RepresentativeEligibilityForm

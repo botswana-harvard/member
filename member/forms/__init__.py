@@ -1,14 +1,14 @@
-from .base_membership_form import BaseMembershipForm
+from .absent_member_form import AbsentMemberEntryForm, AbsentMemberForm
+from .deceased_member_form import DeceasedMemberForm
 from .enrollment_checklist_form import EnrollmentChecklistForm
 from .enrollment_loss_form import EnrollmentLossForm
 from .household_head_eligibility_form import HouseholdHeadEligibilityForm
 from .household_info_form import HouseholdInfoForm
 from .household_member_form import HouseholdMemberForm
-from .member_appointment_form import MemberAppointmentForm
-from .participation_form import ParticipationForm
-from .absent_member_form import AbsentMemberEntryForm, AbsentMemberForm
 from .htc_member_form import HtcMemberForm
+from .member_appointment_form import MemberAppointmentForm
 from .moved_member_form import MovedMemberForm
+from .participation_form import ParticipationForm
 from .refused_member_form import RefusedMemberForm
+from .representative_eligibility_form import RepresentativeEligibilityForm
 from .undecided_member_form import UndecidedMemberEntryForm, UndecidedMemberForm
-from .deceased_member_form import DeceasedMemberForm

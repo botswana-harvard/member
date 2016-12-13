@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from ..admin_site import bcpp_household_admin
+from ..admin_site import member_admin
 from ..actions import export_as_kml_hs
 from ..forms import HouseholdStructureForm
 from ..models import HouseholdStructure, Plot
@@ -8,7 +8,7 @@ from ..models import HouseholdStructure, Plot
 from .modeladmin_mixins import ModelAdminMixin
 
 
-@admin.register(HouseholdStructure, site=bcpp_household_admin)
+@admin.register(HouseholdStructure, site=member_admin)
 class HouseholdStructureAdmin(ModelAdminMixin):
 
     actions = [export_as_kml_hs]

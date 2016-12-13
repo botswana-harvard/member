@@ -1,4 +1,3 @@
-from .gps_device_admin import GpsDeviceAdmin
 from .household_admin import HouseholdAdmin
 from .household_work_list_admin import HouseholdWorkListAdmin
 from .household_assessment_admin import HouseholdAssessmentAdmin

@@ -1,14 +1,14 @@
 from django.contrib import admin
 
 from ..actions import process_dispatch_available_plots
-from ..admin_site import bcpp_household_admin
+from ..admin_site import member_admin
 from ..forms import PlotForm
 from ..models import Plot
 
 from .modeladmin_mixins import ModelAdminMixin
 
 
-@admin.register(Plot, site=bcpp_household_admin)
+@admin.register(Plot, site=member_admin)
 class PlotAdmin(ModelAdminMixin):
 
     form = PlotForm

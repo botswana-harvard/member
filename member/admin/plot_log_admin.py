@@ -2,14 +2,14 @@ from django.contrib import admin
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 
-from ..admin_site import bcpp_household_admin
+from ..admin_site import member_admin
 from ..models import PlotLogEntry, PlotLog
 from ..forms import PlotLogForm, PlotLogEntryForm
 
 from .modeladmin_mixins import ModelAdminMixin
 
 
-@admin.register(PlotLogEntry, site=bcpp_household_admin)
+@admin.register(PlotLogEntry, site=member_admin)
 class PlotLogEntryAdmin(ModelAdminMixin):
     form = PlotLogEntryForm
     date_hierarchy = 'modified'
@@ -87,7 +87,7 @@ class PlotLogEntryInline(admin.TabularInline):
     max_num = 5
 
 
-@admin.register(PlotLog, site=bcpp_household_admin)
+@admin.register(PlotLog, site=member_admin)
 class PlotLogAdmin(ModelAdminMixin):
     form = PlotLogForm
     instructions = []

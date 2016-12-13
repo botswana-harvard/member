@@ -1,13 +1,13 @@
 from django.contrib import admin
 
-from ..admin_site import bcpp_household_admin
+from ..admin_site import member_admin
 from ..forms import HouseholdLogForm, HouseholdLogEntryForm
 from ..models import HouseholdLogEntry, HouseholdLog
 
 from .modeladmin_mixins import ModelAdminMixin
 
 
-@admin.register(HouseholdLogEntry, site=bcpp_household_admin)
+@admin.register(HouseholdLogEntry, site=member_admin)
 class HouseholdLogEntryAdmin(ModelAdminMixin):
     form = HouseholdLogEntryForm
     date_hierarchy = 'modified'
@@ -41,7 +41,7 @@ class HouseholdLogEntryInline(admin.TabularInline):
     max_num = 5
 
 
-@admin.register(HouseholdLog, site=bcpp_household_admin)
+@admin.register(HouseholdLog, site=member_admin)
 class HouseholdLogAdmin(ModelAdminMixin):
     form = HouseholdLogForm
     instructions = []

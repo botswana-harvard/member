@@ -1,13 +1,11 @@
 from django import forms
+from django.forms.utils import ErrorList
 
 from edc_constants.constants import DEAD, NO, YES, FEMALE, MALE
 
-
 from ..choices import RELATIONS, FEMALE_RELATIONS, MALE_RELATIONS
-from ..models import HouseholdMember, EnrollmentChecklist
 from ..constants import HEAD_OF_HOUSEHOLD
-
-from django.forms.utils import ErrorList
+from ..models import HouseholdMember, EnrollmentChecklist
 
 
 class HouseholdMemberForm(forms.ModelForm):

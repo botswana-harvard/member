@@ -2,7 +2,7 @@ from django.db import models
 
 from edc_base.model.models import HistoricalRecords, BaseUuidModel
 
-from ..choices import UNDECIDED_REASON
+from ..choices import REASONS_UNDECIDED
 
 from .model_mixins import MemberEntryMixin
 from .undecided_member import UndecidedMember
@@ -16,7 +16,7 @@ class UndecidedMemberEntry(MemberEntryMixin, BaseUuidModel):
     undecided_member_reason = models.CharField(
         verbose_name="Reason",
         max_length=100,
-        choices=UNDECIDED_REASON)
+        choices=REASONS_UNDECIDED)
 
     # objects = UndecidedMemberEntryManager()
 
