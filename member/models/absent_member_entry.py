@@ -1,6 +1,8 @@
 from django.db import models
 
 from edc_base.model.models import HistoricalRecords, BaseUuidModel
+from edc_base.model.validators.date import datetime_not_future
+from edc_base.utils import get_utcnow
 
 from ..choices import REASONS_ABSENT
 
@@ -14,6 +16,11 @@ class AbsentMemberEntry(MemberEntryMixin, BaseUuidModel):
     is absent for each time the RA visits."""
 
     absent_member = models.ForeignKey(AbsentMember)
+
+    report_datetime = models.DateTimeField(
+        verbose_name="Report date",
+        default=get_utcnow,
+        validators=[datetime_not_future])
 
     reason = models.CharField(
         verbose_name="Reason?",
@@ -41,6 +48,6 @@ class AbsentMemberEntry(MemberEntryMixin, BaseUuidModel):
 
     class Meta:
         app_label = 'member'
-        verbose_name = "Absent Member Entry"
-        verbose_name_plural = "Absent Member Entries"
+        verbose_name = "Absent member entry"
+        verbose_name_plural = "Absent member entries"
         unique_together = ('absent_member', 'report_datetime')

@@ -10,7 +10,7 @@ class HouseholdMemberManager(BcppSubsetManagerMixin, models.Manager):
     def get_by_natural_key(self, household_identifier, survey_name, subject_identifier_as_pk):
         return self.get(
             household_member__household_structure__household__household_identifier=household_identifier,
-            household_member__registered_subject__subject_identifier_as_pk=subject_identifier_as_pk)
+            household_member__subject_identifier_as_pk=subject_identifier_as_pk)
 
 
 class RefusedMemberHistoryManager(BcppSubsetManagerMixin, models.Manager):
@@ -27,7 +27,7 @@ class UndecidedMemberEntryManager(BcppSubsetManagerMixin, models.Manager):
         return self.get(
             report_datetime=report_datetime,
             undecided_member__household_member__household_structure__household__household_identifier=household_identifier,
-            undecided_member__household_member__registered_subject__subject_identifier_as_pk=subject_identifier_as_pk)
+            undecided_member__household_member__subject_identifier_as_pk=subject_identifier_as_pk)
 
 
 class AbsentMemberEntryManager(BcppSubsetManagerMixin, models.Manager):
@@ -38,11 +38,10 @@ class AbsentMemberEntryManager(BcppSubsetManagerMixin, models.Manager):
         return self.get(
             report_datetime=report_datetime,
             absent_member__household_member__household_structure__household__household_identifier=household_identifier,
-            absent_member__household_member__registered_subject__subject_identifier_as_pk=subject_identifier_as_pk)
+            absent_member__household_member__subject_identifier_as_pk=subject_identifier_as_pk)
 
 
 class HtcMemberHistoryManager(HouseholdMemberManager, models.Manager):
 
     def get_by_natural_key(self, transaction):
         self.get(transaction=transaction)
-

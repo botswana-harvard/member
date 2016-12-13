@@ -4,10 +4,10 @@ from edc_constants.constants import YES, NO
 
 from ..models import MovedMember
 
-from .base_membership_form import BaseMembershipForm
+from .form_mixins import MemberFormMixin
 
 
-class MovedMemberForm(BaseMembershipForm):
+class MovedMemberForm(MemberFormMixin):
 
     def clean(self):
         cleaned_data = self.cleaned_data

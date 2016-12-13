@@ -17,5 +17,5 @@ class RefusedMemberHistory (HouseholdMemberModelMixin, RefusedMemberMixin, BaseU
 
     class Meta(HouseholdMemberModelMixin.Meta):
         app_label = "member"
-        verbose_name = "Refused Member History"
-        verbose_name_plural = "Refused Member History"
+        verbose_name = "Refused member history"
+        verbose_name_plural = "Refused member history"

@@ -13,6 +13,8 @@ from django_crypto_fields.mask_encrypted import mask_encrypted
 
 from edc_base.model.fields import OtherCharField
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
+from edc_base.model.validators.date import datetime_not_future
+from edc_base.utils import get_utcnow
 from edc_constants.choices import YES_NO, GENDER, YES_NO_DWTA, ALIVE_DEAD_UNKNOWN
 from edc_constants.constants import NOT_APPLICABLE, ALIVE, DEAD, YES, NO
 from edc_map.site_mappers import site_mappers
@@ -31,6 +33,11 @@ class HouseholdMember(SubjectIdentifierModelMixin, UpdatesOrCreatesRegistrationM
     """A model completed by the user to represent an enumerated household member."""
 
     household_structure = models.ForeignKey(HouseholdStructure)
+
+    report_datetime = models.DateTimeField(
+        verbose_name="Report date",
+        default=get_utcnow,
+        validators=[datetime_not_future])
 
     first_name = FirstnameField(
         verbose_name='First name',
@@ -296,7 +303,7 @@ class HouseholdMember(SubjectIdentifierModelMixin, UpdatesOrCreatesRegistrationM
         super(HouseholdMember, self).save(*args, **kwargs)
 
     def natural_key(self):
-        return self.household_structure.natural_key() + self.registered_subject.natural_key()
+        return self.household_structure.natural_key()
     natural_key.dependencies = ['bcpp_household.householdstructure', 'registration.registeredsubject']
 
     def update_member_status(self, selected_member_status, clear_enrollment_fields):
@@ -508,7 +515,7 @@ class HouseholdMember(SubjectIdentifierModelMixin, UpdatesOrCreatesRegistrationM
         if self.survival_status == ALIVE:
             DeceasedMember = django_apps.get_model('member', 'DeceasedMember')
             try:
-                DeceasedMember.objects.get(registered_subject=self.registered_subject).delete()
+                DeceasedMember.objects.get(subject_identifier=self.subject_identifier).delete()
             except DeceasedMember.DoesNotExist:
                 pass
 
@@ -568,9 +575,9 @@ class HouseholdMember(SubjectIdentifierModelMixin, UpdatesOrCreatesRegistrationM
                         Survey.objects.current_survey()))
 
     class Meta:
+        app_label = 'member'
         ordering = ['-created']
         unique_together = (
             ("household_structure", "first_name", "initials", "additional_key"),
-            ('registered_subject', 'household_structure'), )
-        app_label = 'member'
-        index_together = [['id', 'registered_subject', 'created'], ]
+            ('subject_identifier', 'household_structure'), )
+        index_together = [['id', 'subject_identifier', 'created'], ]

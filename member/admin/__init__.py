@@ -1,10 +1,17 @@
-from .household_admin import HouseholdAdmin
-from .household_work_list_admin import HouseholdWorkListAdmin
-from .household_assessment_admin import HouseholdAssessmentAdmin
-from .household_log_admin import HouseholdLogAdmin, HouseholdLogEntryAdmin
-from .household_refusal_admin import HouseholdRefusalAdmin
-from .household_structure_admin import HouseholdStructureAdmin
-from .increase_plot_radius_admin import IncreasePlotRadiusAdmin
-from .plot_admin import PlotAdmin
-from .plot_log_admin import PlotLogEntryAdmin, PlotLogAdmin
+from .absent_member_admin import AbsentMemberAdmin
+from .absent_member_entry_admin import AbsentMemberEntryAdmin
+from .deceased_member_admin import DeceasedMemberAdmin
+from .enrollment_checklist_admin import EnrollmentChecklistAdmin
+from .enrollment_loss_admin import EnrollmentLossAdmin
+from .household_head_eligibilty_admin import HouseholdHeadEligibilityAdmin
+from .household_member_admin import HouseholdMemberAdmin
+from .household_info_admin import HouseholdInfoAdmin
+from .htc_member_admin import HtcMemberAdmin
+from .htc_member_history_admin import HtcMemberHistoryAdmin
+from .member_appointment_admin import MemberAppointmentAdmin
+from .moved_member_admin import MovedMemberAdmin
+from .refused_member_admin import RefusedMemberAdmin
+from .refused_member_history_admin import RefusedMemberHistoryAdmin
 from .representative_eligibility_admin import RepresentativeEligibilityAdmin
+from .undecided_member_admin import UndecidedMemberAdmin
+from .undecided_member_entry_admin import UndecidedMemberEntryAdmin

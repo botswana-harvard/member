@@ -38,4 +38,6 @@ class HouseholdHeadEligibility(RepresentativeEligibilityMixin, HouseholdMemberMo
 
     class Meta:
         app_label = 'member'
-        unique_together = ('household_structure', 'aged_over_18', 'verbal_script')
+        unique_together = ('household_member', 'aged_over_18', 'verbal_script')
+        verbose_name = 'Head of household eligibility'
+        verbose_name_plural = 'Head of household eligibility'

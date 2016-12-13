@@ -29,3 +29,5 @@ class EnrollmentLoss(HouseholdMemberModelMixin, BaseUuidModel):
 
     class Meta(HouseholdMemberModelMixin.Meta):
         app_label = 'member'
+        verbose_name = 'Enrollment loss'
+        verbose_name_plural = 'Enrollment loss'

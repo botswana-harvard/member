@@ -1,9 +1,9 @@
 from ..models import AbsentMember, AbsentMemberEntry
 
-from .base_membership_form import BaseMembershipForm
+from .form_mixins import MemberFormMixin
 
 
-class AbsentMemberEntryForm(BaseMembershipForm):
+class AbsentMemberEntryForm(MemberFormMixin):
 
     household_member_fk = 'absent_member'
 
@@ -12,7 +12,7 @@ class AbsentMemberEntryForm(BaseMembershipForm):
         fields = '__all__'
 
 
-class AbsentMemberForm(BaseMembershipForm):
+class AbsentMemberForm(MemberFormMixin):
 
     class Meta:
         model = AbsentMember

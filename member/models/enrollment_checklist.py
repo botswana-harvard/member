@@ -221,5 +221,4 @@ class EnrollmentChecklist(HouseholdMemberModelMixin, BaseUuidModel):
 
     class Meta(HouseholdMemberModelMixin.Meta):
         app_label = "member"
-        verbose_name = "Enrollment Checklist"
         unique_together = (('household_member', 'report_datetime'), )

@@ -22,6 +22,7 @@ app_config = django_apps.get_app_config('edc_device')
 class HtcMember(HouseholdMemberModelMixin, BaseUuidModel):
     """A model completed by the user that captures HTC information for a household member
     not participating in BHS."""
+
     tracking_identifier = models.CharField(
         verbose_name="HTC tracking identifier",
         max_length=50,
@@ -92,5 +93,3 @@ class HtcMember(HouseholdMemberModelMixin, BaseUuidModel):
 
     class Meta(HouseholdMemberModelMixin.Meta):
         app_label = 'member'
-        verbose_name = "Htc Member"
-        verbose_name_plural = "Htc Member"

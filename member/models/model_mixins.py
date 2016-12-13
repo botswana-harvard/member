@@ -13,6 +13,7 @@ from ..choices import REASONS_REFUSED
 from ..constants import REFUSED
 
 from .household_member import HouseholdMember
+from edc_base.utils import get_utcnow
 
 
 class HouseholdMemberModelMixin(models.Model):
@@ -23,6 +24,7 @@ class HouseholdMemberModelMixin(models.Model):
 
     report_datetime = models.DateTimeField(
         verbose_name="Report date",
+        default=get_utcnow,
         validators=[datetime_not_future])
 
     # objects = HouseholdMemberManager()

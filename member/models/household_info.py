@@ -4,10 +4,10 @@ from django.db import models
 from edc_base.model.fields import OtherCharField
 from edc_base.model.models import HistoricalRecords, BaseUuidModel
 
-from bcpp_list.models import ElectricalAppliances, TransportMode
-from bcpp_subject.choices import (
+from ..choices import (
     FLOORING_TYPE, WATER_SOURCE, ENERGY_SOURCE, TOILET_FACILITY, SMALLER_MEALS)
 
+from .list_models import ElectricalAppliances, TransportMode
 from .model_mixins import HouseholdMemberModelMixin
 
 
@@ -131,3 +131,5 @@ class HouseholdInfo(HouseholdMemberModelMixin, BaseUuidModel):
 
     class Meta(HouseholdMemberModelMixin.Meta):
         app_label = 'member'
+        verbose_name = 'Household economic status'
+        verbose_name_plural = 'Household economic status'

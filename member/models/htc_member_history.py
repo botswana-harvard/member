@@ -1,6 +1,7 @@
 from django.db import models
 
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
+from edc_base.model.validators.date import datetime_not_future
 from edc_base.utils import get_utcnow
 from edc_constants.choices import YES_NO
 
@@ -18,7 +19,8 @@ class HtcMemberHistory(BaseUuidModel):
 
     report_datetime = models.DateTimeField(
         verbose_name="Report date",
-        default=get_utcnow)
+        default=get_utcnow,
+        validators=[datetime_not_future])
 
     survey = models.ForeignKey(Survey, editable=False)
 
@@ -70,4 +72,5 @@ class HtcMemberHistory(BaseUuidModel):
 
     class Meta:
         app_label = 'member'
-        verbose_name = 'Htc Member History'
+        verbose_name = 'Htc member history'
+        verbose_name_plural = 'Htc member history'

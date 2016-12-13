@@ -204,17 +204,6 @@ def undecided_member_entry_on_post_save(sender, instance, raw, created, using, *
                     using=using, update_fields=['visit_attempts'])
 
 
-@receiver(post_save, weak=False, dispatch_uid='base_household_member_consent_on_post_save')
-def base_household_member_consent_on_post_save(sender, instance, raw, created, using, **kwargs):
-    """Confirms registered subject info for all child models
-    of this base class."""
-    if not raw:
-        try:
-            instance.confirm_registered_subject_pk_on_post_save(using)
-        except AttributeError:
-            pass
-
-
 @receiver(post_save, weak=False, dispatch_uid='htc_member_on_post_save')
 def htc_member_on_post_save(sender, instance, raw, created, using, **kwargs):
     """Updates household member to reflect the htc status."""

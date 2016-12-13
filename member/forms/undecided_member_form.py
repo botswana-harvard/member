@@ -1,9 +1,9 @@
 from ..models import UndecidedMember, UndecidedMemberEntry
 
-from .base_membership_form import BaseMembershipForm
+from .form_mixins import MemberFormMixin
 
 
-class UndecidedMemberEntryForm(BaseMembershipForm):
+class UndecidedMemberEntryForm(MemberFormMixin):
 
     household_member_fk = 'undecided_member'
 
@@ -12,7 +12,7 @@ class UndecidedMemberEntryForm(BaseMembershipForm):
         fields = '__all__'
 
 
-class UndecidedMemberForm(BaseMembershipForm):
+class UndecidedMemberForm(MemberFormMixin):
 
     class Meta:
         model = UndecidedMember

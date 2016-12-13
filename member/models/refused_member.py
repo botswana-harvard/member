@@ -14,5 +14,3 @@ class RefusedMember (HouseholdMemberModelMixin, RefusedMemberMixin, BaseUuidMode
 
     class Meta(HouseholdMemberModelMixin.Meta):
         app_label = "member"
-        verbose_name = "Refused Member"
-        verbose_name_plural = "Refused Member"

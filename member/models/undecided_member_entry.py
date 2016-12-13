@@ -1,6 +1,7 @@
 from django.db import models
 
 from edc_base.model.models import HistoricalRecords, BaseUuidModel
+from edc_base.model.validators.date import datetime_not_future
 
 from ..choices import REASONS_UNDECIDED
 
@@ -13,7 +14,11 @@ class UndecidedMemberEntry(MemberEntryMixin, BaseUuidModel):
     of a household member potentially eligible for BHS."""
     undecided_member = models.ForeignKey(UndecidedMember)
 
-    undecided_member_reason = models.CharField(
+    report_datetime = models.DateTimeField(
+        verbose_name="Report date",
+        validators=[datetime_not_future])
+
+    reason = models.CharField(
         verbose_name="Reason",
         max_length=100,
         choices=REASONS_UNDECIDED)
@@ -28,6 +33,6 @@ class UndecidedMemberEntry(MemberEntryMixin, BaseUuidModel):
 
     class Meta:
         app_label = 'member'
-        verbose_name = "Undecided Member Entry"
-        verbose_name_plural = "Undecided Member Entries"
+        verbose_name = "Undecided member entry"
+        verbose_name_plural = "Undecided member entries"
         unique_together = ('undecided_member', 'report_datetime')

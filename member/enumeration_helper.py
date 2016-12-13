@@ -154,7 +154,6 @@ class EnumerationHelper(object):
             age_in_years = source_household_member.age_in_years + 1
         options = dict(
             household_structure=self.target_household_structure,
-            registered_subject=source_household_member.registered_subject,
             first_name=source_household_member.first_name,
             initials=source_household_member.initials,
             age_in_years=age_in_years,  # incremented by 1 or based on consent.dob

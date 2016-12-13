@@ -60,5 +60,3 @@ class MovedMember(HouseholdMemberModelMixin, BaseUuidModel):
 
     class Meta(HouseholdMemberModelMixin.Meta):
         app_label = 'member'
-        verbose_name = "Moved Member"
-        verbose_name_plural = "Moved Member"

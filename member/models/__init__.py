@@ -16,3 +16,4 @@ from .representative_eligibility import RepresentativeEligibility
 from .undecided_member import UndecidedMember
 from .undecided_member_entry import UndecidedMemberEntry
 from .undecided_member_history import UndecidedMemberHistory
+from .list_models import TransportMode, ElectricalAppliances

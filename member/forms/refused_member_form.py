@@ -1,9 +1,9 @@
 from ..models import RefusedMember
 
-from .base_membership_form import BaseMembershipForm
+from .form_mixins import MemberFormMixin
 
 
-class RefusedMemberForm(BaseMembershipForm):
+class RefusedMemberForm(MemberFormMixin):
 
     class Meta:
         model = RefusedMember

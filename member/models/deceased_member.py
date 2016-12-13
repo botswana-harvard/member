@@ -1,6 +1,5 @@
 from django.db import models
 
-from edc_base.model.fields import OtherCharField
 from edc_base.model.models import HistoricalRecords, BaseUuidModel
 from edc_base.model.validators import date_not_future
 from edc_constants.choices import DEATH_RELATIONSIP_TO_STUDY
@@ -28,12 +27,6 @@ class DeceasedMember(HouseholdMemberModelMixin, BaseUuidModel):
         help_text="",
     )
 
-    death_cause_info_other = OtherCharField(
-        verbose_name="if other specify...",
-        blank=True,
-        null=True,
-    )
-
     death_cause = models.TextField(
         max_length=1000,
         blank=True,
@@ -42,12 +35,6 @@ class DeceasedMember(HouseholdMemberModelMixin, BaseUuidModel):
         "starting with the first noticeable illness thought to be related to death,continuing to time of death. ",
         help_text="Note: Cardiac and pulmonary arrest are not major reasons and should not be used to describe"
         " major cause)"
-    )
-
-    death_cause_other = OtherCharField(
-        verbose_name="if other specify...",
-        blank=True,
-        null=True,
     )
 
     duration_of_illness = models.IntegerField(
@@ -69,5 +56,3 @@ class DeceasedMember(HouseholdMemberModelMixin, BaseUuidModel):
 
     class Meta:
         app_label = "member"
-        verbose_name = "Deceased Member"
-        verbose_name_plural = "Deceased Members"
