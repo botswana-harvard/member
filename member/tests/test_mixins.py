@@ -12,16 +12,25 @@ class MemberTestMixin(HouseholdMixin, LoadListDataMixin):
 
 
 class MemberMixin(MemberTestMixin):
-    """Creates a POS mother."""
+
     def setUp(self):
         super(MemberMixin, self).setUp()
         self.study_site = '40'
-        self.make_household(member_count=5)
 
-    def add_household_member(self, **options):
+    def make_household_ready_for_enumeration(self):
+        """Returns household_structure after adding representative eligibility."""
+        household_structure = super().make_household_ready_for_enumeration()
+        # add representative eligibility
         mommy.make_recipe(
-            'member.household_member',
-            **options)
+            'member.representativeeligibility',
+            household_structure=household_structure)
+        return household_structure
+
+    def add_household_member(self, household_structure, **options):
+        """Returns a household member that is by default eligible."""
+        return mommy.make_recipe(
+            'member.householdmember',
+            household_structure=household_structure, **options)
 
     def add_head_of_household_member(self, **options):
         mommy.make_recipe(

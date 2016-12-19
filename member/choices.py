@@ -3,6 +3,7 @@ from edc_constants.constants import OTHER, DWTA, NOT_APPLICABLE, POS, NEG, IND
 from .constants import (ABSENT, BHS, BHS_ELIGIBLE, BHS_SCREEN, HTC, HTC_ELIGIBLE, NOT_ELIGIBLE,
                         NOT_REPORTED, REFUSED, UNDECIDED, REFUSED_HTC, BHS_LOSS, ANNUAL, DECEASED,
                         HEAD_OF_HOUSEHOLD)
+from member.constants import MENTAL_INCAPACITY
 
 options = list(set([ABSENT, BHS, BHS_ELIGIBLE, BHS_SCREEN, HTC, HTC_ELIGIBLE, NOT_ELIGIBLE,
                     NOT_REPORTED, REFUSED, UNDECIDED, REFUSED_HTC, BHS_LOSS, ANNUAL, DECEASED]))
@@ -63,7 +64,7 @@ DETAILS_CHANGE_REASON = (
 
 INABILITY_TO_PARTICIPATE_REASON = (
     (NOT_APPLICABLE, ('ABLE to participate')),
-    ('Mental Incapacity', ('Mental Incapacity')),
+    (MENTAL_INCAPACITY, ('Mental Incapacity')),
     ('Deaf/Mute', ('Deaf/Mute')),
     ('Too sick', ('Too sick')),
     ('Incarcerated', ('Incarcerated')),

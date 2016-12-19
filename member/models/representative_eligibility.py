@@ -37,7 +37,7 @@ class RepresentativeEligibility(RepresentativeEligibilityMixin, BaseUuidModel):
 
     def natural_key(self):
         return self.household_structure.natural_key()
-    natural_key.dependencies = ['member.household_structure']
+    natural_key.dependencies = ['household.householdstructure']
 
     class Meta:
         app_label = 'member'

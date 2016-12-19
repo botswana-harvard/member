@@ -1,9 +1,9 @@
 from datetime import date
 from dateutil.relativedelta import relativedelta
+from uuid import uuid4
 
 from django.apps import apps as django_apps
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 from django.core.exceptions import ValidationError
 from django.core.validators import (
     MinLengthValidator, MaxLengthValidator, MinValueValidator, MaxValueValidator, RegexValidator)
@@ -26,12 +26,115 @@ from plot.models import Plot
 from ..choices import HOUSEHOLD_MEMBER_PARTICIPATION, RELATIONS, DETAILS_CHANGE_REASON, INABILITY_TO_PARTICIPATE_REASON
 from ..constants import ABSENT, UNDECIDED, BHS_SCREEN, REFUSED, NOT_ELIGIBLE, DECEASED, HEAD_OF_HOUSEHOLD
 from ..household_member_helper import HouseholdMemberHelper
+from ..exceptions import EnumerationError
 
 
-class HouseholdMember(SubjectIdentifierModelMixin, UpdatesOrCreatesRegistrationModelMixin, BaseUuidModel):
+class RepresentativeModelMixin(models.Model):
+
+    def common_clean(self):
+        try:
+            RepresentativeEligibility = django_apps.get_model(*'member.representativeeligibility'.split('.'))
+            RepresentativeEligibility.objects.get(household_structure=self.household_structure)
+        except RepresentativeEligibility.DoesNotExist:
+            raise EnumerationError(
+                'Enumeration blocked. Please complete \'{}\' form first.'.format(
+                    RepresentativeEligibility._meta.verbose_name))
+        try:
+            HouseholdHeadEligibility = django_apps.get_model(*'member.householdheadeligibility'.split('.'))
+            HouseholdHeadEligibility.objects.get(household_member=self)
+        except HouseholdHeadEligibility.DoesNotExist:
+            raise EnumerationError(
+                'Enumeration blocked. Please complete \'{}\' form first.'.format(
+                    HouseholdHeadEligibility._meta.verbose_name))
+        super().common_clean()
+
+    class Meta:
+        abstract = True
+
+
+class MemberEligibilityModelMixin(models.Model):
+
+    eligible_subject = models.BooleanField(
+        default=False,
+        editable=False,
+        help_text=('updated by the enrollment checklist save method only. True if subject '
+                   'passes the eligibility criteria.'))
+
+    enrollment_checklist_completed = models.BooleanField(
+        default=False,
+        editable=False,
+        help_text=('updated by enrollment checklist only (regardless of the '
+                   'eligibility outcome).'))
+
+    enrollment_loss_completed = models.BooleanField(
+        default=False,
+        editable=False,
+        help_text="updated by enrollment loss save method only.")
+
+    def common_clean(self):
+        super().common_clean()
+
+    def save(self, *args, **kwargs):
+        if self.survival_status == DEAD:
+            self.eligible_member = False
+        else:
+            self.eligible_member = (
+                self.age_in_years >= 16 and self.age_in_years <= 64 and self.study_resident == YES and
+                self.inability_to_participate == NOT_APPLICABLE)
+        super().save(*args, **kwargs)
+
+    class Meta:
+        abstract = True
+
+
+class MemberStatusModelMixin(models.Model):
+
+    member_status = models.CharField(
+        max_length=25,
+        choices=HOUSEHOLD_MEMBER_PARTICIPATION,
+        null=True,
+        editable=False,
+        help_text='RESEARCH, ABSENT, REFUSED, UNDECIDED',
+        db_index=True)
+
+    reported = models.BooleanField(
+        default=False,
+        editable=False,
+        help_text="update by any of subject absentee, undecided, refusal")
+
+    refused = models.BooleanField(
+        default=False,
+        editable=False,
+        help_text="updated by subject refusal save method only")
+
+    undecided = models.BooleanField(
+        default=False,
+        editable=False,
+        help_text="updated by subject undecided save method only")
+
+    absent = models.BooleanField(
+        default=False,
+        editable=False,
+        help_text="Updated by the subject absentee log")
+
+    class Meta:
+        abstract = True
+
+
+class HouseholdMember(RepresentativeModelMixin, MemberStatusModelMixin, MemberEligibilityModelMixin,
+                      SubjectIdentifierModelMixin,
+                      UpdatesOrCreatesRegistrationModelMixin, BaseUuidModel):
     """A model completed by the user to represent an enumerated household member."""
 
     household_structure = models.ForeignKey(HouseholdStructure, on_delete=models.PROTECT)
+
+    internal_identifier = models.CharField(
+        max_length=36,
+        null=True,  # will always be set in post_save()
+        default=None,
+        editable=False,
+        help_text='Identifier to track member between surveys, '
+                  'is the id of the member\'s first appearance in the table.')
 
     report_datetime = models.DateTimeField(
         verbose_name="Report date",
@@ -109,63 +212,25 @@ class HouseholdMember(SubjectIdentifierModelMixin, UpdatesOrCreatesRegistrationM
                    "since moving in has the participant typically "
                    "spent 3 or more nights per month in this community."))
 
-    internal_identifier = models.CharField(
-        max_length=36,
-        null=True,  # will always be set in post_save()
-        default=None,
-        editable=False,
-        help_text='Identifier to track member between surveys, '
-                  'is the id of the member\'s first appearance in the table.')
-
     visit_attempts = models.IntegerField(
         default=0,
         editable=False,
         help_text="")
-
-    member_status = models.CharField(
-        max_length=25,
-        choices=HOUSEHOLD_MEMBER_PARTICIPATION,
-        null=True,
-        editable=False,
-        help_text='RESEARCH, ABSENT, REFUSED, UNDECIDED',
-        db_index=True)
 
     hiv_history = models.CharField(
         max_length=25,
         null=True,
         editable=False)
 
-    eligible_member = models.NullBooleanField(
+    eligible_member = models.BooleanField(
         default=False,
         editable=False,
         help_text='eligible to be screened. based on data on this form')
 
-    eligible_subject = models.NullBooleanField(
+    eligible_htc = models.BooleanField(
         default=False,
         editable=False,
-        help_text=('updated by the enrollment checklist save method only. True if subject '
-                   'passes the eligibility criteria.'))
-
-    enrollment_checklist_completed = models.NullBooleanField(
-        default=False,
-        editable=False,
-        help_text=('updated by enrollment checklist only (regardless of the '
-                   'eligibility outcome).'))
-
-    enrollment_loss_completed = models.NullBooleanField(
-        default=False,
-        editable=False,
-        help_text="updated by enrollment loss save method only.")
-
-    refused = models.BooleanField(
-        default=False,
-        editable=False,
-        help_text="updated by subject refusal save method only")
-
-    undecided = models.BooleanField(
-        default=False,
-        editable=False,
-        help_text="updated by subject undecided save method only")
+        help_text="")
 
     refused_htc = models.BooleanField(
         default=False,
@@ -181,25 +246,10 @@ class HouseholdMember(SubjectIdentifierModelMixin, UpdatesOrCreatesRegistrationM
         default=False,
         editable=False, help_text="updated by the subject consent save method only")
 
-    eligible_htc = models.NullBooleanField(
-        default=False,
-        editable=False,
-        help_text="")
-
-    eligible_hoh = models.NullBooleanField(
+    eligible_hoh = models.BooleanField(
         default=False,
         editable=False,
         help_text="updated by the head of household enrollment checklist only.")
-
-    reported = models.BooleanField(
-        default=False,
-        editable=False,
-        help_text="update by any of subject absentee, undecided, refusal")
-
-    absent = models.BooleanField(
-        default=False,
-        editable=False,
-        help_text="Updated by the subject absentee log")
 
     target = models.IntegerField(
         default=0,
@@ -253,57 +303,63 @@ class HouseholdMember(SubjectIdentifierModelMixin, UpdatesOrCreatesRegistrationM
 
     # objects = HouseholdMemberManager()
 
-    history = HistoricalRecords()
+#    history = HistoricalRecords()
 
-    def __str__(self):
-        try:
-            is_bhs = '' if self.is_bhs else 'non-BHS'
-        except ValidationError:
-            is_bhs = '?'
-        return '{0} {1} {2}{3} {4}{5}'.format(
-            mask_encrypted(self.first_name),
-            self.initials,
-            self.age_in_years,
-            self.gender,
-            self.survey.survey_abbrev,
-            is_bhs)
+#     def __str__(self):
+#         try:
+#             is_bhs = '' if self.is_bhs else 'non-BHS'
+#         except ValidationError:
+#             is_bhs = '?'
+#         return '{0} {1} {2}{3} {4}{5}'.format(
+#             mask_encrypted(self.first_name),
+#             self.initials,
+#             self.age_in_years,
+#             self.gender,
+#             self.survey.survey_abbrev,
+#             is_bhs)
+
+    def common_clean(self):
+        super().common_clean()
 
     def save(self, *args, **kwargs):
-        selected_member_status = None
-        using = kwargs.get('using')
-        clear_enrollment_fields = []
-        self.check_eligible_representative_filled(self.household_structure, using=using)
-        if self.member_status == DECEASED:
-            self.set_death_flags
-        else:
-            self.clear_death_flags
-        self.eligible_member = self.is_eligible_member
-        if self.present_today == NO and not self.survival_status == DEAD:
-            self.absent = True
-        if kwargs.get('update_fields') == ['member_status']:  # when updated by participation view
-            selected_member_status = self.member_status
-            clear_enrollment_fields = self.update_member_status(selected_member_status, clear_enrollment_fields)
-        if self.intervention and self.plot_enrolled:
-            self.eligible_htc = self.evaluate_htc_eligibility
-        elif not self.intervention:
-            self.eligible_htc = self.evaluate_htc_eligibility
-        household_member_helper = HouseholdMemberHelper(self)
-        self.member_status = household_member_helper.member_status(selected_member_status)
-        if self.auto_filled:
-            self.updated_after_auto_filled = True
-        try:
-            update_fields = kwargs.get('update_fields') + [
-                'member_status', 'undecided', 'absent', 'refused', 'eligible_member', 'eligible_htc',
-                'enrollment_checklist_completed', 'enrollment_loss_completed', 'htc', 'survival_status',
-                'present_today'] + clear_enrollment_fields
-            kwargs.update({'update_fields': update_fields})
-        except TypeError:
-            pass
-        super(HouseholdMember, self).save(*args, **kwargs)
+        if not self.id:
+            self.internal_identifier = str(uuid4())
+        super().save(*args, **kwargs)
+
+#         selected_member_status = None
+#         using = kwargs.get('using')
+#         clear_enrollment_fields = []
+#         self.check_eligible_representative_filled(self.household_structure, using=using)
+#         if self.member_status == DECEASED:
+#             self.set_death_flags
+#         else:
+#             self.clear_death_flags
+#         self.eligible_member = self.is_eligible_member
+#         if self.present_today == NO and not self.survival_status == DEAD:
+#             self.absent = True
+#         if kwargs.get('update_fields') == ['member_status']:  # when updated by participation view
+#             selected_member_status = self.member_status
+#             clear_enrollment_fields = self.update_member_status(selected_member_status, clear_enrollment_fields)
+#         if self.intervention and self.plot_enrolled:
+#             self.eligible_htc = self.evaluate_htc_eligibility
+#         elif not self.intervention:
+#             self.eligible_htc = self.evaluate_htc_eligibility
+#         household_member_helper = HouseholdMemberHelper(self)
+#         self.member_status = household_member_helper.member_status(selected_member_status)
+#         if self.auto_filled:
+#             self.updated_after_auto_filled = True
+#         try:
+#             update_fields = kwargs.get('update_fields') + [
+#                 'member_status', 'undecided', 'absent', 'refused', 'eligible_member', 'eligible_htc',
+#                 'enrollment_checklist_completed', 'enrollment_loss_completed', 'htc', 'survival_status',
+#                 'present_today'] + clear_enrollment_fields
+#             kwargs.update({'update_fields': update_fields})
+#         except TypeError:
+#             pass
 
     def natural_key(self):
         return self.household_structure.natural_key()
-    natural_key.dependencies = ['bcpp_household.householdstructure', 'registration.registeredsubject']
+    natural_key.dependencies = ['household.householdstructure']
 
     def update_member_status(self, selected_member_status, clear_enrollment_fields):
         if self.member_status == BHS_SCREEN:
@@ -401,13 +457,6 @@ class HouseholdMember(SubjectIdentifierModelMixin, UpdatesOrCreatesRegistrationM
     @property
     def plot_enrolled(self):
         return self.household_structure.household.plot.bhs
-
-    @property
-    def is_eligible_member(self):
-        if self.survival_status == DEAD:
-            return False
-        return (self.age_in_years >= 16 and self.age_in_years <= 64 and self.study_resident == YES and
-                self.inability_to_participate == NOT_APPLICABLE)
 
     def check_eligible_representative_filled(self, household_structure, using=None, exception_cls=None):
         """Raises an exception if the RepresentativeEligibility form has not been completed.

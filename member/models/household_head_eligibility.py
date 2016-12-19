@@ -20,10 +20,10 @@ class HouseholdHeadEligibility(RepresentativeEligibilityMixin, HouseholdMemberMo
 
     def natural_key(self):
         return self.household_member.natural_key()
-    natural_key.dependencies = ['member.household_member']
+    natural_key.dependencies = ['member.householdmember']
 
     def save(self, *args, **kwargs):
-        self.matches_household_member_values(self.household_member)
+        # self.matches_household_member_values(self.household_member)
         super(HouseholdHeadEligibility, self).save(*args, **kwargs)
 
     def matches_household_member_values(self, household_member, exception_cls=None):

@@ -75,7 +75,9 @@ class MemberEntryMixin(models.Model):
 
 
 class RepresentativeEligibilityMixin(models.Model):
-    """Determines if the household member is eligible representative of the household."""
+    """Determines if the household member is eligible representative of the household.
+
+    If this form saves => eligible to be a representative."""
 
     aged_over_18 = models.CharField(
         verbose_name=("Did you verify that the respondent is aged 18 or older? "),
