@@ -32,4 +32,4 @@ class RefusedMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
         'report_datetime',
         'reason',
         'household_member__household_structure__survey__survey_slug',
-        'household_member__household_structure__household__plot__community')
+        'household_member__household_structure__household__plot__map_area')

@@ -77,7 +77,7 @@ class HouseholdMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
                    'modified', 'hostname_created', 'user_created', 'visit_attempts',
                    'auto_filled',
                    'updated_after_auto_filled',
-                   'household_structure__household__plot__community')
+                   'household_structure__household__plot__map_area')
 
     def get_fieldsets(self, request, obj=None):
         fields = self.fields

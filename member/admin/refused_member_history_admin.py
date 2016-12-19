@@ -25,7 +25,7 @@ class RefusedMemberHistoryAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
         'household_member__first_name',
         'household_member__household_structure__household__household_identifier']
 
-    list_filter = ('reason', 'household_member__household_structure__household__plot__community')
+    list_filter = ('reason', 'household_member__household_structure__household__plot__map_area')
 
     instructions = []
 

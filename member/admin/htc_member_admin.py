@@ -40,7 +40,7 @@ class HtcMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
         'report_datetime',
         'offered', 'accepted', 'referred',
         'household_member__household_structure__survey__survey_slug',
-        'household_member__household_structure__household__plot__community')
+        'household_member__household_structure__household__plot__map_area')
 
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = super(HtcMemberAdmin, self).get_readonly_fields(request, obj)

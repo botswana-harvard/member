@@ -22,7 +22,6 @@ from edc_registration.model_mixins import SubjectIdentifierModelMixin, UpdatesOr
 
 from household.models import HouseholdStructure
 from plot.models import Plot
-from survey.models import Survey
 
 from ..choices import HOUSEHOLD_MEMBER_PARTICIPATION, RELATIONS, DETAILS_CHANGE_REASON, INABILITY_TO_PARTICIPATE_REASON
 from ..constants import ABSENT, UNDECIDED, BHS_SCREEN, REFUSED, NOT_ELIGIBLE, DECEASED, HEAD_OF_HOUSEHOLD
@@ -32,7 +31,7 @@ from ..household_member_helper import HouseholdMemberHelper
 class HouseholdMember(SubjectIdentifierModelMixin, UpdatesOrCreatesRegistrationModelMixin, BaseUuidModel):
     """A model completed by the user to represent an enumerated household member."""
 
-    household_structure = models.ForeignKey(HouseholdStructure)
+    household_structure = models.ForeignKey(HouseholdStructure, on_delete=models.PROTECT)
 
     report_datetime = models.DateTimeField(
         verbose_name="Report date",
@@ -566,13 +565,13 @@ class HouseholdMember(SubjectIdentifierModelMixin, UpdatesOrCreatesRegistrationM
         is_bhs = plot_identifier != clinic_plot_identifier
         return is_bhs
 
-    def is_the_household_member_for_current_survey(self):
-        """ This traps that a household member is not created for an incorrect survey setting. Edit is OK."""
-        if not self.id and settings.DEVICE_ID not in settings.SERVER_DEVICE_ID_LIST:
-            if self.household_structure.survey != Survey.objects.current_survey():
-                raise ImproperlyConfigured(
-                    'Your device is configured to create household_member for {0}'.format(
-                        Survey.objects.current_survey()))
+#     def is_the_household_member_for_current_survey(self):
+#         """ This traps that a household member is not created for an incorrect survey setting. Edit is OK."""
+#         if not self.id and settings.DEVICE_ID not in settings.SERVER_DEVICE_ID_LIST:
+#             if self.household_structure.survey != Survey.objects.current_survey():
+#                 raise ImproperlyConfigured(
+#                     'Your device is configured to create household_member for {0}'.format(
+#                         Survey.objects.current_survey()))
 
     class Meta:
         app_label = 'member'

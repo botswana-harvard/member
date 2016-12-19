@@ -23,4 +23,4 @@ class RepresentativeEligibilityAdmin(ModelAdminMixin):
         "household_residency": admin.VERTICAL,
         "verbal_script": admin.VERTICAL,
     }
-    list_filter = ('report_datetime', 'household_structure__household__plot__community')
+    list_filter = ('report_datetime', 'household_structure__household__plot__map_area')

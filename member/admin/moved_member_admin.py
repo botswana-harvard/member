@@ -35,7 +35,7 @@ class MovedMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
     list_filter = (
         'report_datetime',
         'household_member__household_structure__survey__survey_slug',
-        'household_member__household_structure__household__plot__community')
+        'household_member__household_structure__household__plot__map_area')
 
     radio_fields = {
         "moved_household": admin.VERTICAL,

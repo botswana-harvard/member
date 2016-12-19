@@ -42,7 +42,7 @@ class EnrollmentChecklistAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
         'report_datetime',
         'gender', 'is_eligible',
         'household_member__household_structure__survey__survey_slug',
-        'household_member__household_structure__household__plot__community')
+        'household_member__household_structure__household__plot__map_area')
 
     radio_fields = {
         'has_identity': admin.VERTICAL,

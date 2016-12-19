@@ -5,8 +5,6 @@ from edc_base.model.validators.date import datetime_not_future
 from edc_base.utils import get_utcnow
 from edc_constants.choices import YES_NO
 
-from survey.models import Survey
-
 from .household_member import HouseholdMember
 
 
@@ -21,8 +19,6 @@ class HtcMemberHistory(BaseUuidModel):
         verbose_name="Report date",
         default=get_utcnow,
         validators=[datetime_not_future])
-
-    survey = models.ForeignKey(Survey, editable=False)
 
     tracking_identifier = models.CharField(
         verbose_name="HTC tracking identifier",

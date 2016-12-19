@@ -20,7 +20,7 @@ class HtcMemberHistoryAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
         'household_member__household_structure__household__household_identifier',
         'tracking_identifier']
 
-    list_filter = ('household_member__household_structure__household__plot__community',
+    list_filter = ('household_member__household_structure__household__plot__map_area',
                    'report_datetime', 'offered', 'accepted', 'referred', 'referral_clinic')
 
     instructions = []

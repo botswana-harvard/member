@@ -31,7 +31,7 @@ class AbsentMemberEntryAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
     list_filter = (
         'report_datetime',
         'absent_member__household_member__household_structure__survey__survey_slug',
-        'absent_member__household_member__household_structure__household__plot__community')
+        'absent_member__household_member__household_structure__household__plot__map_area')
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "absent_member":
