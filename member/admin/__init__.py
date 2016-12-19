@@ -1,5 +1,4 @@
 from .absent_member_admin import AbsentMemberAdmin
-from .absent_member_entry_admin import AbsentMemberEntryAdmin
 from .deceased_member_admin import DeceasedMemberAdmin
 from .enrollment_checklist_admin import EnrollmentChecklistAdmin
 from .enrollment_loss_admin import EnrollmentLossAdmin
@@ -14,4 +13,3 @@ from .refused_member_admin import RefusedMemberAdmin
 from .refused_member_history_admin import RefusedMemberHistoryAdmin
 from .representative_eligibility_admin import RepresentativeEligibilityAdmin
 from .undecided_member_admin import UndecidedMemberAdmin
-from .undecided_member_entry_admin import UndecidedMemberEntryAdmin

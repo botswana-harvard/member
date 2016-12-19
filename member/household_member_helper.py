@@ -1,7 +1,7 @@
 from edc_constants.constants import DEAD
 
 from .constants import (
-    BHS, BHS_ELIGIBLE, BHS_SCREEN, REFUSED, NOT_ELIGIBLE, HTC_ELIGIBLE, REFUSED_HTC, HTC,
+    BHS, ELIGIBLE_FOR_CONSENT, ELIGIBLE_FOR_SCREENING, REFUSED, NOT_ELIGIBLE, HTC_ELIGIBLE, REFUSED_HTC, HTC,
     ABSENT, UNDECIDED, BHS_LOSS, ANNUAL, DECEASED)
 
 
@@ -11,7 +11,7 @@ class HouseholdMemberHelper(object):
         self.household_member = household_member
 
     def annual_member_status(self, selected_member_status):
-        return (ANNUAL if selected_member_status == BHS_SCREEN
+        return (ANNUAL if selected_member_status == ELIGIBLE_FOR_SCREENING
                 else selected_member_status or self.household_member.member_status)
 
     def update_member_status(self, selected_member_status):
@@ -24,10 +24,10 @@ class HouseholdMemberHelper(object):
             else:
                 member_status = BHS
         elif (not member_status) and self.household_member.eligible_subject:
-            member_status = BHS_ELIGIBLE
+            member_status = ELIGIBLE_FOR_CONSENT
         elif ((self.household_member.undecided or self.household_member.absent or
-               self.household_member.refused) and selected_member_status == BHS_SCREEN):
-            member_status = BHS_SCREEN
+               self.household_member.refused) and selected_member_status == ELIGIBLE_FOR_SCREENING):
+            member_status = ELIGIBLE_FOR_SCREENING
         elif ((self.household_member.absent or selected_member_status == ABSENT) and
               self.household_member.eligible_member):
             member_status = ABSENT
@@ -67,7 +67,7 @@ class HouseholdMemberHelper(object):
                   self.household_member.eligible_htc):
                 member_status = HTC_ELIGIBLE  # e.g failed enrollment
             elif self.household_member.eligible_member:
-                member_status = BHS_SCREEN  # new household_member instance
+                member_status = ELIGIBLE_FOR_SCREENING  # new household_member instance
             else:
                 pass
                 # pprint.pprint(self.household_member.__dict__)
@@ -76,7 +76,7 @@ class HouseholdMemberHelper(object):
 
     def update_options_eligible_member(self, options):
         if not self.household_member.eligible_subject:
-            options.remove(BHS_ELIGIBLE)
+            options.remove(ELIGIBLE_FOR_CONSENT)
             options.remove(BHS)
             if self.household_member.refused:
                 options.remove(ABSENT)
@@ -84,13 +84,13 @@ class HouseholdMemberHelper(object):
             if self.household_member.enrollment_loss_completed:
                 options.remove(BHS_LOSS)
             if self.household_member.enrollment_checklist_completed:
-                options.remove(BHS_SCREEN)
+                options.remove(ELIGIBLE_FOR_SCREENING)
         if not self.household_member.enrollment_checklist_completed:
             options.remove(BHS_LOSS)
         if not self.household_member.eligible_htc:
             options = [opt for opt in options if opt not in [HTC_ELIGIBLE, HTC]]
         elif self.household_member.eligible_htc:
-            options = [BHS_SCREEN]
+            options = [ELIGIBLE_FOR_SCREENING]
         return options
 
     def update_options_not_eligible_member(self, options):
@@ -98,25 +98,25 @@ class HouseholdMemberHelper(object):
             options = [NOT_ELIGIBLE]
         else:
             if self.household_member.htc:
-                options = [HTC, BHS_SCREEN]
+                options = [HTC, ELIGIBLE_FOR_SCREENING]
             else:
-                options = [HTC_ELIGIBLE, BHS_SCREEN]
+                options = [HTC_ELIGIBLE, ELIGIBLE_FOR_SCREENING]
         return options
 
     def update_options_on_eligibity(self, options):
         if not self.household_member.eligible_member:
             options = self.update_options_not_eligible_member(options)
         elif self.household_member.eligible_member:
-            options = [ABSENT, BHS_SCREEN, BHS_ELIGIBLE, BHS, UNDECIDED, REFUSED, BHS_LOSS, HTC,
+            options = [ABSENT, ELIGIBLE_FOR_SCREENING, ELIGIBLE_FOR_CONSENT, BHS, UNDECIDED, REFUSED, BHS_LOSS, HTC,
                        HTC_ELIGIBLE, DECEASED]
             if self.household_member.eligible_subject:
                 options.remove(BHS_LOSS)
-                options.remove(BHS_SCREEN)
+                options.remove(ELIGIBLE_FOR_SCREENING)
                 options.remove(ABSENT)
                 options.remove(UNDECIDED)
                 if self.household_member.refused:
                     options.remove(BHS)
-                    options.remove(BHS_ELIGIBLE)
+                    options.remove(ELIGIBLE_FOR_CONSENT)
                 if not self.household_member.refused:
                     options.remove(HTC)
                     options.remove(HTC_ELIGIBLE)
@@ -135,7 +135,7 @@ class HouseholdMemberHelper(object):
             raise TypeError('household_member.member_status cannot be None')
         options = []
         if self.household_member.survival_status == DEAD:
-            options = [BHS_SCREEN]
+            options = [ELIGIBLE_FOR_SCREENING]
         elif self.household_member.is_consented:
             if self.household_member.consented_in_previous_survey:
                 options = [ANNUAL, ABSENT, REFUSED, UNDECIDED, HTC, DECEASED]

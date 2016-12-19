@@ -1,15 +1,6 @@
-from ..models import UndecidedMember, UndecidedMemberEntry
+from ..models import UndecidedMember
 
 from .form_mixins import MemberFormMixin
-
-
-class UndecidedMemberEntryForm(MemberFormMixin):
-
-    household_member_fk = 'undecided_member'
-
-    class Meta:
-        model = UndecidedMemberEntry
-        fields = '__all__'
 
 
 class UndecidedMemberForm(MemberFormMixin):

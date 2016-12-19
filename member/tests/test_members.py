@@ -3,7 +3,7 @@ from model_mommy import mommy
 
 from django.test import TestCase, tag
 
-from edc_constants.constants import NO, DEAD, FEMALE, MALE, YES
+from edc_constants.constants import NO, DEAD, FEMALE, MALE, YES, REFUSED
 
 from ..constants import MENTAL_INCAPACITY
 
@@ -12,6 +12,9 @@ from ..exceptions import EnumerationRepresentativeError, MemberEnrollmentError, 
 from ..models import HouseholdMember, EnrollmentLoss, EnrollmentChecklist
 
 from .test_mixins import MemberMixin
+from member.constants import ELIGIBLE_FOR_CONSENT, NOT_ELIGIBLE, ABSENT, UNDECIDED, DECEASED, HTC_ELIGIBLE
+from member.participation_status import ParticipationStatus
+from django.db.utils import IntegrityError
 
 
 class TestMembers(MemberMixin, TestCase):
@@ -380,3 +383,99 @@ class TestMembers(MemberMixin, TestCase):
         self.assertTrue(household_member.enrollment_checklist_completed)
         self.assertFalse(household_member.enrollment_loss_completed)
         self.assertTrue(household_member.eligible_subject)
+
+    # member status
+    def test_member_status(self):
+        household_structure = self.make_household_ready_for_enumeration()
+        household_member = HouseholdMember.objects.get(household_structure=household_structure)
+        self.add_enrollment_checklist(household_member)
+        self.assertEqual(household_member.member_status, ELIGIBLE_FOR_CONSENT)
+
+    def test_member_status_ineligible(self):
+        household_structure = self.make_household_ready_for_enumeration()
+        household_member = self.add_household_member(
+            household_structure=household_structure,
+            age_in_years=10)
+        self.assertEqual(household_member.member_status, NOT_ELIGIBLE)
+
+    @tag('me')
+    def test_member_status_for_absent(self):
+        household_structure = self.make_household_ready_for_enumeration()
+        household_member = self.add_household_member(
+            household_structure=household_structure)
+        household_member = self.make_absent_member(household_member=household_member)
+        participation_status = ParticipationStatus(household_member)
+        self.assertEqual(participation_status.participation_status, ABSENT)
+
+    def test_member_status_for_refused(self):
+        household_structure = self.make_household_ready_for_enumeration()
+        household_member = self.add_household_member(
+            household_structure=household_structure)
+        household_member = self.make_refused_member(household_member=household_member)
+        participation_status = ParticipationStatus(household_member)
+        self.assertEqual(participation_status.participation_status, REFUSED)
+
+    def test_member_status_for_undecided(self):
+        household_structure = self.make_household_ready_for_enumeration()
+        household_member = self.add_household_member(
+            household_structure=household_structure)
+        household_member = self.make_undecided_member(household_member=household_member)
+        participation_status = ParticipationStatus(household_member)
+        self.assertEqual(participation_status.participation_status, UNDECIDED)
+
+    def test_member_status_for_deceased(self):
+        household_structure = self.make_household_ready_for_enumeration()
+        household_member = self.add_household_member(
+            household_structure=household_structure)
+        household_member = self.make_deceased_member(household_member=household_member)
+        participation_status = ParticipationStatus(household_member)
+        self.assertEqual(participation_status.participation_status, DECEASED)
+
+    def test_member_status_for_htc_eligible(self):
+        household_structure = self.make_household_ready_for_enumeration()
+        household_member = self.add_household_member(
+            household_structure=household_structure)
+        household_member = self.make_htc_member(household_member=household_member)
+        participation_status = ParticipationStatus(household_member)
+        self.assertEqual(participation_status.participation_status, HTC_ELIGIBLE)
+
+    @tag('me')
+    def test_member_visit_attempts(self):
+        household_structure = self.make_household_ready_for_enumeration()
+        household_member = self.add_household_member(
+            household_structure=household_structure,
+            report_datetime=self.get_utcnow() - relativedelta(weeks=1))
+        household_member = self.make_absent_member(
+            household_member=household_member,
+            report_date=(self.get_utcnow() - relativedelta(weeks=1)).date())
+        household_member = self.make_absent_member(
+            household_member=household_member,
+            report_date=(self.get_utcnow() - relativedelta(days=4)).date())
+        household_member = self.make_absent_member(
+            household_member=household_member,
+            report_date=(self.get_utcnow() - relativedelta(days=2)).date())
+        self.assertEqual(household_member.visit_attempts, 3)
+
+    @tag('me')
+    def test_absent_uniqueness(self):
+        household_structure = self.make_household_ready_for_enumeration()
+        household_member = self.add_household_member(
+            household_structure=household_structure,
+            report_datetime=self.get_utcnow() - relativedelta(weeks=1))
+        household_member = self.make_absent_member(household_member=household_member)
+        self.assertRaises(
+            IntegrityError,
+            self.make_absent_member,
+            household_member=household_member)
+
+    @tag('me')
+    def test_undecided_uniqueness(self):
+        household_structure = self.make_household_ready_for_enumeration()
+        household_member = self.add_household_member(
+            household_structure=household_structure,
+            report_datetime=self.get_utcnow() - relativedelta(weeks=1))
+        household_member = self.make_undecided_member(household_member=household_member)
+        self.assertRaises(
+            IntegrityError,
+            self.make_undecided_member,
+            household_member=household_member)

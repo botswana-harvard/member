@@ -56,6 +56,10 @@ class EnrollmentModelMixin(models.Model):
             raise MemberEnrollmentError(
                 'Enrollment Checklist Gender does not match Household Member gender. '
                 'Got {0} <> {1}'.format(self.gender, self.household_member.gender))
+        super().common_clean()
+
+    def save(self, *args, **kwargs):
+        self.age_in_years = relativedelta(self.report_datetime.date(), self.dob).years
         # is eligible or collect reasons not eligible, but do not raise an exception
         loss_reason = []
         if self.has_identity == NO:
@@ -77,10 +81,6 @@ class EnrollmentModelMixin(models.Model):
             loss_reason.append('Already enrolled.')
         self.is_eligible = False if loss_reason else True
         self.loss_reason = '|'.join(loss_reason) if loss_reason else None
-        super().common_clean()
-
-    def save(self, *args, **kwargs):
-        self.age_in_years = relativedelta(self.report_datetime.date(), self.dob).years
         super().save(*args, **kwargs)
 
     class Meta:
@@ -214,15 +214,15 @@ class EnrollmentChecklist(EnrollmentModelMixin, HouseholdMemberModelMixin, BaseU
 #     def save(self, *args, **kwargs):
 #         using = kwargs.get('using')
 #         if not self.pk:
-#             if self.household_member.member_status != BHS_SCREEN:
+#             if self.household_member.member_status != ELIGIBLE_FOR_SCREENING:
 #                 raise MemberStatusError(('Expected member status to be {0}. Got {1}').format(
-#                     BHS_SCREEN, self.household_member.member_status))
+#                     ELIGIBLE_FOR_SCREENING, self.household_member.member_status))
 #         else:
 #             pass
 #             if not kwargs.get('update_fields'):
-#                 if self.household_member.member_status not in [BHS_ELIGIBLE, NOT_ELIGIBLE, BHS_SCREEN, HTC_ELIGIBLE]:
+#                 if self.household_member.member_status not in [ELIGIBLE_FOR_CONSENT, NOT_ELIGIBLE, ELIGIBLE_FOR_SCREENING, HTC_ELIGIBLE]:
 #                     raise MemberStatusError('Expected member status to be {0}. Got {1}'.format(
-#                         BHS_SCREEN + ' or ' + NOT_ELIGIBLE + ' or ' + BHS_SCREEN, self.household_member.member_status))
+#                         ELIGIBLE_FOR_SCREENING + ' or ' + NOT_ELIGIBLE + ' or ' + ELIGIBLE_FOR_SCREENING, self.household_member.member_status))
 #         if not kwargs.get('update_fields'):
 #             self.matches_household_member_values(self, self.household_member)
 #         self.is_eligible, self.loss_reason = self.passes_enrollment_criteria(using)

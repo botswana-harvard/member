@@ -1,4 +1,4 @@
-from .absent_member_form import AbsentMemberEntryForm, AbsentMemberForm
+from .absent_member_form import AbsentMemberForm
 from .deceased_member_form import DeceasedMemberForm
 from .enrollment_checklist_form import EnrollmentChecklistForm
 from .enrollment_loss_form import EnrollmentLossForm
@@ -11,4 +11,4 @@ from .moved_member_form import MovedMemberForm
 from .participation_form import ParticipationForm
 from .refused_member_form import RefusedMemberForm
 from .representative_eligibility_form import RepresentativeEligibilityForm
-from .undecided_member_form import UndecidedMemberEntryForm, UndecidedMemberForm
+from .undecided_member_form import UndecidedMemberForm

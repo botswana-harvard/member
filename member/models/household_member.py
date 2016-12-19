@@ -11,14 +11,14 @@ from edc_base.model.models import BaseUuidModel
 from edc_base.model.validators.date import datetime_not_future
 from edc_base.utils import get_utcnow
 from edc_constants.choices import YES_NO, GENDER, YES_NO_DWTA, ALIVE_DEAD_UNKNOWN
-from edc_constants.constants import NOT_APPLICABLE, ALIVE, DEAD, YES
+from edc_constants.constants import NOT_APPLICABLE, ALIVE, DEAD, YES, CONSENTED
 from edc_map.site_mappers import site_mappers
 from edc_registration.model_mixins import SubjectIdentifierModelMixin, UpdatesOrCreatesRegistrationModelMixin
 
 from household.models import HouseholdStructure
 
-from ..choices import HOUSEHOLD_MEMBER_PARTICIPATION, RELATIONS, DETAILS_CHANGE_REASON, INABILITY_TO_PARTICIPATE_REASON
-from ..constants import ABSENT, UNDECIDED, BHS_SCREEN, REFUSED, NOT_ELIGIBLE, HEAD_OF_HOUSEHOLD
+from ..choices import RELATIONS, DETAILS_CHANGE_REASON, INABILITY_TO_PARTICIPATE_REASON
+from ..constants import ELIGIBLE_FOR_SCREENING, ELIGIBLE_FOR_CONSENT, NOT_ELIGIBLE, HEAD_OF_HOUSEHOLD
 from ..exceptions import EnumerationRepresentativeError
 from ..household_member_helper import HouseholdMemberHelper
 from member.exceptions import MemberValidationError
@@ -136,14 +136,6 @@ class MemberEligibilityModelMixin(models.Model):
 
 class MemberStatusModelMixin(models.Model):
 
-    member_status = models.CharField(
-        max_length=25,
-        choices=HOUSEHOLD_MEMBER_PARTICIPATION,
-        null=True,
-        editable=False,
-        help_text='RESEARCH, ABSENT, REFUSED, UNDECIDED',
-        db_index=True)
-
     reported = models.BooleanField(
         default=False,
         editable=False,
@@ -167,6 +159,23 @@ class MemberStatusModelMixin(models.Model):
         default=False,
         editable=False,
         help_text="Updated by the subject absentee log")
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+    @property
+    def member_status(self):
+        if self.is_consented:
+            member_status = CONSENTED
+        else:
+            member_status = None
+            if not self.eligible_member:
+                member_status = NOT_ELIGIBLE
+            if self.eligible_member:
+                member_status = ELIGIBLE_FOR_SCREENING
+            if self.eligible_subject:
+                member_status = ELIGIBLE_FOR_CONSENT
+        return member_status
 
     class Meta:
         abstract = True
@@ -390,27 +399,27 @@ class HouseholdMember(RepresentativeModelMixin, MemberStatusModelMixin, MemberEl
         return self.household_structure.natural_key()
     natural_key.dependencies = ['household.householdstructure']
 
-    def update_member_status(self, selected_member_status, clear_enrollment_fields):
-        if self.member_status == BHS_SCREEN:
-            self.undecided = False
-            self.absent = False
-            self.eligible_htc = False
-            self.refused_htc = False
-            if self.refused:
-                self.clear_refusal
-            if self.enrollment_checklist_completed:
-                clear_enrollment_fields = self.clear_enrollment_checklist
-            if self.htc:
-                self.clear_htc
-        if self.member_status == REFUSED:
-            if self.enrollment_checklist_completed:
-                clear_enrollment_fields = self.clear_enrollment_checklist
-        else:
-            self.undecided = True if selected_member_status == UNDECIDED else False
-            self.absent = True if selected_member_status == ABSENT else False
-        if self.eligible_hoh:
-            self.relation = HEAD_OF_HOUSEHOLD
-        return clear_enrollment_fields
+#     def update_member_status(self, selected_member_status, clear_enrollment_fields):
+#         if self.member_status == ELIGIBLE_FOR_SCREENING:
+#             self.undecided = False
+#             self.absent = False
+#             self.eligible_htc = False
+#             self.refused_htc = False
+#             if self.refused:
+#                 self.clear_refusal
+#             if self.enrollment_checklist_completed:
+#                 clear_enrollment_fields = self.clear_enrollment_checklist
+#             if self.htc:
+#                 self.clear_htc
+#         if self.member_status == REFUSED:
+#             if self.enrollment_checklist_completed:
+#                 clear_enrollment_fields = self.clear_enrollment_checklist
+#         else:
+#             self.undecided = True if selected_member_status == UNDECIDED else False
+#             self.absent = True if selected_member_status == ABSENT else False
+#         if self.eligible_hoh:
+#             self.relation = HEAD_OF_HOUSEHOLD
+#         return clear_enrollment_fields
 
     @property
     def evaluate_htc_eligibility(self):

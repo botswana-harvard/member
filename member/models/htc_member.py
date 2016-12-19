@@ -7,16 +7,12 @@ from edc_constants.choices import YES_NO, YES_NO_NA
 from edc_constants.constants import NOT_APPLICABLE
 
 from ..choices import HIV_RESULT
-from ..constants import HTC, HTC_ELIGIBLE, REFUSED_HTC
-from ..exceptions import MemberStatusError
 
 from .model_mixins import HouseholdMemberModelMixin
 
 HIV_RESULT = list(HIV_RESULT)
 HIV_RESULT.append((NOT_APPLICABLE, 'Not applicable'))
 HIV_RESULT = tuple(HIV_RESULT)
-
-app_config = django_apps.get_app_config('edc_device')
 
 
 class HtcMember(HouseholdMemberModelMixin, BaseUuidModel):
@@ -67,18 +63,14 @@ class HtcMember(HouseholdMemberModelMixin, BaseUuidModel):
     history = HistoricalRecords()
 
     def save(self, *args, **kwargs):
-        if self.household_member.member_status not in [HTC, HTC_ELIGIBLE, REFUSED_HTC]:
-            raise MemberStatusError('Expected member status to be on of {0}. '
-                                    'Got {1}'.format([HTC, HTC_ELIGIBLE, REFUSED_HTC],
-                                                     self.household_member.member_status))
         if not self.id:
             self.tracking_identifier = self.prepare_tracking_identifier()
         super(HtcMember, self).save(*args, **kwargs)
 
     def prepare_tracking_identifier(self):
-        length = 5
+        app_config = django_apps.get_app_config('edc_device')
         template = 'HTC{device_id}{random_string}'
-        opts = {'device_id': app_config.device_id, 'random_string': get_safe_random_string(length=length)}
+        opts = {'device_id': app_config.device_id, 'random_string': get_safe_random_string(length=5)}
         tracking_identifier = template.format(**opts)
         # look for a duplicate
         if self.__class__.objects.filter(tracking_identifier=tracking_identifier):
@@ -86,7 +78,7 @@ class HtcMember(HouseholdMemberModelMixin, BaseUuidModel):
             while self.__class__.objects.filter(tracking_identifier=tracking_identifier):
                 tracking_identifier = template.format(**opts)
                 n += 1
-                if n == len(safe_allowed_chars) ** length:
+                if n == len(safe_allowed_chars) ** 5:
                     raise TypeError('Unable prepare a unique htc tracking identifier, '
                                     'all are taken. Increase the length of the random string')
         return tracking_identifier

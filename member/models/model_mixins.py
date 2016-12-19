@@ -44,6 +44,17 @@ class HouseholdMemberModelMixin(models.Model):
 class MemberEntryMixin(models.Model):
     """For absentee and undecided log models."""
 
+    household_member = models.ForeignKey(HouseholdMember, on_delete=models.PROTECT)
+
+    report_date = models.DateField(
+        verbose_name="Report date",
+        validators=[datetime_not_future],
+        unique=True)
+
+    report_datetime = models.DateTimeField(
+        default=get_utcnow,
+        editable=False)
+
     reason_other = OtherCharField()
 
     next_appt_datetime = models.DateTimeField(

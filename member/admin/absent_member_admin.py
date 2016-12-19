@@ -1,51 +1,34 @@
 from django.contrib import admin
 
-from edc_base.modeladmin_mixins import TabularInlineMixin
-
 from ..admin_site import member_admin
-from ..forms import AbsentMemberEntryForm
-from ..models import AbsentMember, AbsentMemberEntry
+from ..models import AbsentMember
 
-from .modeladmin_mixins import ModelAdminMixin
-
-
-class AbsentMemberEntryInline(TabularInlineMixin, admin.TabularInline):
-    fields = (
-        'household_member',
-        'report_datetime',
-        'reason',
-        'reason_other',
-        'next_appt_datetime',
-        'next_appt_datetime_source',)
-    form = AbsentMemberEntryForm
-    model = AbsentMemberEntry
-    max_num = 3
-    extra = 1
+from .modeladmin_mixins import HouseholdMemberAdminMixin
 
 
 @admin.register(AbsentMember, site=member_admin)
-class AbsentMemberAdmin(ModelAdminMixin):
+class AbsentMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
 
-    form = AbsentMemberEntryForm
-    inlines = [AbsentMemberEntryInline, ]
+    fields = (
+        'household_member',
+        'report_datetime',
+        'next_appt_datetime',
+        'next_appt_datetime_source',
+        'reason',
+        'reason_other',
+        'contact_details')
 
-    dashboard_type = 'subject'
+    list_display = (
+        'household_member',
+        'report_datetime',
+        'next_appt_datetime',
+        'contact_details')
 
-    subject_identifier_attribute = 'registration_identifier'
+    radio_fields = {
+        "reason": admin.VERTICAL,
+        "next_appt_datetime_source": admin.VERTICAL}
 
-    search_fields = ['household_member__first_name',
-                     'household_member__household_structure__household__household_identifier', ]
-    list_display = ['household_member', 'report_datetime']
     list_filter = (
         'report_datetime',
         'household_member__household_structure__survey',
         'household_member__household_structure__household__plot__map_area')
-
-    fields = (
-        'household_member',
-        'report_datetime')
-
-    readonly_fields = (
-        'household_member',
-        'report_datetime',)
-    instructions = []

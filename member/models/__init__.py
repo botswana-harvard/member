@@ -1,5 +1,4 @@
 from .absent_member import AbsentMember
-from .absent_member_entry import AbsentMemberEntry
 from .deceased_member import DeceasedMember
 from .enrollment_checklist import EnrollmentChecklist
 from .enrollment_loss import EnrollmentLoss
@@ -14,6 +13,5 @@ from .refused_member import RefusedMember
 from .refused_member_history import RefusedMemberHistory
 from .representative_eligibility import RepresentativeEligibility
 from .undecided_member import UndecidedMember
-from .undecided_member_entry import UndecidedMemberEntry
 from .undecided_member_history import UndecidedMemberHistory
 from .list_models import TransportMode, ElectricalAppliances

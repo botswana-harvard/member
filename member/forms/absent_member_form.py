@@ -1,15 +1,6 @@
-from ..models import AbsentMember, AbsentMemberEntry
+from ..models import AbsentMember
 
 from .form_mixins import MemberFormMixin
-
-
-class AbsentMemberEntryForm(MemberFormMixin):
-
-    household_member_fk = 'absent_member'
-
-    class Meta:
-        model = AbsentMemberEntry
-        fields = '__all__'
 
 
 class AbsentMemberForm(MemberFormMixin):

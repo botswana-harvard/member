@@ -1,14 +1,30 @@
+from django.db import models
+
 from edc_base.model.models import HistoricalRecords, BaseUuidModel
 
-from .model_mixins import HouseholdMemberModelMixin
+from ..choices import REASONS_UNDECIDED
+
+from .model_mixins import MemberEntryMixin
 
 
-class UndecidedMember (HouseholdMemberModelMixin, BaseUuidModel):
-    """A system model that links "undecided" information to a household member."""
+class UndecidedMember(MemberEntryMixin, BaseUuidModel):
+    """A model completed by the user that captures information on the undecided status
+    of a household member potentially eligible for BHS."""
 
-    # objects = HouseholdMemberManager()
+    reason = models.CharField(
+        verbose_name="Reason",
+        max_length=100,
+        choices=REASONS_UNDECIDED)
+
+    # objects = UndecidedMemberEntryManager()
 
     history = HistoricalRecords()
 
-    class Meta(HouseholdMemberModelMixin.Meta):
+    def natural_key(self):
+        return (self.report_datetime, ) + self.household_member.natural_key()
+    natural_key.dependencies = ['member.householdmember']
+
+    class Meta:
         app_label = 'member'
+        verbose_name = "Undecided member"
+        verbose_name_plural = "Undecided member"

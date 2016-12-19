@@ -7,8 +7,8 @@ from edc_constants.constants import REFUSED
 from .constants import NOT_ELIGIBLE, HEAD_OF_HOUSEHOLD, UNDECIDED, ABSENT
 
 from .models import (
-    AbsentMember, AbsentMemberEntry, EnrollmentChecklist, EnrollmentLoss, HouseholdHeadEligibility, HouseholdMember,
-    HtcMember, HtcMemberHistory, RefusedMember, RefusedMemberHistory, UndecidedMember, UndecidedMemberEntry)
+    AbsentMember, EnrollmentChecklist, EnrollmentLoss, HouseholdHeadEligibility, HouseholdMember,
+    HtcMember, HtcMemberHistory, RefusedMember, RefusedMemberHistory, UndecidedMember)
 
 
 @receiver(post_save, weak=False, sender=HouseholdMember, dispatch_uid="household_member_on_post_save")
@@ -66,7 +66,6 @@ def enrollment_checklist_on_post_delete(sender, instance, using, **kwargs):
 
 @receiver(post_save, weak=False, sender=EnrollmentLoss, dispatch_uid="enrollment_loss_on_post_save")
 def enrollment_loss_on_post_save(sender, instance, raw, created, using, **kwargs):
-    """Updates adds or removes the Loss form and updates household_member."""
     if not raw:
         instance.household_member.enrollment_loss_completed = True
         instance.household_member.save()
@@ -74,8 +73,24 @@ def enrollment_loss_on_post_save(sender, instance, raw, created, using, **kwargs
 
 @receiver(post_delete, weak=False, sender=EnrollmentLoss, dispatch_uid="enrollment_loss_on_post_delete")
 def enrollment_loss_on_post_delete(sender, instance, using, **kwargs):
-    """Updates adds or removes the Loss form and updates household_member."""
     instance.household_member.enrollment_loss_completed = False
+    instance.household_member.save()
+
+
+@receiver(post_save, weak=False, sender=AbsentMember, dispatch_uid="absent_member_on_post_save")
+def absent_member_on_post_save(sender, instance, raw, created, using, **kwargs):
+    if not raw:
+        if created:
+            instance.household_member.visit_attempts = (instance.household_member.visit_attempts or 0) + 1
+        instance.household_member.absent = True
+        instance.household_member.save()
+
+
+@receiver(post_delete, weak=False, sender=AbsentMember, dispatch_uid="absent_member_on_post_delete")
+def absent_member_on_post_delete(sender, instance, using, **kwargs):
+    visit_attempts = (instance.household_member.visit_attempts or 0) - 1
+    instance.household_member.visit_attempts = 0 if visit_attempts <= 0 else visit_attempts
+    # instance.household_member.absent =
     instance.household_member.save()
 
 # @receiver(post_save, weak=False, sender=HouseholdMember, dispatch_uid="household_member_on_post_save")
@@ -155,7 +170,7 @@ def enrollment_loss_on_post_delete(sender, instance, using, **kwargs):
 # 
 #     A number of places check for these values including URLs in templates."""
 #     # re-save the member to recalc the member_status
-#     # If this gets deleted, then the process must be started again from BHS_SCREEN
+#     # If this gets deleted, then the process must be started again from ELIGIBLE_FOR_SCREENING
 #     # household_member = HouseholdMember.objects.using(using).get(pk=instance.household_member.pk)
 #     try:
 #         EnrollmentLoss.objects.using(using).get(
