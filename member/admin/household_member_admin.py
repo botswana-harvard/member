@@ -69,7 +69,7 @@ class HouseholdMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
         'household_structure__household__plot__id',
         'relation', 'id']
 
-    list_filter = ('household_structure__survey__survey_slug', 'present_today', 'study_resident',
+    list_filter = ('household_structure__survey', 'present_today', 'study_resident',
                    'member_status', 'inability_to_participate', 'survival_status',
                    'eligible_member', 'eligible_subject', 'enrollment_checklist_completed',
                    'enrollment_loss_completed', 'reported',
