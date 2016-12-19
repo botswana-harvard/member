@@ -3,9 +3,9 @@
 from model_mommy.recipe import Recipe
 
 from edc_base.test_mixins.reference_date_mixin import ReferenceDateMixin
-from edc_constants.constants import NOT_APPLICABLE, YES
+from edc_constants.constants import NOT_APPLICABLE, YES, ALIVE
 
-from .models import HouseholdMember, RepresentativeEligibility, HouseholdHeadEligibility
+from .models import HouseholdMember, RepresentativeEligibility, HouseholdHeadEligibility, EnrollmentChecklist
 
 
 class ReferenceDate(ReferenceDateMixin):
@@ -20,6 +20,7 @@ householdmember = Recipe(
     age_in_years=25,
     study_resident=YES,
     inability_to_participate=NOT_APPLICABLE,
+    survival_status=ALIVE,
 )
 
 representativeeligibility = Recipe(
@@ -32,4 +33,9 @@ householdheadeligibility = Recipe(
     aged_over_18=YES,
     household_residency=YES,
     verbal_script=YES,
+)
+
+
+enrollmentchecklist = Recipe(
+    EnrollmentChecklist,
 )

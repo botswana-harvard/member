@@ -9,3 +9,11 @@ class EnumerationError(Exception):
 
 class EnumerationRepresentativeError(Exception):
     pass
+
+
+class MemberEnrollmentError(Exception):
+    pass
+
+
+class MemberValidationError(Exception):
+    pass

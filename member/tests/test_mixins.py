@@ -1,6 +1,6 @@
 from model_mommy import mommy
 
-from edc_base.test_mixins import AddVisitMixin, ReferenceDateMixin, CompleteCrfsMixin, LoadListDataMixin
+from edc_base.test_mixins import LoadListDataMixin
 
 from member.list_data import list_data
 from household.tests.test_mixins import HouseholdMixin
@@ -40,18 +40,8 @@ class MemberMixin(MemberTestMixin):
         """Returns a household member that is by default eligible."""
         return mommy.make_recipe(
             'member.householdmember',
-            household_structure=household_structure, **options)
-
-    def add_head_of_household_member(self, **options):
-        mommy.make_recipe(
-            'member.household_member',
+            household_structure=household_structure,
             **options)
-
-    def add_household_members(self, member_count=None):
-        member_count = member_count or 5
-        self.add_head_of_household_member()
-        for _ in range(1, member_count):
-            self.add_household_member()
 
     def make_positive_member(self, **options):
         """Make a POS mother LMP 25wks with POS result with evidence (no recent or rapid test)."""

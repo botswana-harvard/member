@@ -5,10 +5,11 @@ from edc_constants.constants import NO, DEAD
 
 from ..constants import MENTAL_INCAPACITY
 
+from ..constants import HEAD_OF_HOUSEHOLD
+from ..exceptions import EnumerationRepresentativeError
+from ..models import HouseholdMember
+
 from .test_mixins import MemberMixin
-from member.constants import HEAD_OF_HOUSEHOLD
-from member.exceptions import EnumerationRepresentativeError
-from member.models.household_member import HouseholdMember
 
 
 class TestMembers(MemberMixin, TestCase):
@@ -111,3 +112,11 @@ class TestMembers(MemberMixin, TestCase):
             household_structure=household_structure,
             survival_status=DEAD)
         self.assertFalse(household_member.eligible_member)
+
+    # eligibility to study
+    def test_enrollment_eligibility(self):
+        household_structure = self.make_household_ready_for_enumeration()
+        household_member = self.add_household_member(household_structure=household_structure)
+        mommy.make_recipe(
+            'member.enrollmentchecklist',
+            household_member=household_member)
