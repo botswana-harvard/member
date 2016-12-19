@@ -28,7 +28,7 @@ class MemberAppointmentAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
     )
 
     list_filter = (
-        'household_member__household_structure__survey__survey_slug',
+        'household_member__household_structure__survey',
         'label',
         'appt_date',
         'appt_status',

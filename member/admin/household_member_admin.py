@@ -44,7 +44,7 @@ class HouseholdMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
     list_display = ('first_name', 'initials',
                     'household_structure',
                     # 'to_locator',
-                    'hiv_history',
+#                     'hiv_history',
                     'relation',
                     'visit_attempts',
                     'member_status',
@@ -69,11 +69,11 @@ class HouseholdMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
         'household_structure__household__plot__id',
         'relation', 'id']
 
-    list_filter = ('household_structure__survey__survey_slug', 'present_today', 'study_resident',
+    list_filter = ('household_structure__survey', 'present_today', 'study_resident',
                    'member_status', 'inability_to_participate', 'survival_status',
                    'eligible_member', 'eligible_subject', 'enrollment_checklist_completed',
                    'enrollment_loss_completed', 'reported',
-                   'refused', 'is_consented', 'eligible_htc', 'target', 'hiv_history',
+                   'refused', 'is_consented', 'eligible_htc', 'target',  # 'hiv_history',
                    'modified', 'hostname_created', 'user_created', 'visit_attempts',
                    'auto_filled',
                    'updated_after_auto_filled',
