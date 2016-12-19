@@ -32,6 +32,18 @@ def is_eligible_member(obj):
         obj.inability_to_participate == NOT_APPLICABLE)
 
 
+def is_minor(age_in_years):
+    return 16 <= age_in_years < 18
+
+
+def is_adult(age_in_years):
+    return 18 <= age_in_years
+
+
+def is_age_eligible(age_in_years):
+    return 16 <= age_in_years <= 64
+
+
 class RepresentativeModelMixin(models.Model):
     """Mixin that ensures enumeration cannot begin until a representative and HoH is identified."""
 
@@ -52,26 +64,32 @@ class RepresentativeModelMixin(models.Model):
 
         # confirm RepresentativeEligibility exists ...
         try:
-            RepresentativeEligibility = django_apps.get_model(*'member.representativeeligibility'.split('.'))
-            RepresentativeEligibility.objects.get(household_structure=self.household_structure)
+            RepresentativeEligibility = django_apps.get_model(
+                *'member.representativeeligibility'.split('.'))
+            RepresentativeEligibility.objects.get(
+                household_structure=self.household_structure)
         except RepresentativeEligibility.DoesNotExist:
             raise EnumerationRepresentativeError(
                 'Enumeration blocked. Please complete \'{}\' form first.'.format(
                     RepresentativeEligibility._meta.verbose_name))
         # then expect the first added member to be the HEAD_OF_HOUSEHOLD ...
         try:
-            household_member = self.__class__.objects.get(relation=HEAD_OF_HOUSEHOLD, eligible_member=True)
+            household_member = self.__class__.objects.get(
+                relation=HEAD_OF_HOUSEHOLD, eligible_member=True)
             if self.relation == HEAD_OF_HOUSEHOLD and self.id != household_member.id:
-                raise EnumerationRepresentativeError('Only one member may be the head of household.')
+                raise EnumerationRepresentativeError(
+                    'Only one member may be the head of household.')
         except self.__class__.DoesNotExist:
             household_member = None
             if self.relation != HEAD_OF_HOUSEHOLD or not is_eligible_member(self):
                 raise EnumerationRepresentativeError(
-                    'Enumeration blocked. Please first add one eligible member who is the head of household.')
+                    'Enumeration blocked. Please first add one eligible '
+                    'member who is the head of household.')
         # then expect HouseholdHeadEligibility to be added against the member who has relation=HEAD_OF_HOUSEHOLD...
         if household_member:
             try:
-                HouseholdHeadEligibility = django_apps.get_model(*'member.householdheadeligibility'.split('.'))
+                HouseholdHeadEligibility = django_apps.get_model(
+                    *'member.householdheadeligibility'.split('.'))
                 HouseholdHeadEligibility.objects.get(household_member=household_member)
             except HouseholdHeadEligibility.DoesNotExist:
                 raise EnumerationRepresentativeError(

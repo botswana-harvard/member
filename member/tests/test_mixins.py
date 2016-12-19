@@ -13,6 +13,7 @@ class MemberTestMixin(HouseholdMixin, LoadListDataMixin):
 
 
 class MemberMixin(MemberTestMixin):
+    consent_model = 'edc_example.subjectconsent'
 
     def setUp(self):
         super(MemberMixin, self).setUp()

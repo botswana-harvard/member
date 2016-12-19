@@ -5,7 +5,6 @@ from django.db import models
 
 from edc_base.model.models import HistoricalRecords, BaseUuidModel
 from edc_base.model.validators import dob_not_future
-from edc_consent.site_consents import site_consents
 from edc_consent.validators import AgeTodayValidator
 from edc_constants.choices import GENDER, YES_NO, YES_NO_NA
 from edc_constants.constants import NOT_APPLICABLE, NO, YES
@@ -15,11 +14,16 @@ from ..exceptions import MemberEnrollmentError
 from ..constants import BLOCK_PARTICIPATION
 
 from .model_mixins import HouseholdMemberModelMixin
+from .household_member import is_age_eligible, is_minor
 
 
 class EnrollmentModelMixin(models.Model):
 
     is_eligible = models.BooleanField(default=False)
+
+    age_in_years = models.IntegerField(
+        null=True,
+        editable=False)
 
     loss_reason = models.TextField(
         verbose_name='Reason not eligible',
@@ -28,34 +32,31 @@ class EnrollmentModelMixin(models.Model):
         editable=False,
         help_text='(stored for the loss form)')
 
-    def custom_clean(self):
-        # TODO: where should "subject" subject type come from??
+    def common_clean(self):
         # TODO: all these checks are very protocol specific
+        # Eligibility ages ranges should be in APPS
         if self.household_member.is_consented:
             raise MemberEnrollmentError('Member is already consented')
-        age_in_years = relativedelta(self.report_datetime.date(), self.dob).years
         # compare values to member, raise where they dont match
-        if age_in_years != self.household_member.age_in_years:
+        if self.age_in_years != self.household_member.age_in_years:
             raise MemberEnrollmentError(
                 'Enrollment Checklist Age does not match Household Member age. '
-                'Got {0} <> {1}'.format(age_in_years, self.household_member.age_in_years))
-        elif self.household_member.study_resident.lower() != self.part_time_resident.lower():
+                'Got {0} <> {1}'.format(self.age_in_years, self.household_member.age_in_years))
+        if self.household_member.study_resident != self.part_time_resident:
             raise MemberEnrollmentError(
                 'Enrollment Checklist Residency does not match Household Member residency. '
                 'Got {0} <> {1}'.format(self.part_time_resident, self.household_member.study_resident))
-        elif self.household_member.initials.lower() != self.initials.lower():
+        if self.household_member.initials != self.initials:
             raise MemberEnrollmentError(
                 'Enrollment Checklist Initials do not match Household Member initials. '
                 'Got {0} <> {1}'.format(self.initials, self.household_member.initials))
-        elif self.household_member.gender != self.gender:
+        if self.household_member.gender != self.gender:
             raise MemberEnrollmentError(
                 'Enrollment Checklist Gender does not match Household Member gender. '
                 'Got {0} <> {1}'.format(self.gender, self.household_member.gender))
-        elif self.household_member.is_minor and age_in_years >= 18:
-            raise MemberEnrollmentError('Household Member is a minor. Got age {0}'.format(age_in_years))
         # is eligible or collect reasons not eligible, but do not raise an exception
         loss_reasons = []
-        if not (age_in_years >= 16 and age_in_years <= 64):
+        if not is_age_eligible(self.age_in_years):
             loss_reasons.append('Must be aged between >=16 and <=64 years.')
         if self.has_identity == NO:
             loss_reasons.append('No valid identity.')
@@ -70,13 +71,17 @@ class EnrollmentModelMixin(models.Model):
             loss_reasons.append('Not a citizen, married to a citizen but does not have a marriage certificate.')
         if self.literacy == NO:
             loss_reasons.append('Illiterate with no literate witness.')
-        if self.household_member.is_minor and self.guardian != YES:
+        if is_minor(self.household_member.age_in_years) and self.guardian != YES:
             loss_reasons.append('Minor without guardian available.')
         if self.confirm_participation == BLOCK_PARTICIPATION:
             loss_reasons.append('Already enrolled.')
         self.is_eligible = True if not loss_reasons else False
         self.loss_reason = None if not loss_reasons else '|'.join(loss_reasons)
-        super().custom_clean()
+        super().common_clean()
+
+    def save(self, *args, **kwargs):
+        self.age_in_years = relativedelta(self.report_datetime.date(), self.dob).years
+        super().save(*args, **kwargs)
 
     class Meta:
         abstract = True
@@ -223,6 +228,7 @@ class EnrollmentChecklist(EnrollmentModelMixin, HouseholdMemberModelMixin, BaseU
 #         self.is_eligible, self.loss_reason = self.passes_enrollment_criteria(using)
 #         super(EnrollmentChecklist, self).save(*args, **kwargs)
 
-    class Meta(HouseholdMemberModelMixin.Meta):
+    class Meta:
         app_label = "member"
         unique_together = (('household_member', 'report_datetime'), )
+        ordering = ['-report_datetime']

@@ -5,7 +5,7 @@ from .enrollment_checklist import EnrollmentChecklist
 from .enrollment_loss import EnrollmentLoss
 from .household_head_eligibility import HouseholdHeadEligibility
 from .household_info import HouseholdInfo
-from .household_member import HouseholdMember
+from .household_member import HouseholdMember, is_adult, is_age_eligible, is_minor
 from .htc_member import HtcMember
 from .htc_member_history import HtcMemberHistory
 from .member_appointment import MemberAppointment
