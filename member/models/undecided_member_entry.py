@@ -12,7 +12,7 @@ from .undecided_member import UndecidedMember
 class UndecidedMemberEntry(MemberEntryMixin, BaseUuidModel):
     """A model completed by the user that captures information on the undecided status
     of a household member potentially eligible for BHS."""
-    undecided_member = models.ForeignKey(UndecidedMember)
+    undecided_member = models.ForeignKey(UndecidedMember, on_delete=models.PROTECT)
 
     report_datetime = models.DateTimeField(
         verbose_name="Report date",

@@ -13,7 +13,7 @@ class RepresentativeEligibility(RepresentativeEligibilityMixin, BaseUuidModel):
 
     report_datetime = models.DateTimeField()
 
-    household_structure = models.OneToOneField(HouseholdStructure)
+    household_structure = models.OneToOneField(HouseholdStructure, on_delete=models.PROTECT)
 
     auto_filled = models.BooleanField(
         default=False,

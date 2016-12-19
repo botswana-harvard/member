@@ -13,7 +13,7 @@ class HtcMemberHistory(BaseUuidModel):
 
     transaction = models.UUIDField(unique=True)
 
-    household_member = models.ForeignKey(HouseholdMember)
+    household_member = models.ForeignKey(HouseholdMember, on_delete=models.PROTECT)
 
     report_datetime = models.DateTimeField(
         verbose_name="Report date",

@@ -15,7 +15,7 @@ class AbsentMemberEntry(MemberEntryMixin, BaseUuidModel):
     """A model completed by the user that indicates the reason a household member
     is absent for each time the RA visits."""
 
-    absent_member = models.ForeignKey(AbsentMember)
+    absent_member = models.ForeignKey(AbsentMember, on_delete=models.PROTECT)
 
     report_datetime = models.DateTimeField(
         verbose_name="Report date",

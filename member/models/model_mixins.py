@@ -20,7 +20,7 @@ class HouseholdMemberModelMixin(models.Model):
 
     """ Mixin for models that need a foreignkey household_member model"""
 
-    household_member = models.OneToOneField(HouseholdMember)
+    household_member = models.OneToOneField(HouseholdMember, on_delete=models.PROTECT)
 
     report_datetime = models.DateTimeField(
         verbose_name="Report date",

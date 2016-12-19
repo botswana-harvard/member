@@ -2,7 +2,8 @@ from model_mommy import mommy
 
 from edc_base.test_mixins import AddVisitMixin, ReferenceDateMixin, CompleteCrfsMixin, LoadListDataMixin
 
-from bcpp_member.list_data import list_data
+from member.list_data import list_data
+from household.tests.test_mixins import HouseholdMixin
 
 
 class MemberTestMixin(HouseholdMixin, LoadListDataMixin):
@@ -10,7 +11,7 @@ class MemberTestMixin(HouseholdMixin, LoadListDataMixin):
     list_data = list_data
 
 
-class MemberMixin(ReferenceDateMixin, MemberTestMixin):
+class MemberMixin(MemberTestMixin):
     """Creates a POS mother."""
     def setUp(self):
         super(MemberMixin, self).setUp()
