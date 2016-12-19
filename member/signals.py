@@ -1,25 +1,33 @@
-# from django.db.models.signals import pre_save, post_save, post_delete
-# from django.dispatch import receiver
-# 
-# from edc_base.utils import get_utcnow
-# from edc_constants.constants import REFUSED
-# 
-# from ..constants import NOT_ELIGIBLE, HEAD_OF_HOUSEHOLD, UNDECIDED, ABSENT
-# 
-# from .absent_member import AbsentMember
-# from .absent_member_entry import AbsentMemberEntry
-# from .enrollment_checklist import EnrollmentChecklist
-# from .enrollment_loss import EnrollmentLoss
-# from .household_head_eligibility import HouseholdHeadEligibility
-# from .household_member import HouseholdMember
-# from .htc_member import HtcMember
-# from .htc_member_history import HtcMemberHistory
-# from .refused_member import RefusedMember
-# from .refused_member_history import RefusedMemberHistory
-# from .undecided_member import UndecidedMember
-# from .undecided_member_entry import UndecidedMemberEntry
-# 
-# 
+from django.db.models.signals import pre_save, post_save, post_delete
+from django.dispatch import receiver
+
+from edc_base.utils import get_utcnow
+from edc_constants.constants import REFUSED
+
+from .constants import NOT_ELIGIBLE, HEAD_OF_HOUSEHOLD, UNDECIDED, ABSENT
+
+from .models import (
+    AbsentMember, AbsentMemberEntry, EnrollmentChecklist, EnrollmentLoss, HouseholdHeadEligibility, HouseholdMember,
+    HtcMember, HtcMemberHistory, RefusedMember, RefusedMemberHistory, UndecidedMember, UndecidedMemberEntry)
+
+
+@receiver(post_save, weak=False, sender=HouseholdMember, dispatch_uid="household_member_on_post_save")
+def household_member_on_post_save(sender, instance, raw, created, using, **kwargs):
+    """Updates enumerated, eligible_members on household structure."""
+    if not raw:
+        if created:
+            instance.household_structure.enumerated = True
+            instance.household_structure.save()
+
+
+@receiver(post_save, weak=False, sender=HouseholdHeadEligibility,
+          dispatch_uid='household_head_eligibility_on_post_save')
+def household_head_eligibility_on_post_save(sender, instance, raw, created, using, **kwargs):
+    if not raw:
+        if instance.household_member.relation == HEAD_OF_HOUSEHOLD:
+            instance.household_member.eligible_hoh = True
+            instance.household_member.save()
+
 # @receiver(post_save, weak=False, sender=HouseholdMember, dispatch_uid="household_member_on_post_save")
 # def household_member_on_post_save(sender, instance, raw, created, using, **kwargs):
 #     """Updates enumerated, eligible_members on household structure."""
@@ -222,9 +230,3 @@
 #             previous_head.save(using=using, update_fields=['relation', 'eligible_hoh'])
 # 
 # 
-# @receiver(post_save, weak=False, sender=HouseholdHeadEligibility,
-#           dispatch_uid='household_head_eligibility_on_post_save')
-# def household_head_eligibility_on_post_save(sender, instance, raw, created, using, **kwargs):
-#     if not raw:
-#         instance.household_member.eligible_hoh = True
-#         instance.household_member.save(using=using, update_fields=['relation', 'eligible_hoh'])

@@ -4,6 +4,7 @@ from edc_base.test_mixins import AddVisitMixin, ReferenceDateMixin, CompleteCrfs
 
 from member.list_data import list_data
 from household.tests.test_mixins import HouseholdMixin
+from member.constants import HEAD_OF_HOUSEHOLD
 
 
 class MemberTestMixin(HouseholdMixin, LoadListDataMixin):
@@ -17,13 +18,22 @@ class MemberMixin(MemberTestMixin):
         super(MemberMixin, self).setUp()
         self.study_site = '40'
 
-    def make_household_ready_for_enumeration(self):
+    def make_household_ready_for_enumeration(self, make_hod=None):
         """Returns household_structure after adding representative eligibility."""
+        make_hod = True if make_hod is None else make_hod
         household_structure = super().make_household_ready_for_enumeration()
         # add representative eligibility
         mommy.make_recipe(
             'member.representativeeligibility',
             household_structure=household_structure)
+        if make_hod:
+            household_member = mommy.make_recipe(
+                'member.householdmember',
+                household_structure=household_structure,
+                relation=HEAD_OF_HOUSEHOLD)
+            mommy.make_recipe(
+                'member.householdheadeligibility',
+                household_member=household_member)
         return household_structure
 
     def add_household_member(self, household_structure, **options):

@@ -5,3 +5,7 @@ class MemberStatusError(Exception):
 
 class EnumerationError(Exception):
     pass
+
+
+class EnumerationRepresentativeError(Exception):
+    pass

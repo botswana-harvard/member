@@ -27,25 +27,60 @@ from ..choices import HOUSEHOLD_MEMBER_PARTICIPATION, RELATIONS, DETAILS_CHANGE_
 from ..constants import ABSENT, UNDECIDED, BHS_SCREEN, REFUSED, NOT_ELIGIBLE, DECEASED, HEAD_OF_HOUSEHOLD
 from ..household_member_helper import HouseholdMemberHelper
 from ..exceptions import EnumerationError
+from member.exceptions import EnumerationRepresentativeError
+
+
+def is_eligible_member(obj):
+    if obj.survival_status == DEAD:
+        return False
+    return (
+        obj.age_in_years >= 16 and obj.age_in_years <= 64 and obj.study_resident == YES and
+        obj.inability_to_participate == NOT_APPLICABLE)
 
 
 class RepresentativeModelMixin(models.Model):
 
+    relation = models.CharField(
+        verbose_name="Relation to head of household",
+        max_length=35,
+        choices=RELATIONS,
+        null=True,
+        help_text="Relation to head of household")
+
+    eligible_hoh = models.BooleanField(
+        default=False,
+        editable=False,
+        help_text="updated by the head of household.")
+
     def common_clean(self):
+        # confirm RepresentativeEligibility exists ...
         try:
             RepresentativeEligibility = django_apps.get_model(*'member.representativeeligibility'.split('.'))
             RepresentativeEligibility.objects.get(household_structure=self.household_structure)
         except RepresentativeEligibility.DoesNotExist:
-            raise EnumerationError(
+            raise EnumerationRepresentativeError(
                 'Enumeration blocked. Please complete \'{}\' form first.'.format(
                     RepresentativeEligibility._meta.verbose_name))
+        # then expect the first added member to be the HEAD_OF_HOUSEHOLD ...
         try:
-            HouseholdHeadEligibility = django_apps.get_model(*'member.householdheadeligibility'.split('.'))
-            HouseholdHeadEligibility.objects.get(household_member=self)
-        except HouseholdHeadEligibility.DoesNotExist:
-            raise EnumerationError(
-                'Enumeration blocked. Please complete \'{}\' form first.'.format(
-                    HouseholdHeadEligibility._meta.verbose_name))
+            household_member = self.__class__.objects.get(relation=HEAD_OF_HOUSEHOLD, eligible_member=True)
+            if self.relation == HEAD_OF_HOUSEHOLD and self.id != household_member.id:
+                raise EnumerationRepresentativeError('Only one member may be the head of household.')
+        except self.__class__.DoesNotExist:
+            household_member = None
+            if self.relation != HEAD_OF_HOUSEHOLD or not is_eligible_member(self):
+                raise EnumerationRepresentativeError(
+                    'Enumeration blocked. Please first add one eligible member who is the head of household.')
+        # then expect HouseholdHeadEligibility to be added against the member who has relation=HEAD_OF_HOUSEHOLD...
+        if household_member:
+            try:
+                HouseholdHeadEligibility = django_apps.get_model(*'member.householdheadeligibility'.split('.'))
+                HouseholdHeadEligibility.objects.get(household_member=household_member)
+            except HouseholdHeadEligibility.DoesNotExist:
+                raise EnumerationRepresentativeError(
+                    'Further enumeration blocked. Please complete \'{}\' form first.'.format(
+                        HouseholdHeadEligibility._meta.verbose_name))
+        # if all OK, add members as you like ...
         super().common_clean()
 
     class Meta:
@@ -75,12 +110,7 @@ class MemberEligibilityModelMixin(models.Model):
         super().common_clean()
 
     def save(self, *args, **kwargs):
-        if self.survival_status == DEAD:
-            self.eligible_member = False
-        else:
-            self.eligible_member = (
-                self.age_in_years >= 16 and self.age_in_years <= 64 and self.study_resident == YES and
-                self.inability_to_participate == NOT_APPLICABLE)
+        self.eligible_member = is_eligible_member(self)
         super().save(*args, **kwargs)
 
     class Meta:
@@ -183,13 +213,6 @@ class HouseholdMember(RepresentativeModelMixin, MemberStatusModelMixin, MemberEl
         max_length=3,
         choices=YES_NO,
         db_index=True)
-
-    relation = models.CharField(
-        verbose_name="Relation to head of household",
-        max_length=35,
-        choices=RELATIONS,
-        null=True,
-        help_text="Relation to head of household")
 
     inability_to_participate = models.CharField(
         verbose_name="Do any of the following reasons apply to the participant?",

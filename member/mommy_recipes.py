@@ -29,4 +29,7 @@ representativeeligibility = Recipe(
 
 householdheadeligibility = Recipe(
     HouseholdHeadEligibility,
+    aged_over_18=YES,
+    household_residency=YES,
+    verbal_script=YES,
 )
