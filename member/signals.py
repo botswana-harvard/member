@@ -18,6 +18,8 @@ def household_member_on_post_save(sender, instance, raw, created, using, **kwarg
         if created:
             instance.household_structure.enumerated = True
             instance.household_structure.save()
+        if not instance.eligible_member:
+            EnrollmentChecklist.objects.filter(household_member=instance).delete()
 
 
 @receiver(post_save, weak=False, sender=HouseholdHeadEligibility,
@@ -27,6 +29,54 @@ def household_head_eligibility_on_post_save(sender, instance, raw, created, usin
         if instance.household_member.relation == HEAD_OF_HOUSEHOLD:
             instance.household_member.eligible_hoh = True
             instance.household_member.save()
+
+
+@receiver(post_save, weak=False, sender=EnrollmentChecklist, dispatch_uid="enrollment_checklist_on_post_save")
+def enrollment_checklist_on_post_save(sender, instance, raw, created, using, **kwargs):
+    """Updates adds or removes the Loss form and updates household_member."""
+    if not raw:
+        if not instance.is_eligible:
+            try:
+                enrollment_loss = EnrollmentLoss.objects.using(using).get(
+                    household_member=instance.household_member)
+                enrollment_loss.report_datetime = instance.report_datetime
+                enrollment_loss.reason = instance.loss_reason
+                enrollment_loss.save()
+            except EnrollmentLoss.DoesNotExist:
+                enrollment_loss = EnrollmentLoss(
+                    household_member=instance.household_member,
+                    report_datetime=instance.report_datetime,
+                    reason=instance.loss_reason)
+                enrollment_loss.save()
+            instance.household_member.eligible_subject = False
+        else:
+            enrollment_loss = EnrollmentLoss.objects.filter(household_member=instance.household_member).delete()
+            instance.household_member.eligible_subject = True
+        instance.household_member.enrollment_checklist_completed = True
+        instance.household_member.save()
+
+
+@receiver(post_delete, weak=False, sender=EnrollmentChecklist, dispatch_uid="enrollment_checklist_on_post_delete")
+def enrollment_checklist_on_post_delete(sender, instance, using, **kwargs):
+    EnrollmentLoss.objects.filter(household_member=instance.household_member).delete()
+    instance.household_member.enrollment_checklist_completed = False
+    instance.household_member.eligible_subject = False
+    instance.household_member.save()
+
+
+@receiver(post_save, weak=False, sender=EnrollmentLoss, dispatch_uid="enrollment_loss_on_post_save")
+def enrollment_loss_on_post_save(sender, instance, raw, created, using, **kwargs):
+    """Updates adds or removes the Loss form and updates household_member."""
+    if not raw:
+        instance.household_member.enrollment_loss_completed = True
+        instance.household_member.save()
+
+
+@receiver(post_delete, weak=False, sender=EnrollmentLoss, dispatch_uid="enrollment_loss_on_post_delete")
+def enrollment_loss_on_post_delete(sender, instance, using, **kwargs):
+    """Updates adds or removes the Loss form and updates household_member."""
+    instance.household_member.enrollment_loss_completed = False
+    instance.household_member.save()
 
 # @receiver(post_save, weak=False, sender=HouseholdMember, dispatch_uid="household_member_on_post_save")
 # def household_member_on_post_save(sender, instance, raw, created, using, **kwargs):

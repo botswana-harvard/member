@@ -14,7 +14,7 @@ from ..exceptions import MemberEnrollmentError
 from ..constants import BLOCK_PARTICIPATION
 
 from .model_mixins import HouseholdMemberModelMixin
-from .household_member import is_age_eligible, is_minor
+from .household_member import is_minor
 
 
 class EnrollmentModelMixin(models.Model):
@@ -35,6 +35,8 @@ class EnrollmentModelMixin(models.Model):
     def common_clean(self):
         # TODO: all these checks are very protocol specific
         # Eligibility ages ranges should be in APPS
+        if not self.household_member.eligible_member:
+            raise MemberEnrollmentError('Member is not eligible for screening.')
         if self.household_member.is_consented:
             raise MemberEnrollmentError('Member is already consented')
         # compare values to member, raise where they dont match
@@ -55,28 +57,26 @@ class EnrollmentModelMixin(models.Model):
                 'Enrollment Checklist Gender does not match Household Member gender. '
                 'Got {0} <> {1}'.format(self.gender, self.household_member.gender))
         # is eligible or collect reasons not eligible, but do not raise an exception
-        loss_reasons = []
-        if not is_age_eligible(self.age_in_years):
-            loss_reasons.append('Must be aged between >=16 and <=64 years.')
+        loss_reason = []
         if self.has_identity == NO:
-            loss_reasons.append('No valid identity.')
+            loss_reason.append('No valid identity.')
         if self.household_residency == NO:
-            loss_reasons.append('Failed household residency requirement')
-        if self.part_time_resident == YES:
-            loss_reasons.append('Does not spend 3 or more nights per month in the community.')
+            loss_reason.append('Failed household residency requirement')
+        if self.part_time_resident == NO:
+            loss_reason.append('Does not spend 3 or more nights per month in the community.')
         if self.citizen == NO and self.legal_marriage == NO:
-            loss_reasons.append('Not a citizen and not married to a citizen.')
+            loss_reason.append('Not a citizen and not married to a citizen.')
         if (self.citizen == NO and self.legal_marriage == YES and
                 self.marriage_certificate == NO):
-            loss_reasons.append('Not a citizen, married to a citizen but does not have a marriage certificate.')
+            loss_reason.append('Not a citizen, married to a citizen but does not have a marriage certificate.')
         if self.literacy == NO:
-            loss_reasons.append('Illiterate with no literate witness.')
+            loss_reason.append('Illiterate with no literate witness.')
         if is_minor(self.household_member.age_in_years) and self.guardian != YES:
-            loss_reasons.append('Minor without guardian available.')
+            loss_reason.append('Minor without guardian available.')
         if self.confirm_participation == BLOCK_PARTICIPATION:
-            loss_reasons.append('Already enrolled.')
-        self.is_eligible = True if not loss_reasons else False
-        self.loss_reason = None if not loss_reasons else '|'.join(loss_reasons)
+            loss_reason.append('Already enrolled.')
+        self.is_eligible = False if loss_reason else True
+        self.loss_reason = '|'.join(loss_reason) if loss_reason else None
         super().common_clean()
 
     def save(self, *args, **kwargs):
@@ -147,7 +147,7 @@ class EnrollmentChecklist(EnrollmentModelMixin, HouseholdMemberModelMixin, BaseU
 
     confirm_participation = models.CharField(
         verbose_name="If Yes, RA should obtain documentation of participation and ask CBS to"
-                     "confirm(give Omang Number). Has Participation been confirmed",
+                     "confirm (give Omang Number). Has Participation been confirmed",
         max_length=15,
         choices=BLOCK_CONTINUE,
         null=True,

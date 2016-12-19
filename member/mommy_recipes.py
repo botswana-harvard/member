@@ -1,12 +1,12 @@
 # coding=utf-8
 
+from dateutil.relativedelta import relativedelta
 from model_mommy.recipe import Recipe
 
 from edc_base.test_mixins.reference_date_mixin import ReferenceDateMixin
-from edc_constants.constants import NOT_APPLICABLE, YES, ALIVE, FEMALE
+from edc_constants.constants import NOT_APPLICABLE, YES, ALIVE, FEMALE, NO
 
 from .models import HouseholdMember, RepresentativeEligibility, HouseholdHeadEligibility, EnrollmentChecklist
-from dateutil.relativedelta import relativedelta
 
 
 class ReferenceDate(ReferenceDateMixin):
@@ -50,4 +50,9 @@ enrollmentchecklist = Recipe(
     part_time_resident=YES,
     initials='EW',
     gender=FEMALE,
+    household_residency=YES,
+    has_identity=YES,
+    citizen=YES,
+    literacy=YES,
+    confirm_participation=NOT_APPLICABLE,
 )

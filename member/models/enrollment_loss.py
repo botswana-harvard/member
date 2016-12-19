@@ -22,9 +22,9 @@ class EnrollmentLoss(HouseholdMemberModelMixin, BaseUuidModel):
     history = HistoricalRecords()
 
     def save(self, *args, **kwargs):
-        if self.household_member.member_status != NOT_ELIGIBLE:
-            raise MemberStatusError('Expected member status to be {0}. Got {1}'.format(
-                NOT_ELIGIBLE, self.household_member.member_status))
+#         if self.household_member.member_status != NOT_ELIGIBLE:
+#             raise MemberStatusError('Expected member status to be {0}. Got {1}'.format(
+#                 NOT_ELIGIBLE, self.household_member.member_status))
         super(EnrollmentLoss, self).save(*args, **kwargs)
 
     class Meta(HouseholdMemberModelMixin.Meta):
