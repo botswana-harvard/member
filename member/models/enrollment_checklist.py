@@ -1,26 +1,89 @@
-from datetime import date
 from dateutil.relativedelta import relativedelta
 
-from django.apps import apps as django_apps
-from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator, MaxLengthValidator, RegexValidator
 from django.db import models
 
 from edc_base.model.models import HistoricalRecords, BaseUuidModel
 from edc_base.model.validators import dob_not_future
+from edc_consent.site_consents import site_consents
 from edc_consent.validators import AgeTodayValidator
 from edc_constants.choices import GENDER, YES_NO, YES_NO_NA
-from edc_constants.constants import NOT_APPLICABLE
+from edc_constants.constants import NOT_APPLICABLE, NO, YES
 
 from ..choices import BLOCK_CONTINUE
-from ..constants import BHS_SCREEN, BHS_ELIGIBLE, NOT_ELIGIBLE, HTC_ELIGIBLE
-from ..exceptions import MemberStatusError
+from ..exceptions import MemberEnrollmentError
+from ..constants import BLOCK_PARTICIPATION
 
 from .model_mixins import HouseholdMemberModelMixin
 
 
-class EnrollmentChecklist(HouseholdMemberModelMixin, BaseUuidModel):
-    """A model completed by the user that captures and confirms BHS enrollment eligibility
+class EnrollmentModelMixin(models.Model):
+
+    is_eligible = models.BooleanField(default=False)
+
+    loss_reason = models.TextField(
+        verbose_name='Reason not eligible',
+        max_length=500,
+        null=True,
+        editable=False,
+        help_text='(stored for the loss form)')
+
+    def custom_clean(self):
+        # TODO: where should "subject" subject type come from??
+        # TODO: all these checks are very protocol specific
+        if self.household_member.is_consented:
+            raise MemberEnrollmentError('Member is already consented')
+        age_in_years = relativedelta(self.report_datetime.date(), self.dob).years
+        # compare values to member, raise where they dont match
+        if age_in_years != self.household_member.age_in_years:
+            raise MemberEnrollmentError(
+                'Enrollment Checklist Age does not match Household Member age. '
+                'Got {0} <> {1}'.format(age_in_years, self.household_member.age_in_years))
+        elif self.household_member.study_resident.lower() != self.part_time_resident.lower():
+            raise MemberEnrollmentError(
+                'Enrollment Checklist Residency does not match Household Member residency. '
+                'Got {0} <> {1}'.format(self.part_time_resident, self.household_member.study_resident))
+        elif self.household_member.initials.lower() != self.initials.lower():
+            raise MemberEnrollmentError(
+                'Enrollment Checklist Initials do not match Household Member initials. '
+                'Got {0} <> {1}'.format(self.initials, self.household_member.initials))
+        elif self.household_member.gender != self.gender:
+            raise MemberEnrollmentError(
+                'Enrollment Checklist Gender does not match Household Member gender. '
+                'Got {0} <> {1}'.format(self.gender, self.household_member.gender))
+        elif self.household_member.is_minor and age_in_years >= 18:
+            raise MemberEnrollmentError('Household Member is a minor. Got age {0}'.format(age_in_years))
+        # is eligible or collect reasons not eligible, but do not raise an exception
+        loss_reasons = []
+        if not (age_in_years >= 16 and age_in_years <= 64):
+            loss_reasons.append('Must be aged between >=16 and <=64 years.')
+        if self.has_identity == NO:
+            loss_reasons.append('No valid identity.')
+        if self.household_residency == NO:
+            loss_reasons.append('Failed household residency requirement')
+        if self.part_time_resident == YES:
+            loss_reasons.append('Does not spend 3 or more nights per month in the community.')
+        if self.citizen == NO and self.legal_marriage == NO:
+            loss_reasons.append('Not a citizen and not married to a citizen.')
+        if (self.citizen == NO and self.legal_marriage == YES and
+                self.marriage_certificate == NO):
+            loss_reasons.append('Not a citizen, married to a citizen but does not have a marriage certificate.')
+        if self.literacy == NO:
+            loss_reasons.append('Illiterate with no literate witness.')
+        if self.household_member.is_minor and self.guardian != YES:
+            loss_reasons.append('Minor without guardian available.')
+        if self.confirm_participation == BLOCK_PARTICIPATION:
+            loss_reasons.append('Already enrolled.')
+        self.is_eligible = True if not loss_reasons else False
+        self.loss_reason = None if not loss_reasons else '|'.join(loss_reasons)
+        super().custom_clean()
+
+    class Meta:
+        abstract = True
+
+
+class EnrollmentChecklist(EnrollmentModelMixin, HouseholdMemberModelMixin, BaseUuidModel):
+    """A model completed by the user that captures and confirms survey enrollment eligibility
     criteria."""
 
     initials = models.CharField(
@@ -44,7 +107,7 @@ class EnrollmentChecklist(HouseholdMemberModelMixin, BaseUuidModel):
         verbose_name="If minor, is there a guardian available? ",
         max_length=10,
         choices=YES_NO_NA,
-        default=YES_NO_NA[2][0],
+        default=NOT_APPLICABLE,
         help_text="If a minor age 16 and 17, ensure a guardian is available otherwise"
                   " participant will not be enrolled.")
 
@@ -132,15 +195,7 @@ class EnrollmentChecklist(HouseholdMemberModelMixin, BaseUuidModel):
         help_text="If participate is illiterate, confirm there is a literate"
                   "witness available otherwise participant will not be enrolled.")
 
-    is_eligible = models.BooleanField(default=False)
-
-    loss_reason = models.TextField(
-        verbose_name='Reason not eligible',
-        max_length=500,
-        null=True,
-        editable=False,
-        help_text='(stored for the loss form)')
-
+    # TODO: what is this????
     auto_filled = models.BooleanField(
         default=False,
         editable=False,
@@ -151,73 +206,22 @@ class EnrollmentChecklist(HouseholdMemberModelMixin, BaseUuidModel):
 
     history = HistoricalRecords()
 
-    def save(self, *args, **kwargs):
-        using = kwargs.get('using')
-        if not self.pk:
-            if self.household_member.member_status != BHS_SCREEN:
-                raise MemberStatusError(('Expected member status to be {0}. Got {1}').format(
-                    BHS_SCREEN, self.household_member.member_status))
-        else:
-            pass
-            if not kwargs.get('update_fields'):
-                if self.household_member.member_status not in [BHS_ELIGIBLE, NOT_ELIGIBLE, BHS_SCREEN, HTC_ELIGIBLE]:
-                    raise MemberStatusError('Expected member status to be {0}. Got {1}'.format(
-                        BHS_SCREEN + ' or ' + NOT_ELIGIBLE + ' or ' + BHS_SCREEN, self.household_member.member_status))
-        if not kwargs.get('update_fields'):
-            self.matches_household_member_values(self, self.household_member)
-        self.is_eligible, self.loss_reason = self.passes_enrollment_criteria(using)
-        super(EnrollmentChecklist, self).save(*args, **kwargs)
-
-    def matches_household_member_values(self, enrollment_checklist, household_member, exception_cls=None):
-        """Compares shared values on household_member form and returns True if all match."""
-        error_msg = None
-        exception_cls = exception_cls or ValidationError
-        age_in_years = relativedelta(date.today(), enrollment_checklist.dob).years
-        if age_in_years != household_member.age_in_years:
-            error_msg = ('Enrollment Checklist Age does not match Household Member age. '
-                         'Got {0} <> {1}').format(age_in_years, household_member.age_in_years)
-        elif household_member.study_resident.lower() != enrollment_checklist.part_time_resident.lower():
-            error_msg = ('Enrollment Checklist Residency does not match Household Member residency. '
-                         'Got {0} <> {1}').format(
-                             enrollment_checklist.part_time_resident, household_member.study_resident)
-        elif household_member.initials.lower() != enrollment_checklist.initials.lower():
-            error_msg = ('Enrollment Checklist Initials do not match Household Member initials. '
-                         'Got {0} <> {1}').format(enrollment_checklist.initials, household_member.initials)
-        elif household_member.gender != enrollment_checklist.gender:
-            error_msg = ('Enrollment Checklist Gender does not match Household Member gender. '
-                         'Got {0} <> {1}').format(enrollment_checklist.gender, household_member.gender)
-        elif household_member.is_minor and age_in_years >= 18:
-            error_msg = 'Household Member is a minor. Got age {0}'.format(age_in_years)
-        if error_msg:
-            raise exception_cls(error_msg)
-
-    def passes_enrollment_criteria(self, using):
-        """Creates or updates (or deletes) the enrollment loss based on the
-        reason for not passing the enrollment checklist."""
-        SubjectConsent = django_apps.get_model('bcpp_subject', 'subjectconsent')
-        loss_reason = []
-        age_in_years = relativedelta(date.today(), self.dob).years
-        if not (SubjectConsent.objects.filter(household_member=self.household_member)):
-            if not (age_in_years >= 16 and age_in_years <= 64):
-                loss_reason.append('Must be aged between >=16 and <=64 years.')
-            if self.has_identity.lower() == 'no':
-                loss_reason.append('No valid identity.')
-            if self.household_residency.lower() == 'No':
-                loss_reason.append('Failed household residency requirement')
-            if self.part_time_resident.lower() != 'yes':
-                loss_reason.append('Does not spend 3 or more nights per month in the community.')
-            if self.citizen.lower() == 'no' and self.legal_marriage.lower() == 'no':
-                loss_reason.append('Not a citizen and not married to a citizen.')
-            if (self.citizen.lower() == 'no' and self.legal_marriage.lower() == 'yes' and
-                    self.marriage_certificate.lower() == 'no'):
-                loss_reason.append('Not a citizen, married to a citizen but does not have a marriage certificate.')
-            if self.literacy.lower() == 'no':
-                loss_reason.append('Illiterate with no literate witness.')
-            if self.household_member.is_minor and self.guardian.lower() != 'yes':
-                loss_reason.append('Minor without guardian available.')
-            if self.confirm_participation.lower() == 'block':
-                loss_reason.append('Already enrolled.')
-        return (False if loss_reason else True, loss_reason)
+#     def save(self, *args, **kwargs):
+#         using = kwargs.get('using')
+#         if not self.pk:
+#             if self.household_member.member_status != BHS_SCREEN:
+#                 raise MemberStatusError(('Expected member status to be {0}. Got {1}').format(
+#                     BHS_SCREEN, self.household_member.member_status))
+#         else:
+#             pass
+#             if not kwargs.get('update_fields'):
+#                 if self.household_member.member_status not in [BHS_ELIGIBLE, NOT_ELIGIBLE, BHS_SCREEN, HTC_ELIGIBLE]:
+#                     raise MemberStatusError('Expected member status to be {0}. Got {1}'.format(
+#                         BHS_SCREEN + ' or ' + NOT_ELIGIBLE + ' or ' + BHS_SCREEN, self.household_member.member_status))
+#         if not kwargs.get('update_fields'):
+#             self.matches_household_member_values(self, self.household_member)
+#         self.is_eligible, self.loss_reason = self.passes_enrollment_criteria(using)
+#         super(EnrollmentChecklist, self).save(*args, **kwargs)
 
     class Meta(HouseholdMemberModelMixin.Meta):
         app_label = "member"

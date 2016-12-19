@@ -3,7 +3,7 @@ from edc_constants.constants import OTHER, DWTA, NOT_APPLICABLE, POS, NEG, IND
 from .constants import (ABSENT, BHS, BHS_ELIGIBLE, BHS_SCREEN, HTC, HTC_ELIGIBLE, NOT_ELIGIBLE,
                         NOT_REPORTED, REFUSED, UNDECIDED, REFUSED_HTC, BHS_LOSS, ANNUAL, DECEASED,
                         HEAD_OF_HOUSEHOLD)
-from member.constants import MENTAL_INCAPACITY
+from member.constants import MENTAL_INCAPACITY, BLOCK_PARTICIPATION
 
 options = list(set([ABSENT, BHS, BHS_ELIGIBLE, BHS_SCREEN, HTC, HTC_ELIGIBLE, NOT_ELIGIBLE,
                     NOT_REPORTED, REFUSED, UNDECIDED, REFUSED_HTC, BHS_LOSS, ANNUAL, DECEASED]))
@@ -118,7 +118,7 @@ REASONS_ABSENT = (
 )
 
 BLOCK_CONTINUE = (
-    ('Block', 'Yes( Block from further participation)'),
+    (BLOCK_PARTICIPATION, 'Yes( Block from further participation)'),
     ('Continue', 'No (Can continue and participate)'),
     (NOT_APPLICABLE, 'Not applicable'),
 )

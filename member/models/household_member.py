@@ -1,33 +1,27 @@
-from datetime import date
-from dateutil.relativedelta import relativedelta
 from uuid import uuid4
 
 from django.apps import apps as django_apps
-from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.core.validators import (
     MinLengthValidator, MaxLengthValidator, MinValueValidator, MaxValueValidator, RegexValidator)
 from django.db import models
 from django_crypto_fields.fields import FirstnameField
-from django_crypto_fields.mask_encrypted import mask_encrypted
 
 from edc_base.model.fields import OtherCharField
-from edc_base.model.models import BaseUuidModel, HistoricalRecords
+from edc_base.model.models import BaseUuidModel
 from edc_base.model.validators.date import datetime_not_future
 from edc_base.utils import get_utcnow
 from edc_constants.choices import YES_NO, GENDER, YES_NO_DWTA, ALIVE_DEAD_UNKNOWN
-from edc_constants.constants import NOT_APPLICABLE, ALIVE, DEAD, YES, NO
+from edc_constants.constants import NOT_APPLICABLE, ALIVE, DEAD, YES
 from edc_map.site_mappers import site_mappers
 from edc_registration.model_mixins import SubjectIdentifierModelMixin, UpdatesOrCreatesRegistrationModelMixin
 
 from household.models import HouseholdStructure
-from plot.models import Plot
 
 from ..choices import HOUSEHOLD_MEMBER_PARTICIPATION, RELATIONS, DETAILS_CHANGE_REASON, INABILITY_TO_PARTICIPATE_REASON
-from ..constants import ABSENT, UNDECIDED, BHS_SCREEN, REFUSED, NOT_ELIGIBLE, DECEASED, HEAD_OF_HOUSEHOLD
+from ..constants import ABSENT, UNDECIDED, BHS_SCREEN, REFUSED, NOT_ELIGIBLE, HEAD_OF_HOUSEHOLD
+from ..exceptions import EnumerationRepresentativeError
 from ..household_member_helper import HouseholdMemberHelper
-from ..exceptions import EnumerationError
-from member.exceptions import EnumerationRepresentativeError
+from member.exceptions import MemberValidationError
 
 
 def is_eligible_member(obj):
@@ -39,6 +33,7 @@ def is_eligible_member(obj):
 
 
 class RepresentativeModelMixin(models.Model):
+    """Mixin that ensures enumeration cannot begin until a representative and HoH is identified."""
 
     relation = models.CharField(
         verbose_name="Relation to head of household",
@@ -53,6 +48,8 @@ class RepresentativeModelMixin(models.Model):
         help_text="updated by the head of household.")
 
     def common_clean(self):
+        # TODO: the validations here may cause problems if importing the previous surveys members
+
         # confirm RepresentativeEligibility exists ...
         try:
             RepresentativeEligibility = django_apps.get_model(*'member.representativeeligibility'.split('.'))
@@ -89,6 +86,11 @@ class RepresentativeModelMixin(models.Model):
 
 class MemberEligibilityModelMixin(models.Model):
 
+    eligible_member = models.BooleanField(
+        default=False,
+        editable=False,
+        help_text='eligible to be screened. based on data on this form')
+
     eligible_subject = models.BooleanField(
         default=False,
         editable=False,
@@ -105,9 +107,6 @@ class MemberEligibilityModelMixin(models.Model):
         default=False,
         editable=False,
         help_text="updated by enrollment loss save method only.")
-
-    def common_clean(self):
-        super().common_clean()
 
     def save(self, *args, **kwargs):
         self.eligible_member = is_eligible_member(self)
@@ -131,6 +130,10 @@ class MemberStatusModelMixin(models.Model):
         default=False,
         editable=False,
         help_text="update by any of subject absentee, undecided, refusal")
+
+    is_consented = models.BooleanField(
+        default=False,
+        help_text='updated by the consent model')
 
     refused = models.BooleanField(
         default=False,
@@ -235,20 +238,28 @@ class HouseholdMember(RepresentativeModelMixin, MemberStatusModelMixin, MemberEl
                    "since moving in has the participant typically "
                    "spent 3 or more nights per month in this community."))
 
+    personal_details_changed = models.CharField(
+        verbose_name=("Have your personal details (name/surname) changed since the last time we visited you?"),
+        max_length=10,
+        null=True,
+        blank=True,
+        default='-',
+        choices=YES_NO,
+        help_text=('personal details (name/surname)'))
+
+    details_change_reason = models.CharField(
+        verbose_name=("If YES, please specify the reason"),
+        max_length=30,
+        null=True,
+        blank=True,
+        default='-',
+        choices=DETAILS_CHANGE_REASON,
+        help_text=('if personal detail changed choice a reason above.'))
+
     visit_attempts = models.IntegerField(
         default=0,
         editable=False,
         help_text="")
-
-    hiv_history = models.CharField(
-        max_length=25,
-        null=True,
-        editable=False)
-
-    eligible_member = models.BooleanField(
-        default=False,
-        editable=False,
-        help_text='eligible to be screened. based on data on this form')
 
     eligible_htc = models.BooleanField(
         default=False,
@@ -264,15 +275,6 @@ class HouseholdMember(RepresentativeModelMixin, MemberStatusModelMixin, MemberEl
         default=False,
         editable=False,
         help_text="updated by the subject HTC save method only")
-
-    is_consented = models.BooleanField(
-        default=False,
-        editable=False, help_text="updated by the subject consent save method only")
-
-    eligible_hoh = models.BooleanField(
-        default=False,
-        editable=False,
-        help_text="updated by the head of household enrollment checklist only.")
 
     target = models.IntegerField(
         default=0,
@@ -306,24 +308,6 @@ class HouseholdMember(RepresentativeModelMixin, MemberStatusModelMixin, MemberEl
             'household_structure is always the same value.'),
     )
 
-    personal_details_changed = models.CharField(
-        verbose_name=("Have your personal details (name/surname) changed since the last time we visited you?"),
-        max_length=10,
-        null=True,
-        blank=True,
-        default='-',
-        choices=YES_NO,
-        help_text=('personal details (name/surname)'))
-
-    details_change_reason = models.CharField(
-        verbose_name=("If YES, please specify the reason"),
-        max_length=30,
-        null=True,
-        blank=True,
-        default='-',
-        choices=DETAILS_CHANGE_REASON,
-        help_text=('if personal detail changed choice a reason above.'))
-
     # objects = HouseholdMemberManager()
 
 #    history = HistoricalRecords()
@@ -342,6 +326,10 @@ class HouseholdMember(RepresentativeModelMixin, MemberStatusModelMixin, MemberEl
 #             is_bhs)
 
     def common_clean(self):
+        if self.survival_status == DEAD and self.present_today == YES:
+            raise MemberValidationError(
+                'Invalid combination. Got member status == {} but present today == {}'.format(
+                    self.survival_status, self.present_today))
         super().common_clean()
 
     def save(self, *args, **kwargs):
@@ -407,51 +395,6 @@ class HouseholdMember(RepresentativeModelMixin, MemberStatusModelMixin, MemberEl
         return clear_enrollment_fields
 
     @property
-    def set_death_flags(self):
-        self.survival_status = DEAD
-        self.present_today = NO
-
-    @property
-    def clear_death_flags(self):
-        from ..models import DeceasedMember
-        self.survival_status = ALIVE
-        try:
-            DeceasedMember.objects.get(household_member=self).delete()
-        except DeceasedMember.DoesNotExist:
-            pass
-
-    @property
-    def clear_refusal(self):
-        from ..models import RefusedMember
-        self.refused = False
-        try:
-            RefusedMember.objects.get(household_member=self).delete()
-        except RefusedMember.DoesNotExist:
-            pass
-
-    @property
-    def clear_htc(self):
-        from ..models import HtcMember
-        self.htc = False
-        self.eligible_htc = False
-        try:
-            HtcMember.objects.get(household_member=self).delete()
-        except HtcMember.DoesNotExist:
-            pass
-
-    @property
-    def clear_enrollment_checklist(self):
-        from ..models import EnrollmentChecklist
-        self.enrollment_checklist_completed = False
-        self.enrollment_loss_completed = False
-        self.eligible_subject = False
-        try:
-            EnrollmentChecklist.objects.get(household_member=self).delete()
-        except EnrollmentChecklist.DoesNotExist:
-            pass
-        return ['enrollment_checklist_completed', 'enrollment_loss_completed', 'eligible_subject']
-
-    @property
     def evaluate_htc_eligibility(self):
         from ..models import EnrollmentChecklist
         eligible_htc = False
@@ -472,104 +415,6 @@ class HouseholdMember(RepresentativeModelMixin, MemberStatusModelMixin, MemberEl
             else:
                 eligible_htc = True
         return eligible_htc
-
-    @property
-    def intervention(self):
-        return site_mappers.get_mapper(site_mappers.current_map_area).intervention
-
-    @property
-    def plot_enrolled(self):
-        return self.household_structure.household.plot.bhs
-
-    def check_eligible_representative_filled(self, household_structure, using=None, exception_cls=None):
-        """Raises an exception if the RepresentativeEligibility form has not been completed.
-
-        Without RepresentativeEligibility, a HouseholdMember cannot be added."""
-        return household_structure.check_eligible_representative_filled(using, exception_cls)
-
-    def check_head_household(self, household_structure, using=None, exception_cls=None):
-        """Raises an exception if the HeadOusehold already exists in this household structure."""
-        exception_cls = exception_cls or ValidationError
-        using = using or 'default'
-        try:
-            current_hoh = HouseholdMember.objects.get(
-                household_structure=household_structure,
-                relation=HEAD_OF_HOUSEHOLD)
-            # If i am not a new instance then make sure i am not comparing to myself.
-            if self.id and current_hoh and (self.id != current_hoh.id):
-                    raise exception_cls('{0} is the head of household already. Only one member '
-                                        'may be the head of household.'.format(current_hoh))
-            # If i am a new instance then i could not be comparing to myself as i do not exist in the DB yet
-            elif not self.id and current_hoh:
-                raise exception_cls('{0} is the head of household already. Only one member '
-                                    'may be the head of household.'.format(current_hoh))
-        except HouseholdMember.DoesNotExist:
-            pass
-
-    def match_enrollment_checklist_values(self, household_member, exception_cls=None):
-        if household_member.enrollment_checklist:
-            household_member.enrollment_checklist.matches_household_member_values(
-                household_member.enrollment_checklist, household_member, exception_cls)
-
-    @property
-    def enrollment_checklist(self):
-        """Returns the enrollment checklist instance or None."""
-        EnrollmentChecklist = django_apps.get_model('member', 'EnrollmentChecklist')
-        try:
-            enrollment_checklist = EnrollmentChecklist.objects.get(household_member=self)
-        except EnrollmentChecklist.DoesNotExist:
-            enrollment_checklist = None
-        return enrollment_checklist
-
-    @property
-    def htc_member(self):
-        """Returns the HtcMember instance or None."""
-        HtcMember = django_apps.get_model('member', 'HtcMember')
-        try:
-            htc_member = HtcMember.objects.get(household_member=self)
-        except HtcMember.DoesNotExist:
-            htc_member = None
-        return htc_member
-
-    @property
-    def bypass_household_log(self):
-        try:
-            return settings.BYPASS_HOUSEHOLD_LOG
-        except AttributeError:
-            return False
-
-    @property
-    def enrollment_options(self):
-        """Returns a dictionary of household member fields that are also
-        on the enrollment checklist (as a convenience)."""
-        return {'gender': self.gender,
-                'dob': date.today() - relativedelta(years=self.age_in_years),
-                'initials': self.initials,
-                'part_time_resident': self.study_resident}
-
-    @property
-    def is_minor(self):
-        return (self.age_in_years >= 16 and self.age_in_years <= 17)
-
-    @property
-    def is_adult(self):
-        return (self.age_in_years >= 18 and self.age_in_years <= 64)
-
-    @property
-    def is_htc_only(self):
-        """Returns True if subject has participated by accepting HTC only."""
-        pass
-
-    def update_plot_on_post_save(self):
-        """Updates plot member count from householdmember."""
-        members = HouseholdMember.objects.filter(
-            household_structure__household__plot=self.household_structure.household.plot).count()
-        try:
-            plot = self.household_structure.household.plot
-            plot.eligible_members = members
-            plot.save()  # TODO: may want to use update_fields
-        except Plot.DoesNotExist:
-            pass
 
     def update_household_member_count_on_post_save(self, sender, using=None):
         """Updates the member count on the household_structure model."""
