@@ -15,8 +15,6 @@ class MemberTestMixin(HouseholdMixin, LoadListDataMixin):
 
 
 class MemberMixin(MemberTestMixin):
-    consent_model = 'example_survey.subjectconsent'
-    survey_group_name = 'example-survey'
 
     def setUp(self):
         super(MemberMixin, self).setUp()
