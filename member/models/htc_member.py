@@ -70,7 +70,7 @@ class HtcMember(HouseholdMemberModelMixin, BaseUuidModel):
     def prepare_tracking_identifier(self):
         app_config = django_apps.get_app_config('edc_device')
         template = 'HTC{device_id}{random_string}'
-        opts = {'device_id': app_config.device_id, 'random_string': get_safe_random_string(length=5)}
+        opts = {'device_id': app_config.device_id, 'random_string': get_safe_random_string(self, length=5)}
         tracking_identifier = template.format(**opts)
         # look for a duplicate
         if self.__class__.objects.filter(tracking_identifier=tracking_identifier):
