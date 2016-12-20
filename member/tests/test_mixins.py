@@ -20,15 +20,15 @@ class MemberMixin(MemberTestMixin):
         super(MemberMixin, self).setUp()
         self.study_site = '40'
 
-    def make_household_ready_for_enumeration(self, make_hod=None):
+    def make_household_ready_for_enumeration(self, make_hoh=None):
         """Returns household_structure after adding representative eligibility."""
-        make_hod = True if make_hod is None else make_hod
+        make_hoh = True if make_hoh is None else make_hoh
         household_structure = super().make_household_ready_for_enumeration()
         # add representative eligibility
         mommy.make_recipe(
             'member.representativeeligibility',
             household_structure=household_structure)
-        if make_hod:
+        if make_hoh:
             household_member = mommy.make_recipe(
                 'member.householdmember',
                 household_structure=household_structure,

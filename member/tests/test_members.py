@@ -20,7 +20,7 @@ class TestMembers(MemberMixin, TestCase):
 
     def test_cannot_add_first_member_if_not_hoh(self):
         """Assert cannot add first member if not head of household."""
-        household_structure = self.make_household_ready_for_enumeration(make_hod=False)
+        household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
         self.assertRaises(
             EnumerationRepresentativeError,
             mommy.make_recipe,
@@ -30,7 +30,7 @@ class TestMembers(MemberMixin, TestCase):
 
     def test_can_add_first_member_if_hoh(self):
         """Assert can add head of household."""
-        household_structure = self.make_household_ready_for_enumeration(make_hod=False)
+        household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
         household_member = mommy.make_recipe(
             'member.householdmember',
             household_structure=household_structure,
@@ -39,7 +39,7 @@ class TestMembers(MemberMixin, TestCase):
 
     def test_cannot_add_more_members_if_no_hoh_eligibility(self):
         """Assert can add head of household."""
-        household_structure = self.make_household_ready_for_enumeration(make_hod=False)
+        household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
         mommy.make_recipe(
             'member.householdmember',
             household_structure=household_structure,
@@ -53,7 +53,7 @@ class TestMembers(MemberMixin, TestCase):
 
     def test_can_add_more_members_if_hoh_eligibility(self):
         """Assert can add head of household."""
-        household_structure = self.make_household_ready_for_enumeration(make_hod=False)
+        household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
         household_member = mommy.make_recipe(
             'member.householdmember',
             household_structure=household_structure,
@@ -322,7 +322,6 @@ class TestMembers(MemberMixin, TestCase):
         except EnrollmentLoss.DoesNotExist:
             self.fail('EnrollmentLoss.DoesNotExist unexpectedly raised.')
 
-    @tag('me')
     def test_enrollment_checklist_does_not_create_loss_on_eligible(self):
         household_structure = self.make_household_ready_for_enumeration()
         household_member = self.add_household_member(
@@ -336,7 +335,6 @@ class TestMembers(MemberMixin, TestCase):
         except EnrollmentLoss.DoesNotExist:
             pass
 
-    @tag('me')
     def test_enrollment_checklist_creates_loss_on_ineligible2(self):
         """Asserts changing household meber to ineligible deletes EnrollmentChecklist."""
         household_structure = self.make_household_ready_for_enumeration()
@@ -397,7 +395,6 @@ class TestMembers(MemberMixin, TestCase):
             age_in_years=10)
         self.assertEqual(household_member.member_status, NOT_ELIGIBLE)
 
-    @tag('me')
     def test_member_status_for_absent(self):
         household_structure = self.make_household_ready_for_enumeration()
         household_member = self.add_household_member(
@@ -438,7 +435,6 @@ class TestMembers(MemberMixin, TestCase):
         participation_status = ParticipationStatus(household_member)
         self.assertEqual(participation_status.participation_status, HTC_ELIGIBLE)
 
-    @tag('me')
     def test_member_visit_attempts(self):
         household_structure = self.make_household_ready_for_enumeration()
         household_member = self.add_household_member(
@@ -455,7 +451,6 @@ class TestMembers(MemberMixin, TestCase):
             report_date=(self.get_utcnow() - relativedelta(days=2)).date())
         self.assertEqual(household_member.visit_attempts, 3)
 
-    @tag('me')
     def test_absent_uniqueness(self):
         household_structure = self.make_household_ready_for_enumeration()
         household_member = self.add_household_member(
@@ -467,7 +462,6 @@ class TestMembers(MemberMixin, TestCase):
             self.make_absent_member,
             household_member=household_member)
 
-    @tag('me')
     def test_undecided_uniqueness(self):
         household_structure = self.make_household_ready_for_enumeration()
         household_member = self.add_household_member(
@@ -478,3 +472,21 @@ class TestMembers(MemberMixin, TestCase):
             IntegrityError,
             self.make_undecided_member,
             household_member=household_member)
+
+    @tag('me')
+    def test_internal_and_subject_identifier(self):
+        household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
+        household_member = mommy.make_recipe(
+            'member.householdmember',
+            household_structure=household_structure,
+            relation=HEAD_OF_HOUSEHOLD)
+        subject_identifier = household_member.subject_identifier
+        subject_identifier_as_pk = household_member.subject_identifier_as_pk
+        self.assertIsNotNone(subject_identifier)
+        self.assertIsNotNone(subject_identifier_as_pk)
+        self.assertEqual(subject_identifier, subject_identifier_as_pk)
+        self.assertIsNotNone(household_member.internal_identifier)
+        household_member.save()
+        household_member = HouseholdMember.objects.get(pk=household_member.pk)
+        self.assertEqual(subject_identifier, household_member.subject_identifier)
+        self.assertEqual(subject_identifier_as_pk, household_member.subject_identifier_as_pk)

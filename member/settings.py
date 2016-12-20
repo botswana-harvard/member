@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'edc_identifier.apps.AppConfig',
     'edc_subset_manager.apps.AppConfig',
     'edc_protocol.apps.AppConfig',
+    'edc_registration.apps.AppConfig',
     'member.apps.AppConfig',
     'plot.apps.AppConfig',
     'example_survey.apps.AppConfig',
@@ -103,6 +104,12 @@ else:
         }
     }
 
+DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
 
 if 'test' in sys.argv:  # and 'mysql' not in DATABASES.get('default').get('ENGINE'):
     MIGRATION_MODULES = {
