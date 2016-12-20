@@ -12,7 +12,7 @@ from .models import (
 
 
 class ReferenceDate(ReferenceDateMixin):
-    consent_model = 'edc_example.subjectconsent'
+    consent_model = 'example_survey.subjectconsent'
 
 
 def get_utcnow():
