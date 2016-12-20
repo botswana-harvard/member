@@ -3,7 +3,8 @@
 from dateutil.relativedelta import relativedelta
 from model_mommy.recipe import Recipe
 
-from edc_base.test_mixins.reference_date_mixin import ReferenceDateMixin
+from django.apps import apps as django_apps
+
 from edc_constants.constants import NOT_APPLICABLE, YES, ALIVE, FEMALE
 
 from .models import (
@@ -11,12 +12,9 @@ from .models import (
     AbsentMember, RefusedMember, UndecidedMember, DeceasedMember, HtcMember)
 
 
-class ReferenceDate(ReferenceDateMixin):
-    consent_model = 'example_survey.subjectconsent'
-
-
 def get_utcnow():
-    return ReferenceDate().get_utcnow()
+    return django_apps.get_app_config('edc_base_test').get_utcnow()
+
 
 householdmember = Recipe(
     HouseholdMember,

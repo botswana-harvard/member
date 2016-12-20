@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'member.apps.AppConfig',
     'plot.apps.AppConfig',
     'example_survey.apps.AppConfig',
+    'example_survey.apps.EdcBaseTestAppConfig',
     'example_survey.apps.EdcConsentAppConfig',
     'example_survey.apps.SurveyAppConfig',
     'example_survey.apps.EdcMapAppConfig',

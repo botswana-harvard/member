@@ -1,20 +1,19 @@
 from dateutil.relativedelta import relativedelta
 from model_mommy import mommy
 
+from django.db.utils import IntegrityError
 from django.test import TestCase, tag
 
 from edc_constants.constants import NO, DEAD, FEMALE, MALE, YES, REFUSED
 
-from ..constants import MENTAL_INCAPACITY
-
-from ..constants import HEAD_OF_HOUSEHOLD, BLOCK_PARTICIPATION
+from ..constants import (
+    MENTAL_INCAPACITY, HEAD_OF_HOUSEHOLD, BLOCK_PARTICIPATION, ELIGIBLE_FOR_CONSENT,
+    NOT_ELIGIBLE, ABSENT, UNDECIDED, DECEASED, HTC_ELIGIBLE)
 from ..exceptions import EnumerationRepresentativeError, MemberEnrollmentError, MemberValidationError
-from ..models import HouseholdMember, EnrollmentLoss, EnrollmentChecklist, HtcMember
+from ..models import HouseholdMember, EnrollmentLoss, EnrollmentChecklist
+from ..participation_status import ParticipationStatus
 
 from .test_mixins import MemberMixin
-from member.constants import ELIGIBLE_FOR_CONSENT, NOT_ELIGIBLE, ABSENT, UNDECIDED, DECEASED, HTC_ELIGIBLE
-from member.participation_status import ParticipationStatus
-from django.db.utils import IntegrityError
 
 
 class TestMembers(MemberMixin, TestCase):

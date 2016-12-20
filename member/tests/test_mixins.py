@@ -1,11 +1,12 @@
 from model_mommy import mommy
 
-from edc_base.test_mixins import LoadListDataMixin
+from edc_base_test.mixins import LoadListDataMixin
 
-from member.list_data import list_data
 from household.tests.test_mixins import HouseholdMixin
-from member.constants import HEAD_OF_HOUSEHOLD
-from member.models.household_member import HouseholdMember
+
+from ..constants import HEAD_OF_HOUSEHOLD
+from ..list_data import list_data
+from ..models import HouseholdMember
 
 
 class MemberTestMixin(HouseholdMixin, LoadListDataMixin):
