@@ -47,7 +47,7 @@ class HouseholdMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
 #                     'hiv_history',
                     'relation',
                     'visit_attempts',
-                    'member_status',
+#                     'member_status',
                     'inability_to_participate',
                     'eligible_member',
                     'eligible_subject',
@@ -70,7 +70,7 @@ class HouseholdMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
         'relation', 'id']
 
     list_filter = ('household_structure__survey', 'present_today', 'study_resident',
-                   'member_status', 'inability_to_participate', 'survival_status',
+                   'inability_to_participate', 'survival_status',
                    'eligible_member', 'eligible_subject', 'enrollment_checklist_completed',
                    'enrollment_loss_completed', 'reported',
                    'refused', 'is_consented', 'eligible_htc', 'target',  # 'hiv_history',
