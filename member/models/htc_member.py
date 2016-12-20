@@ -2,17 +2,24 @@ from django.apps import apps as django_apps
 from django.db import models
 
 from edc_base.model.models import HistoricalRecords, BaseUuidModel
-from edc_base.utils import get_safe_random_string, safe_allowed_chars
 from edc_constants.choices import YES_NO, YES_NO_NA
 from edc_constants.constants import NOT_APPLICABLE
 
 from ..choices import HIV_RESULT
 
 from .model_mixins import HouseholdMemberModelMixin
+from edc_identifier.short_identifier import ShortIdentifier
 
 HIV_RESULT = list(HIV_RESULT)
 HIV_RESULT.append((NOT_APPLICABLE, 'Not applicable'))
 HIV_RESULT = tuple(HIV_RESULT)
+
+
+class HtcTrackingIdentifier(ShortIdentifier):
+
+    name = 'htctrackingidentifier'
+    identifier_pattern = r'^[A-Z0-9]{6}$'
+    random_string_pattern = r'^[A-Z0-9]{6}$'
 
 
 class HtcMember(HouseholdMemberModelMixin, BaseUuidModel):
@@ -69,19 +76,7 @@ class HtcMember(HouseholdMemberModelMixin, BaseUuidModel):
 
     def prepare_tracking_identifier(self):
         app_config = django_apps.get_app_config('edc_device')
-        template = 'HTC{device_id}{random_string}'
-        opts = {'device_id': app_config.device_id, 'random_string': get_safe_random_string(self, length=5)}
-        tracking_identifier = template.format(**opts)
-        # look for a duplicate
-        if self.__class__.objects.filter(tracking_identifier=tracking_identifier):
-            n = 1
-            while self.__class__.objects.filter(tracking_identifier=tracking_identifier):
-                tracking_identifier = template.format(**opts)
-                n += 1
-                if n == len(safe_allowed_chars) ** 5:
-                    raise TypeError('Unable prepare a unique htc tracking identifier, '
-                                    'all are taken. Increase the length of the random string')
-        return tracking_identifier
+        return HtcTrackingIdentifier(prefix='HTC' + app_config.device_id)
 
     class Meta(HouseholdMemberModelMixin.Meta):
         app_label = 'member'

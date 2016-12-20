@@ -9,7 +9,7 @@ from ..constants import MENTAL_INCAPACITY
 
 from ..constants import HEAD_OF_HOUSEHOLD, BLOCK_PARTICIPATION
 from ..exceptions import EnumerationRepresentativeError, MemberEnrollmentError, MemberValidationError
-from ..models import HouseholdMember, EnrollmentLoss, EnrollmentChecklist
+from ..models import HouseholdMember, EnrollmentLoss, EnrollmentChecklist, HtcMember
 
 from .test_mixins import MemberMixin
 from member.constants import ELIGIBLE_FOR_CONSENT, NOT_ELIGIBLE, ABSENT, UNDECIDED, DECEASED, HTC_ELIGIBLE
