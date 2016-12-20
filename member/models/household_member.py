@@ -397,7 +397,7 @@ class HouseholdMember(RepresentativeModelMixin, MemberStatusModelMixin, MemberEl
 #             pass
 
     def natural_key(self):
-        return self.household_structure.natural_key()
+        return (self.subject_identifier_as_pk,) + self.household_structure.natural_key()
     natural_key.dependencies = ['household.householdstructure']
 
 #     def update_member_status(self, selected_member_status, clear_enrollment_fields):
