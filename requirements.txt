@@ -20,3 +20,4 @@ git+https://github.com/botswana-harvard/edc-visit-tracking.git
 git+https://github.com/botswana-harvard/edc-metadata.git
 git+https://github.com/botswana-harvard/edc-rule-groups.git
 git+https://github.com/botswana-harvard/edc-visit-schedule.git
+git+https://github.com/botswana-harvard/edc-sync.git
