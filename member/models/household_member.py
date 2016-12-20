@@ -22,6 +22,7 @@ from ..constants import ELIGIBLE_FOR_SCREENING, ELIGIBLE_FOR_CONSENT, NOT_ELIGIB
 from ..exceptions import EnumerationRepresentativeError
 from ..household_member_helper import HouseholdMemberHelper
 from member.exceptions import MemberValidationError
+from member.managers import HouseholdMemberManager
 
 
 def is_eligible_member(obj):
@@ -335,7 +336,7 @@ class HouseholdMember(RepresentativeModelMixin, MemberStatusModelMixin, MemberEl
             'household_structure is always the same value.'),
     )
 
-    # objects = HouseholdMemberManager()
+    objects = HouseholdMemberManager()
 
 #    history = HistoricalRecords()
 
