@@ -62,6 +62,7 @@ class HouseholdMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
 
     search_fields = [
         'first_name',
+        'initials',
         'household_structure__id',
         'household_structure__household__household_identifier',
         'household_structure__household__id',
