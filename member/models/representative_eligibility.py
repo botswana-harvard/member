@@ -4,7 +4,19 @@ from edc_base.model.models import BaseUuidModel, HistoricalRecords
 
 from household.models import HouseholdStructure
 
+from ..managers import HouseholdMemberManager
+
 from .model_mixins import RepresentativeEligibilityMixin
+
+
+class MyManager(models.Manager):
+
+    def get_by_natural_key(self, survey, household_identifier, plot_identifier):
+        return self.get(
+            household_structure__survey=survey,
+            household_structure__household__household_identifier=household_identifier,
+            household_structure__household__plot__plot_identifier=household_identifier
+        )
 
 
 class RepresentativeEligibility(RepresentativeEligibilityMixin, BaseUuidModel):
@@ -28,7 +40,7 @@ class RepresentativeEligibility(RepresentativeEligibilityMixin, BaseUuidModel):
         editable=False,
         help_text='pk of household member used to autofill')
 
-    # objects = Manager()
+    objects = MyManager()
 
     history = HistoricalRecords()
 

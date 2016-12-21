@@ -1,25 +1,26 @@
 from django.core.validators import (
     MinLengthValidator, MaxLengthValidator, MinValueValidator, MaxValueValidator, RegexValidator)
-from django.db import models
 from django_crypto_fields.fields import FirstnameField
+from django.db import models
 
 from edc_base.model.fields import OtherCharField
-from edc_base.model.models import BaseUuidModel
+from edc_base.model.models import BaseUuidModel, HistoricalRecords
 from edc_base.model.validators.date import datetime_not_future
 from edc_base.utils import get_utcnow, get_uuid
 from edc_constants.choices import YES_NO, GENDER, YES_NO_DWTA, ALIVE_DEAD_UNKNOWN
 from edc_constants.constants import ALIVE, DEAD, YES
 from edc_registration.model_mixins import UpdatesOrCreatesRegistrationModelMixin
+
 from household.models import HouseholdStructure
 
 from ...choices import DETAILS_CHANGE_REASON, INABILITY_TO_PARTICIPATE_REASON
 from ...exceptions import MemberValidationError
 from ...managers import HouseholdMemberManager
 
-from .representative_model_mixin import RepresentativeModelMixin
-from .member_identifier_model_mixin import MemberIdentifierModelMixin
 from .member_eligibility_model_mixin import MemberEligibilityModelMixin
+from .member_identifier_model_mixin import MemberIdentifierModelMixin
 from .member_status_model_mixin import MemberStatusModelMixin
+from .representative_model_mixin import RepresentativeModelMixin
 
 
 class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeModelMixin,
@@ -177,32 +178,12 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
 
     objects = HouseholdMemberManager()
 
-#    history = HistoricalRecords()
+    history = HistoricalRecords()
 
     def __str__(self):
         return '{} {} {}{} {}'.format(
             self.first_name, self.initials, self.age_in_years,
             self.gender, self.household_structure.survey)
-
-#     def __str__(self):
-#         try:
-#             is_bhs = '' if self.is_bhs else 'non-BHS'
-#         except ValidationError:
-#             is_bhs = '?'
-#         return '{0} {1} {2}{3} {4}{5}'.format(
-#             mask_encrypted(self.first_name),
-#             self.initials,
-#             self.age_in_years,
-#             self.gender,
-#             self.survey.survey_abbrev,
-#             is_bhs)
-
-    def common_clean(self):
-        if self.survival_status == DEAD and self.present_today == YES:
-            raise MemberValidationError(
-                'Invalid combination. Got member status == {} but present today == {}'.format(
-                    self.survival_status, self.present_today))
-        super().common_clean()
 
     def save(self, *args, **kwargs):
         if not self.id:
@@ -212,6 +193,14 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
     def natural_key(self):
         return (self.subject_identifier_as_pk,) + self.household_structure.natural_key()
     natural_key.dependencies = ['household.householdstructure']
+
+    def common_clean(self):
+        if self.survival_status == DEAD and self.present_today == YES:
+            raise MemberValidationError(
+                'Invalid combination. Got member status == {} but present today == {}'.format(
+                    self.survival_status, self.present_today))
+        super().common_clean()
+
 
 
 #         selected_member_status = None

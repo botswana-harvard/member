@@ -6,6 +6,7 @@ from edc_base.model.models import HistoricalRecords, BaseUuidModel
 
 from ..choices import (
     FLOORING_TYPE, WATER_SOURCE, ENERGY_SOURCE, TOILET_FACILITY, SMALLER_MEALS)
+from ..managers import MemberEntryManager
 
 from .list_models import ElectricalAppliances, TransportMode
 from .model_mixins import HouseholdMemberModelMixin
@@ -111,7 +112,7 @@ class HouseholdInfo(HouseholdMemberModelMixin, BaseUuidModel):
         choices=SMALLER_MEALS,
         help_text="")
 
-    # objects = HouseholdMemberManager()
+    objects = MemberEntryManager()
 
     history = HistoricalRecords()
 
