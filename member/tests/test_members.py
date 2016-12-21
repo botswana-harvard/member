@@ -133,7 +133,9 @@ class TestMembers(MemberMixin, TestCase):
         household_member = self.add_household_member(household_structure=household_structure)
         mommy.make_recipe(
             'member.enrollmentchecklist',
-            household_member=household_member)
+            household_member=household_member,
+            initials=household_member.initials,
+        )
 
     def test_enrollment_checklist_to_household_member_age_mismatch(self):
         household_structure = self.make_household_ready_for_enumeration()
@@ -146,6 +148,7 @@ class TestMembers(MemberMixin, TestCase):
             mommy.make_recipe,
             'member.enrollmentchecklist',
             household_member=household_member,
+            initials=household_member.initials,
             dob=(self.get_utcnow() - relativedelta(years=35)).date())
 
     def test_enrollment_checklist_to_household_member_initials_mismatch(self):
@@ -172,6 +175,7 @@ class TestMembers(MemberMixin, TestCase):
             mommy.make_recipe,
             'member.enrollmentchecklist',
             household_member=household_member,
+            initials=household_member.initials,
             part_time_resident=NO)
 
     def test_enrollment_checklist_to_household_member_gender_mismatch(self):
@@ -185,6 +189,7 @@ class TestMembers(MemberMixin, TestCase):
             mommy.make_recipe,
             'member.enrollmentchecklist',
             household_member=household_member,
+            initials=household_member.initials,
             gender=FEMALE)
 
     # test enrollment loss / ineligible by the enrollment checklist
@@ -194,7 +199,8 @@ class TestMembers(MemberMixin, TestCase):
             household_structure=household_structure)
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
-            household_member=household_member)
+            household_member=household_member,
+            initials=household_member.initials)            
         household_member = HouseholdMember.objects.get(pk=household_member.pk)
         self.assertTrue(enrollment_checklist.is_eligible)
         self.assertFalse(enrollment_checklist.loss_reason)
@@ -213,6 +219,7 @@ class TestMembers(MemberMixin, TestCase):
             mommy.make_recipe,
             'member.enrollmentchecklist',
             household_member=household_member,
+            initials=household_member.initials,
             dob=(self.get_utcnow() - relativedelta(years=10)).date())
 
     def test_enrollment_checklist_ineligible_no_identity(self):
@@ -222,6 +229,7 @@ class TestMembers(MemberMixin, TestCase):
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            initials=household_member.initials,
             has_identity=NO)
         self.assertIn('identity', enrollment_checklist.loss_reason)
 
@@ -232,6 +240,7 @@ class TestMembers(MemberMixin, TestCase):
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            initials=household_member.initials,
             household_residency=NO)
         self.assertIn('household residency', enrollment_checklist.loss_reason)
 
@@ -244,6 +253,7 @@ class TestMembers(MemberMixin, TestCase):
             mommy.make_recipe,
             'member.enrollmentchecklist',
             household_member=household_member,
+            initials=household_member.initials,
             part_time_resident=NO)
 
     def test_enrollment_checklist_ineligible_by_citizenship1(self):
@@ -253,6 +263,7 @@ class TestMembers(MemberMixin, TestCase):
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            initials=household_member.initials,
             citizen=NO,
             legal_marriage=NO)
         self.assertIn('Not a citizen and not married to a citizen', enrollment_checklist.loss_reason)
@@ -264,6 +275,7 @@ class TestMembers(MemberMixin, TestCase):
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            initials=household_member.initials,
             citizen=NO,
             legal_marriage=YES,
             marriage_certificate=NO)
@@ -278,6 +290,7 @@ class TestMembers(MemberMixin, TestCase):
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            initials=household_member.initials,
             literacy=NO)
         self.assertIn(
             'Illiterate with no literate witness',
@@ -290,6 +303,7 @@ class TestMembers(MemberMixin, TestCase):
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            initials=household_member.initials,
             confirm_participation=BLOCK_PARTICIPATION)
         self.assertIn(
             'Already enrolled',
@@ -303,6 +317,7 @@ class TestMembers(MemberMixin, TestCase):
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            initials=household_member.initials,
             dob=(self.get_utcnow() - relativedelta(years=17)).date(),
             guardian=NO)
         self.assertIn(
@@ -316,6 +331,7 @@ class TestMembers(MemberMixin, TestCase):
         mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            initials=household_member.initials,
             literacy=NO)
         try:
             EnrollmentLoss.objects.get(household_member=household_member)
@@ -328,7 +344,8 @@ class TestMembers(MemberMixin, TestCase):
             household_structure=household_structure)
         mommy.make_recipe(
             'member.enrollmentchecklist',
-            household_member=household_member)
+            household_member=household_member,
+            initials=household_member.initials)
         try:
             EnrollmentLoss.objects.get(household_member=household_member)
             self.fail('EnrollmentLoss.DoesNotExist unexpectedly NOT raised.')
@@ -343,6 +360,7 @@ class TestMembers(MemberMixin, TestCase):
         mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            initials=household_member.initials,
             literacy=NO)
         try:
             EnrollmentLoss.objects.get(household_member=household_member)
@@ -363,6 +381,7 @@ class TestMembers(MemberMixin, TestCase):
         mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            initials=household_member.initials,
             literacy=NO)
         household_member = HouseholdMember.objects.get(pk=household_member.pk)
         self.assertTrue(household_member.enrollment_checklist_completed)
@@ -375,7 +394,8 @@ class TestMembers(MemberMixin, TestCase):
             household_structure=household_structure)
         mommy.make_recipe(
             'member.enrollmentchecklist',
-            household_member=household_member)
+            household_member=household_member,
+            initials=household_member.initials)
         household_member = HouseholdMember.objects.get(pk=household_member.pk)
         self.assertTrue(household_member.enrollment_checklist_completed)
         self.assertFalse(household_member.enrollment_loss_completed)

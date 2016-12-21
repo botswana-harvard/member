@@ -179,6 +179,11 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
 
 #    history = HistoricalRecords()
 
+    def __str__(self):
+        return '{} {} {}{} {}'.format(
+            self.first_name, self.initials, self.age_in_years,
+            self.gender, self.household_structure.survey)
+
 #     def __str__(self):
 #         try:
 #             is_bhs = '' if self.is_bhs else 'non-BHS'
@@ -203,6 +208,11 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
         if not self.id:
             self.internal_identifier = self.subject_identifier_as_pk or get_uuid()
         super().save(*args, **kwargs)
+
+    def natural_key(self):
+        return (self.subject_identifier_as_pk,) + self.household_structure.natural_key()
+    natural_key.dependencies = ['household.householdstructure']
+
 
 #         selected_member_status = None
 #         using = kwargs.get('using')
@@ -234,10 +244,6 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
 #             kwargs.update({'update_fields': update_fields})
 #         except TypeError:
 #             pass
-
-    def natural_key(self):
-        return (self.subject_identifier_as_pk,) + self.household_structure.natural_key()
-    natural_key.dependencies = ['household.householdstructure']
 
 #     def update_member_status(self, selected_member_status, clear_enrollment_fields):
 #         if self.member_status == ELIGIBLE_FOR_SCREENING:

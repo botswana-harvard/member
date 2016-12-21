@@ -42,7 +42,8 @@ class RepresentativeModelMixin(models.Model):
                 relation=HEAD_OF_HOUSEHOLD, eligible_member=True)
             if self.relation == HEAD_OF_HOUSEHOLD and self.id != household_member.id:
                 raise EnumerationRepresentativeError(
-                    'Only one member may be the head of household.')
+                    'Only one member may be the head of household. {} is already '
+                    'head of household. Got {}'.format(household_member, self))
         except self.__class__.DoesNotExist:
             household_member = None
             if self.relation != HEAD_OF_HOUSEHOLD or not is_eligible_member(self):

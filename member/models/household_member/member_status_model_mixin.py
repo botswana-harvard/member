@@ -7,11 +7,6 @@ from ...constants import NOT_ELIGIBLE, ELIGIBLE_FOR_SCREENING, ELIGIBLE_FOR_CONS
 
 class MemberStatusModelMixin(models.Model):
 
-    reported = models.BooleanField(
-        default=False,
-        editable=False,
-        help_text="update by any of subject absentee, undecided, refusal")
-
     is_consented = models.BooleanField(
         default=False,
         help_text='updated by the consent model')
@@ -33,6 +28,10 @@ class MemberStatusModelMixin(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+
+    @property
+    def reported(self):
+        return True if (self.refused or self.undecided or self.absent) else False
 
     @property
     def member_status(self):

@@ -1,14 +1,10 @@
-from django.db.models.signals import pre_save, post_save, post_delete
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
-from edc_base.utils import get_utcnow
-from edc_constants.constants import REFUSED
-
-from .constants import NOT_ELIGIBLE, HEAD_OF_HOUSEHOLD, UNDECIDED, ABSENT
+from .constants import HEAD_OF_HOUSEHOLD
 
 from .models import (
-    AbsentMember, EnrollmentChecklist, EnrollmentLoss, HouseholdHeadEligibility, HouseholdMember,
-    HtcMember, HtcMemberHistory, RefusedMember, RefusedMemberHistory, UndecidedMember)
+    AbsentMember, EnrollmentChecklist, EnrollmentLoss, HouseholdHeadEligibility, HouseholdMember)
 
 
 @receiver(post_save, weak=False, sender=HouseholdMember, dispatch_uid="household_member_on_post_save")

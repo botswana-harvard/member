@@ -1,6 +1,7 @@
 # coding=utf-8
 
 from dateutil.relativedelta import relativedelta
+from faker import Faker
 from model_mommy.recipe import Recipe
 
 from django.apps import apps as django_apps
@@ -16,6 +17,9 @@ def get_utcnow():
     return django_apps.get_app_config('edc_base_test').get_utcnow()
 
 
+fake = Faker()
+
+
 householdmember = Recipe(
     HouseholdMember,
     report_datetime=get_utcnow,
@@ -23,8 +27,8 @@ householdmember = Recipe(
     survival_status=ALIVE,
     age_in_years=25,
     study_resident=YES,
-    initials='EW',
     gender=FEMALE,
+    relation='cousin',
     subject_identifier=None,
     subject_identifier_as_pk=None,
     subject_identifier_aka=None,
@@ -77,5 +81,6 @@ enrollmentchecklist = Recipe(
     has_identity=YES,
     citizen=YES,
     literacy=YES,
+    guardian=NOT_APPLICABLE,
     confirm_participation=NOT_APPLICABLE,
 )

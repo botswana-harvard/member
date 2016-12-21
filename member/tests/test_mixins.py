@@ -1,3 +1,4 @@
+from faker import Faker
 from model_mommy import mommy
 
 from edc_base_test.mixins import LoadListDataMixin
@@ -7,6 +8,9 @@ from household.tests.test_mixins import HouseholdMixin
 from ..constants import HEAD_OF_HOUSEHOLD
 from ..list_data import list_data
 from ..models import HouseholdMember
+
+
+fake = Faker()
 
 
 class MemberTestMixin(HouseholdMixin, LoadListDataMixin):
@@ -29,9 +33,13 @@ class MemberMixin(MemberTestMixin):
             'member.representativeeligibility',
             household_structure=household_structure)
         if make_hoh:
+            first_name = fake.first_name()
+            last_name = fake.last_name()
             household_member = mommy.make_recipe(
                 'member.householdmember',
                 household_structure=household_structure,
+                first_name=first_name,
+                initials=first_name[0] + last_name[0],
                 relation=HEAD_OF_HOUSEHOLD)
             mommy.make_recipe(
                 'member.householdheadeligibility',
@@ -40,12 +48,18 @@ class MemberMixin(MemberTestMixin):
 
     def add_household_member(self, household_structure, **options):
         """Returns a household member that is by default eligible."""
+        first_name = fake.first_name()
+        last_name = fake.last_name()
+        options.update(initials=options.get('initials', first_name[0] + last_name[0]))
         return mommy.make_recipe(
             'member.householdmember',
             household_structure=household_structure,
+            first_name=first_name,
             **options)
 
     def add_enrollment_checklist(self, household_member, **options):
+        options.update(
+            initials=options.get('initials', household_member.initials))
         return mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
