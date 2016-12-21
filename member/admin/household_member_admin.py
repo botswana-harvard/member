@@ -81,6 +81,9 @@ class HouseholdMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
                    'household_structure__household__plot__map_area')
 
     def get_fieldsets(self, request, obj=None):
+        """ The following fields are not required for the new members. They are required for the follow up members only
+            to determine the required validations.
+            """
         fields = self.fields
         if not obj:
             try:
