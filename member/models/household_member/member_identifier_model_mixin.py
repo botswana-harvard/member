@@ -1,9 +1,9 @@
 from django.db import models
 
-from edc_identifier.model_mixins import SubjectIdentifierModelMixin
+from edc_identifier.model_mixins import NonUniqueSubjectIdentifierModelMixin
 
 
-class MemberIdentifierModelMixin(SubjectIdentifierModelMixin, models.Model):
+class MemberIdentifierModelMixin(NonUniqueSubjectIdentifierModelMixin, models.Model):
 
     def make_new_identifier(self):
         return self.subject_identifier_as_pk
