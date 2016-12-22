@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 
 from edc_base.model.models import HistoricalRecords, BaseUuidModel
 
-# from ..managers import HouseholdMemberManager
+from ..managers import MemberEntryManager
 
 from .model_mixins import RepresentativeEligibilityMixin, HouseholdMemberModelMixin
 
@@ -11,7 +11,7 @@ class HouseholdHeadEligibility(RepresentativeEligibilityMixin, HouseholdMemberMo
     """A model completed by the user that determines if the household member is eligible to act
     as a head of household or household representative."""
 
-    # objects = HouseholdMemberManager()
+    objects = MemberEntryManager()
 
     history = HistoricalRecords()
 

@@ -8,6 +8,12 @@ from edc_constants.choices import YES_NO
 from .household_member import HouseholdMember
 
 
+class MyManager(models.Manager):
+
+    def get_by_natural_key(self, transaction):
+        self.get(transaction=transaction)
+
+
 class HtcMemberHistory(BaseUuidModel):
     """A system model that tracks the history of deleted subject HTC instances."""
 
@@ -59,7 +65,7 @@ class HtcMemberHistory(BaseUuidModel):
 
     comment = models.TextField(max_length=250, null=True, blank=True)
 
-    # objects = HtcMemberHistoryManager()
+    objects = MyManager()
 
     history = HistoricalRecords()
 

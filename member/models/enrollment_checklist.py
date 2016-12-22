@@ -10,11 +10,12 @@ from edc_constants.choices import GENDER, YES_NO, YES_NO_NA
 from edc_constants.constants import NOT_APPLICABLE, NO, YES
 
 from ..choices import BLOCK_CONTINUE
-from ..exceptions import MemberEnrollmentError
 from ..constants import BLOCK_PARTICIPATION
+from ..exceptions import MemberEnrollmentError
+from ..managers import MemberEntryManager
 
-from .model_mixins import HouseholdMemberModelMixin
 from .household_member import is_minor
+from .model_mixins import HouseholdMemberModelMixin
 
 
 class EnrollmentModelMixin(models.Model):
@@ -207,26 +208,9 @@ class EnrollmentChecklist(EnrollmentModelMixin, HouseholdMemberModelMixin, BaseU
         help_text=('Was autofilled on data conversion')
     )
 
-    # objects = HouseholdMemberManager()
+    objects = MemberEntryManager()
 
     history = HistoricalRecords()
-
-#     def save(self, *args, **kwargs):
-#         using = kwargs.get('using')
-#         if not self.pk:
-#             if self.household_member.member_status != ELIGIBLE_FOR_SCREENING:
-#                 raise MemberStatusError(('Expected member status to be {0}. Got {1}').format(
-#                     ELIGIBLE_FOR_SCREENING, self.household_member.member_status))
-#         else:
-#             pass
-#             if not kwargs.get('update_fields'):
-#                 if self.household_member.member_status not in [ELIGIBLE_FOR_CONSENT, NOT_ELIGIBLE, ELIGIBLE_FOR_SCREENING, HTC_ELIGIBLE]:
-#                     raise MemberStatusError('Expected member status to be {0}. Got {1}'.format(
-#                         ELIGIBLE_FOR_SCREENING + ' or ' + NOT_ELIGIBLE + ' or ' + ELIGIBLE_FOR_SCREENING, self.household_member.member_status))
-#         if not kwargs.get('update_fields'):
-#             self.matches_household_member_values(self, self.household_member)
-#         self.is_eligible, self.loss_reason = self.passes_enrollment_criteria(using)
-#         super(EnrollmentChecklist, self).save(*args, **kwargs)
 
     class Meta:
         app_label = "member"

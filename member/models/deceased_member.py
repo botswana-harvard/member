@@ -4,6 +4,8 @@ from edc_base.model.models import HistoricalRecords, BaseUuidModel
 from edc_base.model.validators import date_not_future
 from edc_constants.choices import DEATH_RELATIONSIP_TO_STUDY
 
+from ..managers import MemberEntryManager
+
 from .model_mixins import HouseholdMemberModelMixin
 
 
@@ -50,7 +52,7 @@ class DeceasedMember(HouseholdMemberModelMixin, BaseUuidModel):
         help_text="",
     )
 
-    # objects = models.Manager()
+    objects = MemberEntryManager()
 
     history = HistoricalRecords()
 
