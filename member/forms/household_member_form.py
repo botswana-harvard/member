@@ -6,6 +6,7 @@ from edc_constants.constants import DEAD, NO, YES, FEMALE, MALE
 from ..choices import RELATIONS, FEMALE_RELATIONS, MALE_RELATIONS
 from ..constants import HEAD_OF_HOUSEHOLD
 from ..models import HouseholdMember, EnrollmentChecklist
+from ..exceptions import MemberValidationError
 
 
 class HouseholdMemberForm(forms.ModelForm):
@@ -55,6 +56,11 @@ class HouseholdMemberForm(forms.ModelForm):
                 enrollment_checklist, HouseholdMember(**cleaned_data), exception_cls=forms.ValidationError)
         except EnrollmentChecklist.DoesNotExist:
             pass
+        try:
+            instance = self._meta.model(id=self.instance.id, **cleaned_data)
+            instance.common_clean()
+        except MemberValidationError as e:
+            raise forms.ValidationError(str(e))
         return cleaned_data
 
     class Meta:

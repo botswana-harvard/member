@@ -6,6 +6,7 @@ from household.models import HouseholdLogEntry
 
 from ..constants import ELIGIBLE_REPRESENTATIVE_ABSENT
 from ..models import RepresentativeEligibility
+from ..exceptions import EnumerationRepresentativeError
 
 
 class RepresentativeEligibilityForm(forms.ModelForm):
@@ -30,6 +31,11 @@ class RepresentativeEligibilityForm(forms.ModelForm):
             raise ValidationError('The eligible household representative is absent. See Household Log.')
         except HouseholdLogEntry.DoesNotExist:
             pass
+        try:
+            instance = self._meta.model(id=self.instance.id, **cleaned_data)
+            instance.common_clean()
+        except EnumerationRepresentativeError as e:
+            raise forms.ValidationError(str(e))
         return cleaned_data
 
     class Meta:
