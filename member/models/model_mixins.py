@@ -5,6 +5,7 @@ from django_crypto_fields.fields import EncryptedCharField, EncryptedTextField
 from edc_base.model.fields import OtherCharField
 from edc_base.model.validators import datetime_not_future
 from edc_base.model.validators import eligible_if_yes, date_not_future
+from edc_base.utils import get_utcnow
 from edc_constants.choices import YES_NO
 
 from household.choices import NEXT_APPOINTMENT_SOURCE
@@ -13,7 +14,6 @@ from ..choices import REASONS_REFUSED
 from ..constants import REFUSED
 
 from .household_member import HouseholdMember
-from edc_base.utils import get_utcnow
 
 
 class HouseholdMemberModelMixin(models.Model):

@@ -22,6 +22,12 @@ class HtcTrackingIdentifier(ShortIdentifier):
     random_string_pattern = r'^[A-Z0-9]{6}$'
 
 
+class MyManager(models.Manager):
+
+    def get_by_natural_key(self, tracking_identifier):
+        self.get(tracking_identifier=tracking_identifier)
+
+
 class HtcMember(HouseholdMemberModelMixin, BaseUuidModel):
     """A model completed by the user that captures HTC information for a household member
     not participating in BHS."""
@@ -29,7 +35,7 @@ class HtcMember(HouseholdMemberModelMixin, BaseUuidModel):
     tracking_identifier = models.CharField(
         verbose_name="HTC tracking identifier",
         max_length=50,
-        null=True,
+        unique=True,
         blank=True,
         help_text='Transcribe this tracking identifier onto the paper HTC Intake form.')
 
@@ -65,7 +71,7 @@ class HtcMember(HouseholdMemberModelMixin, BaseUuidModel):
 
     comment = models.TextField(max_length=250, null=True, blank=True)
 
-    # objects = HouseholdMemberManager()
+    objects = MyManager()
 
     history = HistoricalRecords()
 

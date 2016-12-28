@@ -5,6 +5,7 @@ from dateutil.relativedelta import relativedelta
 from edc_constants.constants import NOT_APPLICABLE
 
 from ..models import EnrollmentChecklist
+from ..exceptions import MemberEnrollmentError
 
 
 class EnrollmentChecklistForm(forms.ModelForm):
@@ -63,6 +64,12 @@ class EnrollmentChecklistForm(forms.ModelForm):
         if age_in_years > 17 and not cleaned_data.get('guardian') == NOT_APPLICABLE:
             raise forms.ValidationError('Subject a not minor. Got {0} years. Answer to \'if minor, is '
                                         'there guardian available\', should be N/A.'.format(age_in_years))
+
+        try:
+            instance = self._meta.model(id=self.instance.id, **cleaned_data)
+            instance.common_clean()
+        except MemberEnrollmentError as e:
+            raise forms.ValidationError(str(e))
         return cleaned_data
 
     class Meta:

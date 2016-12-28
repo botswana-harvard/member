@@ -4,6 +4,8 @@ from edc_base.model.models import HistoricalRecords, BaseUuidModel
 
 from ..choices import REASONS_ABSENT
 
+from ..managers import MemberEntryManager
+
 from .model_mixins import MemberEntryMixin
 
 
@@ -16,7 +18,7 @@ class AbsentMember(MemberEntryMixin, BaseUuidModel):
         max_length=100,
         choices=REASONS_ABSENT)
 
-    # objects = AbsentMemberEntryManager()
+    objects = MemberEntryManager()
 
     history = HistoricalRecords()
 

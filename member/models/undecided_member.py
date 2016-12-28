@@ -3,6 +3,7 @@ from django.db import models
 from edc_base.model.models import HistoricalRecords, BaseUuidModel
 
 from ..choices import REASONS_UNDECIDED
+from ..managers import MemberEntryManager
 
 from .model_mixins import MemberEntryMixin
 
@@ -16,7 +17,7 @@ class UndecidedMember(MemberEntryMixin, BaseUuidModel):
         max_length=100,
         choices=REASONS_UNDECIDED)
 
-    # objects = UndecidedMemberEntryManager()
+    objects = MemberEntryManager()
 
     history = HistoricalRecords()
 

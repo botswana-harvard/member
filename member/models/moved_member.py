@@ -4,6 +4,8 @@ from django_crypto_fields.fields import EncryptedTextField
 from edc_base.model.models import HistoricalRecords, BaseUuidModel
 from edc_constants.choices import YES_NO_UNKNOWN
 
+from ..managers import MemberEntryManager
+
 from .model_mixins import HouseholdMemberModelMixin
 
 
@@ -54,7 +56,7 @@ class MovedMember(HouseholdMemberModelMixin, BaseUuidModel):
         help_text=('')
     )
 
-    # objects = HouseholdMemberManager()
+    objects = MemberEntryManager()
 
     history = HistoricalRecords()
 
