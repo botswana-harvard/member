@@ -201,8 +201,6 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
                     self.survival_status, self.present_today))
         super().common_clean()
 
-
-
 #         selected_member_status = None
 #         using = kwargs.get('using')
 #         clear_enrollment_fields = []

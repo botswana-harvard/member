@@ -59,7 +59,8 @@ class MemberMixin(MemberTestMixin):
 
     def add_enrollment_checklist(self, household_member, **options):
         options.update(
-            initials=options.get('initials', household_member.initials))
+            initials=options.get('initials', household_member.initials),
+            report_datetime=options.get('report_datetime', self.study_open_datetime))
         return mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
