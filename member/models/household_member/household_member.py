@@ -206,11 +206,11 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
 
     def save(self, *args, **kwargs):
         if not self.id:
-            self.internal_identifier = self.subject_identifier_as_pk or get_uuid()
+            self.internal_identifier = get_uuid()
         super().save(*args, **kwargs)
 
     def natural_key(self):
-        return (self.subject_identifier_as_pk,) + self.household_structure.natural_key()
+        return (self.internal_identifier,) + self.household_structure.natural_key()
     natural_key.dependencies = ['household.householdstructure']
 
 
