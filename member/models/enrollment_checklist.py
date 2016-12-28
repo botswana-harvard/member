@@ -5,7 +5,6 @@ from django.db import models
 
 from edc_base.model.models import HistoricalRecords, BaseUuidModel
 from edc_base.model.validators import dob_not_future
-from edc_consent.validators import AgeTodayValidator
 from edc_constants.choices import GENDER, YES_NO, YES_NO_NA
 from edc_constants.constants import NOT_APPLICABLE, NO, YES
 
@@ -102,9 +101,7 @@ class EnrollmentChecklist(EnrollmentModelMixin, HouseholdMemberModelMixin, BaseU
 
     dob = models.DateField(
         verbose_name="Date of birth",
-        validators=[
-            dob_not_future,
-            AgeTodayValidator(16, 64)],
+        validators=[dob_not_future],
         null=True,
         blank=False,
         help_text="Format is YYYY-MM-DD. (Data will not be saved)")
