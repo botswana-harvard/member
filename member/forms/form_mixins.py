@@ -1,8 +1,9 @@
 from django import forms
 from django.apps import apps as django_apps
+from edc_base.modelform_mixins import CommonCleanModelFormMixin
 
 
-class MemberFormMixin(forms.ModelForm):
+class MemberFormMixin(CommonCleanModelFormMixin, forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(MemberFormMixin, self).clean()
