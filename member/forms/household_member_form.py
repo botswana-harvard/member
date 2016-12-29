@@ -26,8 +26,6 @@ class HouseholdMemberForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(HouseholdMemberForm, self).clean()
-        self.instance.check_eligible_representative_filled(
-            cleaned_data.get('household_structure'), exception_cls=forms.ValidationError)
         if cleaned_data.get('relation') == HEAD_OF_HOUSEHOLD and not cleaned_data.get('age_in_years') >= 18:
             raise forms.ValidationError('Head of Household must be 18 years or older.')
         if cleaned_data.get('eligible_hoh') and cleaned_data.get('age_in_years') < 18:
@@ -42,10 +40,6 @@ class HouseholdMemberForm(forms.ModelForm):
             if cleaned_data.get('study_resident') == NO or cleaned_data.get('study_resident') == YES:
                 self._errors["study_resident"] = ErrorList([u"Please, select don't want to answer "])
 
-        if cleaned_data.get('relation') == HEAD_OF_HOUSEHOLD:
-            # instance cannot be head if another head already exists
-            self.instance.check_head_household(
-                cleaned_data.get('household_structure'), exception_cls=forms.ValidationError)
         if cleaned_data.get('personal_details_changed') == YES:
             if not cleaned_data.get('details_change_reason'):
                 raise forms.ValidationError(

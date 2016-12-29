@@ -2,6 +2,8 @@ from django.contrib import admin
 
 from edc_base.modeladmin_mixins import TabularInlineMixin
 
+from household.models import HouseholdStructure
+
 from ..admin_site import member_admin
 from ..forms import HouseholdMemberForm
 from ..models import HouseholdMember
@@ -94,3 +96,10 @@ class HouseholdMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
         return [(None, {'fields': fields})]
 
     list_per_page = 15
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "household_structure":
+            if request.GET.get('household_structure'):
+                kwargs["queryset"] = HouseholdStructure.objects.filter(id__exact=request.GET.get('household_structure'))
+        return super(HouseholdMemberAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+

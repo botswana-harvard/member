@@ -4,8 +4,6 @@ from edc_base.model.models import BaseUuidModel, HistoricalRecords
 
 from household.models import HouseholdStructure
 
-from ..managers import HouseholdMemberManager
-
 from .model_mixins import RepresentativeEligibilityMixin
 
 

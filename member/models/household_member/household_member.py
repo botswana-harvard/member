@@ -14,6 +14,7 @@ from edc_registration.model_mixins import UpdatesOrCreatesRegistrationModelMixin
 from household.models import HouseholdStructure
 
 from ...choices import DETAILS_CHANGE_REASON, INABILITY_TO_PARTICIPATE_REASON
+from ...constants import HEAD_OF_HOUSEHOLD
 from ...exceptions import MemberValidationError
 from ...managers import HouseholdMemberManager
 
@@ -200,6 +201,7 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
                 'Invalid combination. Got member status == {} but present today == {}'.format(
                     self.survival_status, self.present_today))
         super().common_clean()
+
 
 #         selected_member_status = None
 #         using = kwargs.get('using')
