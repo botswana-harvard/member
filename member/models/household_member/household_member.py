@@ -203,15 +203,6 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
                     self.survival_status, self.present_today))
         super().common_clean()
 
-    @property
-    def enrollment_eligibility(self):
-        try:
-            EnrollmentChecklist = django_apps.get_model('member', 'enrollmentchecklist')
-            erollment_checklist = EnrollmentChecklist.objects.get(household_member=self)
-        except EnrollmentChecklist.DoesNotExist:
-            erollment_checklist = None
-        return erollment_checklist
-
 #         selected_member_status = None
 #         using = kwargs.get('using')
 #         clear_enrollment_fields = []
