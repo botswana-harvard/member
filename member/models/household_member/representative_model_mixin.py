@@ -39,6 +39,7 @@ class RepresentativeModelMixin(models.Model):
         # then expect the first added member to be the HEAD_OF_HOUSEHOLD ...
         try:
             household_member = self.__class__.objects.get(
+                household_structure=self.household_structure,
                 relation=HEAD_OF_HOUSEHOLD, eligible_member=True)
             if self.relation == HEAD_OF_HOUSEHOLD and self.id != household_member.id:
                 raise EnumerationRepresentativeError(
