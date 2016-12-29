@@ -1,15 +1,36 @@
 from django import forms
+from django.forms import Select
 from django.forms.utils import ErrorList
+from django.forms.utils import flatatt
+from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 from edc_constants.constants import DEAD, NO, YES, FEMALE, MALE
 
+from household.models.household_structure import HouseholdStructure
 from ..choices import RELATIONS, FEMALE_RELATIONS, MALE_RELATIONS
 from ..constants import HEAD_OF_HOUSEHOLD
 from ..models import HouseholdMember, EnrollmentChecklist
 from ..exceptions import MemberValidationError
 
 
+class ReadOnlySelect(Select):
+    """
+    This should replace the Select widget with a disabled text widget displaying the value,
+    and hidden field with the actual id
+    """
+    def render(self, name, value, attrs=None, choices=()):
+        final_attrs = self.build_attrs(attrs, name=name)
+        display = value
+        output = format_html('<input type=text value="%s" disabled="disabled" ><input type="hidden" value="%s"  %s> ' % (display, value, flatatt(final_attrs)))
+        return mark_safe(output)
+
+
 class HouseholdMemberForm(forms.ModelForm):
+
+    household_structure = forms.ModelChoiceField(
+        queryset=HouseholdStructure.objects.all(),
+        widget=ReadOnlySelect)
 
     def validate_on_gender(self):
         cleaned_data = self.cleaned_data

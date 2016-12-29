@@ -2,6 +2,7 @@ from django.core.validators import (
     MinLengthValidator, MaxLengthValidator, MinValueValidator, MaxValueValidator, RegexValidator)
 from django_crypto_fields.fields import FirstnameField
 from django.db import models
+from django.apps import apps as django_apps
 
 from edc_base.model.fields import OtherCharField
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
@@ -202,6 +203,14 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
                     self.survival_status, self.present_today))
         super().common_clean()
 
+    @property
+    def enrollment_eligibility(self):
+        try:
+            EnrollmentChecklist = django_apps.get_model('member', 'enrollmentchecklist')
+            erollment_checklist = EnrollmentChecklist.objects.get(household_member=self)
+        except EnrollmentChecklist.DoesNotExist:
+            erollment_checklist = None
+        return erollment_checklist
 
 #         selected_member_status = None
 #         using = kwargs.get('using')

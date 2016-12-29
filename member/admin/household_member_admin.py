@@ -8,7 +8,7 @@ from ..admin_site import member_admin
 from ..forms import HouseholdMemberForm
 from ..models import HouseholdMember
 
-from .modeladmin_mixins import HouseholdMemberAdminMixin
+from .modeladmin_mixins import ModelAdminMixin
 
 
 class HouseholdMemberInline(TabularInlineMixin, admin.TabularInline):
@@ -17,7 +17,7 @@ class HouseholdMemberInline(TabularInlineMixin, admin.TabularInline):
 
 
 @admin.register(HouseholdMember, site=member_admin)
-class HouseholdMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
+class HouseholdMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     form = HouseholdMemberForm
     fields = ['household_structure',
@@ -96,10 +96,3 @@ class HouseholdMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
         return [(None, {'fields': fields})]
 
     list_per_page = 15
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "household_structure":
-            if request.GET.get('household_structure'):
-                kwargs["queryset"] = HouseholdStructure.objects.filter(id__exact=request.GET.get('household_structure'))
-        return super(HouseholdMemberAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
-

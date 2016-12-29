@@ -4,11 +4,11 @@ from ..admin_site import member_admin
 from ..models import HouseholdHeadEligibility
 from ..forms import HouseholdHeadEligibilityForm
 
-from .modeladmin_mixins import HouseholdMemberAdminMixin
+from .modeladmin_mixins import ModelAdminMixin
 
 
 @admin.register(HouseholdHeadEligibility, site=member_admin)
-class HouseholdHeadEligibilityAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
+class HouseholdHeadEligibilityAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     instructions = ['Important: The household member must verbally consent before completing this questionnaire.']
 
