@@ -5,5 +5,5 @@ class MemberAdminSite(AdminSite):
     site_title = 'Member'
     site_header = 'Member'
     index_title = 'Member'
-    site_url = '/'
+    site_url = '/member/list/'
 member_admin = MemberAdminSite(name='member_admin')
