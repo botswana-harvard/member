@@ -1,5 +1,10 @@
+import arrow
+
 from django.apps import apps as django_apps
+from django.db.models import Max
 from django.db import models
+
+from household.models import HouseholdLogEntry
 
 from ...choices import RELATIONS
 from ...constants import HEAD_OF_HOUSEHOLD
@@ -25,6 +30,24 @@ class RepresentativeModelMixin(models.Model):
 
     def common_clean(self):
         # TODO: the validations here may cause problems if importing the previous surveys members
+
+        # confirm there is todays household log before editing household information.
+        try:
+            report_datetime = HouseholdLogEntry.objects.filter(
+                household_log__household_structure=self.household_structure).aggregate(
+                    Max('report_datetime')).get('report_datetime__max')
+            HouseholdLogEntry.objects.get(
+                household_log__household_structure=self.household_structure,
+                report_datetime=report_datetime)
+            r = arrow.Arrow.fromdatetime(report_datetime, report_datetime.tzinfo).to('utc')
+            if not r.date() == arrow.utcnow().date():
+                raise EnumerationRepresentativeError(
+                    'Enumeration blocked. Please complete today\'s \'{}\' form first.'.format(
+                        HouseholdLogEntry._meta.verbose_name))
+        except HouseholdLogEntry.DoesNotExist:
+            raise EnumerationRepresentativeError(
+                'Enumeration blocked. Please complete today\'s \'{}\' form first.'.format(
+                    HouseholdLogEntry._meta.verbose_name))
 
         # confirm RepresentativeEligibility exists ...
         try:

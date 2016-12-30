@@ -12,6 +12,7 @@ from ..constants import (
 from ..exceptions import EnumerationRepresentativeError, MemberEnrollmentError, MemberValidationError
 from ..models import HouseholdMember, EnrollmentLoss, EnrollmentChecklist
 from ..participation_status import ParticipationStatus
+from household.models import HouseholdLogEntry
 
 from .test_mixins import MemberMixin
 
@@ -37,17 +38,17 @@ class TestMembers(MemberMixin, TestCase):
             relation=HEAD_OF_HOUSEHOLD)
         self.assertTrue(household_member.eligible_member)
 
-    def test_add_hoh_member_in_different_households(self):
-        """Asserts adding a HoH to one household does not block all households."""
-        household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
-        mommy.make_recipe(
+    def test_cant_add_member_with_no_todays_log_entry(self):
+        """Assert can not add household member without today's household log entry."""
+        household_structure = self.make_household_without_household_log_entry()
+        # add representative eligibility
+        mommy.make_recipe('member.representativeeligibility', household_structure=household_structure)
+        self.assertRaises(
+            EnumerationRepresentativeError,
+            mommy.make_recipe,
             'member.householdmember',
             household_structure=household_structure,
             relation=HEAD_OF_HOUSEHOLD)
-        try:
-            self.make_household_ready_for_enumeration(make_hoh=True)
-        except EnumerationRepresentativeError:
-            self.fail('EnumerationRepresentativeError unexpectedly raised')
 
     def test_cannot_add_more_members_if_no_hoh_eligibility(self):
         """Assert can add head of household."""
@@ -212,7 +213,7 @@ class TestMembers(MemberMixin, TestCase):
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
-            initials=household_member.initials)            
+            initials=household_member.initials)
         household_member = HouseholdMember.objects.get(pk=household_member.pk)
         self.assertTrue(enrollment_checklist.is_eligible)
         self.assertFalse(enrollment_checklist.loss_reason)

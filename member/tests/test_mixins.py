@@ -9,7 +9,6 @@ from ..constants import HEAD_OF_HOUSEHOLD
 from ..list_data import list_data
 from ..models import HouseholdMember
 
-
 fake = Faker()
 
 
