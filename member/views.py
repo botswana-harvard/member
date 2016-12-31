@@ -44,6 +44,15 @@ class MembersView(EdcBaseViewMixin, TemplateView, SearchViewMixin, FormView):
         options = {}
         return q, options
 
+    def queryset_wrapper(self, qs):
+        results = []
+        for obj in qs:
+            _, obj.survey_year, obj.survey_name, obj.community_name = obj.household_structure.survey.split('.')
+            obj.community_name = ' '.join(obj.community_name.split('_'))
+            obj.household_identifier = obj.household_structure.household.household_identifier
+            results.append(obj)
+        return results
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         results = self.search_model.objects.all().order_by('-created')

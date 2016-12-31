@@ -20,25 +20,29 @@
                     <table class="table table-condensed table-hover">
                       <thead>
                       		<th>#</th>
-                      		<th>Member</th>
-                      		<th>First Name</th>
-                      		<th>Initials</th>
-                      		<th>Gender</th>
-                      		<th>Age</th>
+                          <th></th>
+                          <th>Name</th>
+                          <th>Household</th>
+                      		<th></th>
                       		<th>Relation</th>
+                          <th>Community</th>
+                          <th>Survey</th>
+                          <th>Year</th>
                       		<th>Modified Date</th>
                         </thead>
                         <tbody>
                         {% for member in results %}
                           <tr>
                             <td>{{ forloop.counter }}</td>
-                            <td><a role="button" class="btn btn-sm btn-success" href="{% url 'member:member_admin:member_householdmember_change' obj.id %}?next=plots_url"><span class="glyphicon glyphicon-pencil"></span>  {{ obj }}</a></td>
-                            <td>{{ obj.first_name }}</td>
-                            <td>{{ obj.initials }}</td>
-                            <td>{{ obj.get_gender_display }}</td>
-                            <td>{{ obj.age_in_years }}</td>
-                            <td>{{ obj.get_relation_display }}</td>
-                            <td>{{ obj.modified|date:"Y-m-d H:i" }}</td>
+                            <td><a role="button" class="btn btn-sm btn-success" href="{% url 'member:member_admin:member_householdmember_change' member.id %}?next=member:list_url"><span class="glyphicon glyphicon-pencil"></span></a></td>
+                            <td>{{ member.first_name }}</td>
+                            <td>{{ member.household_identifier }}</td>
+                            <td>{{ member.initials }} {{ member.age_in_years }} {{ member.get_gender_display }} </td>
+                            <td>{{ member.get_relation_display }}</td>
+                            <td>{{ member.community_name|title }}</td>
+                            <td>{{ member.survey_name|title }}</td>
+                            <td>{{ member.survey_year|title }}</td>
+                            <td>{{ member.modified|date:"Y-m-d H:i" }}</td>
                           </tr>
                         {% endfor %}
                       </tbody>

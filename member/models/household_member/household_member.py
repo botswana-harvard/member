@@ -2,7 +2,6 @@ from django.core.validators import (
     MinLengthValidator, MaxLengthValidator, MinValueValidator, MaxValueValidator, RegexValidator)
 from django_crypto_fields.fields import FirstnameField
 from django.db import models
-from django.apps import apps as django_apps
 
 from edc_base.model.fields import OtherCharField
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
@@ -15,7 +14,6 @@ from edc_registration.model_mixins import UpdatesOrCreatesRegistrationModelMixin
 from household.models import HouseholdStructure
 
 from ...choices import DETAILS_CHANGE_REASON, INABILITY_TO_PARTICIPATE_REASON
-from ...constants import HEAD_OF_HOUSEHOLD
 from ...exceptions import MemberValidationError
 from ...managers import HouseholdMemberManager
 
