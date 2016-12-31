@@ -6,38 +6,32 @@
       <div class="col-md-12">
         <div class="panel-group">
           <div class="panel panel-info">
-            <div class="panel-heading clearfix">
-              <span class="pull-right">
-                <!--start searchform-->
-                {% crispy form %}
-                <!--end searchform-->
-              </span>
-            </div>
+            <div class="panel-heading clearfix"><i class="fa fa-group fa-lg"></i>{% include 'edc_search/search_form.html' %}</div>
             <div class="panel-body">
               <!--start results-->
               {% if results %}
                   <div class="table-responsive">
-                    <table class="table table-condensed table-hover">
+                    <table class="table table-condensed table-hover small">
                       <thead>
                       		<th>#</th>
                           <th></th>
-                          <th>Name</th>
-                          <th>Household</th>
-                      		<th></th>
+                          <th></th>
+                          <th></th>
+                          <th>Member</th>
                       		<th>Relation</th>
                           <th>Community</th>
                           <th>Survey</th>
                           <th>Year</th>
-                      		<th>Modified Date</th>
+                      		<th>Modified</th>
                         </thead>
                         <tbody>
                         {% for member in results %}
                           <tr>
                             <td>{{ forloop.counter }}</td>
-                            <td><a role="button" class="btn btn-sm btn-success" href="{% url 'member:member_admin:member_householdmember_change' member.id %}?next=member:list_url"><span class="glyphicon glyphicon-pencil"></span></a></td>
-                            <td>{{ member.first_name }}</td>
-                            <td>{{ member.household_identifier }}</td>
-                            <td>{{ member.initials }} {{ member.age_in_years }} {{ member.get_gender_display }} </td>
+                            <td><a role="button" title="plot" class="btn btn-sm btn-default" href="{% url 'plot:list_url' plot_identifier=member.plot_identifier %}"> <i class="fa fa-building-o fa-lg"></i></a></td>
+                            <td><a role="button" title="household" class="btn btn-sm btn-default" href="{% url 'household:list_url' household_identifier=member.household_identifier %}"> <i class="fa fa-home fa-lg"></i></a></td>
+                            <td><a role="button" title="change member" class="btn btn-sm btn-success" href="{% url 'member:member_admin:member_householdmember_change' member.id %}?next={% url 'member:list_url' %}"><span class="fa fa-pencil fa-sm"></span></a></td>
+                            <td>{{ member.first_name }} {{ member.initials }} {{ member.age_in_years }} {{ member.get_gender_display }} </td>
                             <td>{{ member.get_relation_display }}</td>
                             <td>{{ member.community_name|title }}</td>
                             <td>{{ member.survey_name|title }}</td>
@@ -47,7 +41,7 @@
                         {% endfor %}
                       </tbody>
                     </table>
-                    {% include 'edc_base/paginator.html' %}
+                    {% include 'edc_search/paginator.html' %}
                   </div>
               {% endif %}
               <!--end results-->

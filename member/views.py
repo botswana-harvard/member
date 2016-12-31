@@ -26,8 +26,12 @@ class MembersView(EdcBaseViewMixin, TemplateView, SearchViewMixin, FormView):
     form_class = SearchPlotForm
     template_name = app_config.list_template_name
     paginate_by = 10
-    search_url_name = 'household:list_url'
+    list_url = 'member:list_url'
     search_model = HouseholdMember
+    url_lookup_parameters = [
+        'id', 'subject_identifier',
+        ('household_identifier', 'household_structure__household__household_identifier'),
+        ('plot_identifier', 'household_structure__household__plot__plot_identifier')]
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -38,7 +42,6 @@ class MembersView(EdcBaseViewMixin, TemplateView, SearchViewMixin, FormView):
             Q(subject_identifier__icontains=search_term) |
             Q(first_name__exact=search_term) |
             Q(household_structure__household__household_identifier__icontains=search_term) |
-            Q(household_structure__household__plot__plot_identifier__icontains=search_term) |
             Q(user_created__iexact=search_term) |
             Q(user_modified__iexact=search_term))
         options = {}
@@ -49,15 +52,12 @@ class MembersView(EdcBaseViewMixin, TemplateView, SearchViewMixin, FormView):
         for obj in qs:
             _, obj.survey_year, obj.survey_name, obj.community_name = obj.household_structure.survey.split('.')
             obj.community_name = ' '.join(obj.community_name.split('_'))
+            obj.plot_identifier = obj.household_structure.household.plot.plot_identifier
             obj.household_identifier = obj.household_structure.household.household_identifier
             results.append(obj)
         return results
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        results = self.search_model.objects.all().order_by('-created')
-        context.update(
-            search_url_name=self.search_url_name,
-            navbar_selected='member',
-            results=self.paginate(results))
+        context.update(navbar_selected='member')
         return context
