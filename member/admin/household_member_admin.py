@@ -18,8 +18,8 @@ class HouseholdMemberInline(TabularInlineMixin, admin.TabularInline):
 
 @admin.register(HouseholdMember, site=member_admin)
 class HouseholdMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
-
     form = HouseholdMemberForm
+    list_select_related = ('household_structure', )
     fields = ['household_structure',
               'first_name',
               'initials',

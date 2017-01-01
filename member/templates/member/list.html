@@ -1,3 +1,4 @@
+{% load tz %}
 {% load staticfiles %}
 {% load crispy_forms_tags %}
 
@@ -10,12 +11,10 @@
             <div class="panel-body">
               <!--start results-->
               {% if results %}
-                  <div class="table-responsive">
+                  <div class="table table-responsive">
                     <table class="table table-condensed table-hover small">
                       <thead>
                       		<th>#</th>
-                          <th></th>
-                          <th></th>
                           <th></th>
                           <th>Member</th>
                       		<th>Relation</th>
@@ -23,20 +22,24 @@
                           <th>Survey</th>
                           <th>Year</th>
                       		<th>Modified</th>
+                          <th>Host</th>
                         </thead>
                         <tbody>
-                        {% for member in results %}
+                        {% for obj in results %}
                           <tr>
                             <td>{{ forloop.counter }}</td>
-                            <td><a role="button" title="plot" class="btn btn-sm btn-default" href="{% url 'plot:list_url' plot_identifier=member.plot_identifier %}"> <i class="fa fa-building-o fa-lg"></i></a></td>
-                            <td><a role="button" title="household" class="btn btn-sm btn-default" href="{% url 'household:list_url' household_identifier=member.household_identifier %}"> <i class="fa fa-home fa-lg"></i></a></td>
-                            <td><a role="button" title="change member" class="btn btn-sm btn-success" href="{% url 'member:member_admin:member_householdmember_change' member.id %}?next={% url 'member:list_url' %}"><span class="fa fa-pencil fa-sm"></span></a></td>
-                            <td>{{ member.first_name }} {{ member.initials }} {{ member.age_in_years }} {{ member.get_gender_display }} </td>
-                            <td>{{ member.get_relation_display }}</td>
-                            <td>{{ member.community_name|title }}</td>
-                            <td>{{ member.survey_name|title }}</td>
-                            <td>{{ member.survey_year|title }}</td>
-                            <td>{{ member.modified|date:"Y-m-d H:i" }}</td>
+                            <td style="white-space: nowrap">
+                              <a role="button" title="plot" class="btn btn-sm btn-default" href="{% url 'plot:list_url' plot_identifier=obj.plot_identifier %}"> <i class="fa fa-building-o fa-lg"></i></a>
+                              <a role="button" title="household" class="btn btn-sm btn-default" href="{% url 'household:list_url' household_identifier=obj.household_identifier %}"> <i class="fa fa-home fa-lg"></i></a>
+                              <a role="button" title="change member" class="btn btn-sm btn-success" href="{% url 'member:member_admin:member_householdmember_change' obj.id %}?next={% url 'member:list_url' %}"><i class="fa fa-user-o fa-md"></i> <i class="fa fa-pencil fa-sm"></i></a>
+                            </td>
+                            <td>{{ obj.first_name }} {{ obj.initials }} {{ obj.age_in_years }} {{ obj.get_gender_display }} </td>
+                            <td>{{ obj.get_relation_display }}</td>
+                            <td>{{ obj.community_name|title }}</td>
+                            <td>{{ obj.survey_name|upper }}</td>
+                            <td>{{ obj.survey_year|upper }}</td>
+                            <td>{{ obj.modified|date:"Y-m-d H:i" }}</td>
+                            <td>{{ obj.hostname_created }}</td>
                           </tr>
                         {% endfor %}
                       </tbody>

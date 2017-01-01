@@ -15,6 +15,8 @@ Including another URLconf
 """
 from django.conf.urls import url
 
+from edc_constants.constants import UUID_PATTERN
+
 from household.patterns import household_identifier
 from plot.patterns import plot_identifier
 
@@ -27,6 +29,6 @@ urlpatterns = [
     url(r'^list/(?P<household_identifier>' + household_identifier + ')/',
         MembersView.as_view(), name='list_url'),
     url(r'^list/(?P<plot_identifier>' + plot_identifier + ')/', MembersView.as_view(), name='list_url'),
-    url(r'^list/(?P<id>[0-9A-Za-z_\-]+)/', MembersView.as_view(), name='list_url'),
+    url(r'^list/(?P<id>' + UUID_PATTERN.pattern + ')/', MembersView.as_view(), name='list_url'),
     url(r'^list/', MembersView.as_view(), name='list_url'),
 ]

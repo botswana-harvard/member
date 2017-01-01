@@ -6,13 +6,14 @@ from django.test import TestCase, tag
 
 from edc_constants.constants import NO, DEAD, FEMALE, MALE, YES, REFUSED
 
+from household.models import HouseholdLogEntry
+
 from ..constants import (
     MENTAL_INCAPACITY, HEAD_OF_HOUSEHOLD, BLOCK_PARTICIPATION, ELIGIBLE_FOR_CONSENT,
     NOT_ELIGIBLE, ABSENT, UNDECIDED, DECEASED, HTC_ELIGIBLE)
 from ..exceptions import EnumerationRepresentativeError, MemberEnrollmentError, MemberValidationError
 from ..models import HouseholdMember, EnrollmentLoss, EnrollmentChecklist
 from ..participation_status import ParticipationStatus
-from household.models import HouseholdLogEntry
 
 from .test_mixins import MemberMixin
 
@@ -506,7 +507,6 @@ class TestMembers(MemberMixin, TestCase):
             self.make_undecided_member,
             household_member=household_member)
 
-    @tag('me')
     def test_internal_and_subject_identifier(self):
         household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
         household_member = mommy.make_recipe(
@@ -523,3 +523,8 @@ class TestMembers(MemberMixin, TestCase):
         household_member = HouseholdMember.objects.get(pk=household_member.pk)
         self.assertEqual(subject_identifier, household_member.subject_identifier)
         self.assertEqual(subject_identifier_as_pk, household_member.subject_identifier_as_pk)
+
+    @tag('me')
+    def test_plot_eligible_members_increments(self):
+        household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
+        self.assertEqual(household_structure.household.plot.eligible_members, 0)
