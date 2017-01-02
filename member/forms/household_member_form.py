@@ -1,36 +1,15 @@
 from django import forms
-from django.forms import Select
 from django.forms.utils import ErrorList
-from django.forms.utils import flatatt
-from django.utils.html import format_html
-from django.utils.safestring import mark_safe
 
+from edc_base.modelform_mixins import CommonCleanModelFormMixin
 from edc_constants.constants import DEAD, NO, YES, FEMALE, MALE
 
-from household.models.household_structure import HouseholdStructure
 from ..choices import RELATIONS, FEMALE_RELATIONS, MALE_RELATIONS
 from ..constants import HEAD_OF_HOUSEHOLD
 from ..models import HouseholdMember, EnrollmentChecklist
-from ..exceptions import MemberValidationError
 
 
-class ReadOnlySelect(Select):
-    """
-    This should replace the Select widget with a disabled text widget displaying the value,
-    and hidden field with the actual id
-    """
-    def render(self, name, value, attrs=None, choices=()):
-        final_attrs = self.build_attrs(attrs, name=name)
-        display = value
-        output = format_html('<input type=text value="%s" disabled="disabled" ><input type="hidden" value="%s"  %s> ' % (display, value, flatatt(final_attrs)))
-        return mark_safe(output)
-
-
-class HouseholdMemberForm(forms.ModelForm):
-
-    household_structure = forms.ModelChoiceField(
-        queryset=HouseholdStructure.objects.all(),
-        widget=ReadOnlySelect)
+class HouseholdMemberForm(CommonCleanModelFormMixin, forms.ModelForm):
 
     def validate_on_gender(self):
         cleaned_data = self.cleaned_data
@@ -47,6 +26,11 @@ class HouseholdMemberForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(HouseholdMemberForm, self).clean()
+        try:
+            EnrollmentChecklist.objects.get(household_member_id=self.instance.id)
+            raise forms.ValidationError('Enrollment checklist exists. This member may not be changed.')
+        except EnrollmentChecklist.DoesNotExist:
+            pass
         if cleaned_data.get('relation') == HEAD_OF_HOUSEHOLD and not cleaned_data.get('age_in_years') >= 18:
             raise forms.ValidationError('Head of Household must be 18 years or older.')
         if cleaned_data.get('eligible_hoh') and cleaned_data.get('age_in_years') < 18:
@@ -65,17 +49,6 @@ class HouseholdMemberForm(forms.ModelForm):
             if not cleaned_data.get('details_change_reason'):
                 raise forms.ValidationError(
                     'Provide why personal details has changed.')
-        try:
-            enrollment_checklist = EnrollmentChecklist.objects.get(household_member=self.instance)
-            enrollment_checklist.matches_household_member_values(
-                enrollment_checklist, HouseholdMember(**cleaned_data), exception_cls=forms.ValidationError)
-        except EnrollmentChecklist.DoesNotExist:
-            pass
-        try:
-            instance = self._meta.model(id=self.instance.id, **cleaned_data)
-            instance.common_clean()
-        except MemberValidationError as e:
-            raise forms.ValidationError(str(e))
         return cleaned_data
 
     class Meta:
