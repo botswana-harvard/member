@@ -69,10 +69,10 @@ class RepresentativeModelMixin(models.Model):
                     '{} is already head of household.'.format(household_member.first_name), 'relation')
         except self.__class__.DoesNotExist:
             household_member = None
-            if self.relation != HEAD_OF_HOUSEHOLD or not is_eligible_member(self):
+            if self.relation != HEAD_OF_HOUSEHOLD and not self.age_in_years >= 18:
                 raise EnumerationRepresentativeError(
-                    'Enumeration blocked. Please first add one eligible '
-                    'member who is the head of household.')
+                    'Enumeration blocked. Please first add one '
+                    'member over 18 who is the head of household.')
         # then expect HouseholdHeadEligibility to be added against the member who has relation=HEAD_OF_HOUSEHOLD...
         # for all new instances
         if household_member and not self.id:

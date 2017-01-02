@@ -54,6 +54,7 @@ class MembersView(EdcBaseViewMixin, TemplateView, SearchViewMixin, FormView):
             obj.community_name = ' '.join(obj.community_name.split('_'))
             obj.plot_identifier = obj.household_structure.household.plot.plot_identifier
             obj.household_identifier = obj.household_structure.household.household_identifier
+            obj.survey = obj.household_structure.survey
             results.append(obj)
         return results
 

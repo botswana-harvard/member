@@ -31,7 +31,7 @@
                             <td style="white-space: nowrap">
                               <a role="button" title="plot" class="btn btn-sm btn-default" href="{% url 'plot:list_url' plot_identifier=obj.plot_identifier %}"> <i class="fa fa-building-o fa-lg"></i></a>
                               <a role="button" title="household" class="btn btn-sm btn-default" href="{% url 'household:list_url' household_identifier=obj.household_identifier %}"> <i class="fa fa-home fa-lg"></i></a>
-                              <a role="button" title="change member" class="btn btn-sm btn-success" href="{% url 'member:member_admin:member_householdmember_change' obj.id %}?next=member:list_url&household_structure={{ obj.household_structure.id }}"><i class="fa fa-user-o fa-md"></i> <i class="fa fa-pencil fa-sm"></i></a>
+                              <a role="button" title="enumeration" class="btn btn-sm btn-success" href="{% url 'enumeration:list_url' household_identifier=obj.household_identifier survey=obj.survey %}"><i class="fa fa-sitemap fa-sm"></i></a>
                             </td>
                             <td>{{ obj.first_name }} {{ obj.initials }} {{ obj.age_in_years }} {{ obj.get_gender_display }} </td>
                             <td>{{ obj.get_relation_display }}</td>
