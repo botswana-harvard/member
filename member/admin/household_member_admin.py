@@ -19,7 +19,10 @@ class HouseholdMemberInline(TabularInlineMixin, admin.TabularInline):
 @admin.register(HouseholdMember, site=member_admin)
 class HouseholdMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
     form = HouseholdMemberForm
+
     list_select_related = ('household_structure', )
+    list_per_page = 15
+
     fields = ['household_structure',
               'first_name',
               'initials',
@@ -45,11 +48,8 @@ class HouseholdMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     list_display = ('first_name', 'initials',
                     'household_structure',
-                    # 'to_locator',
-#                     'hiv_history',
                     'relation',
                     'visit_attempts',
-#                     'member_status',
                     'inability_to_participate',
                     'eligible_member',
                     'eligible_subject',
@@ -94,5 +94,3 @@ class HouseholdMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
             except ValueError:
                 pass
         return [(None, {'fields': fields})]
-
-    list_per_page = 15
