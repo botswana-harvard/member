@@ -201,6 +201,12 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
                     self.survival_status, self.present_today))
         super().common_clean()
 
+    @property
+    def common_clean_exceptions(self):
+        common_clean_exceptions = super().common_clean_exceptions
+        common_clean_exceptions.extend([MemberValidationError])
+        return common_clean_exceptions
+
 #         selected_member_status = None
 #         using = kwargs.get('using')
 #         clear_enrollment_fields = []
