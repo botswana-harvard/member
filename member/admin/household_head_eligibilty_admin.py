@@ -1,8 +1,9 @@
 from django.contrib import admin
 
 from ..admin_site import member_admin
-from ..models import HouseholdHeadEligibility
+from ..constants import HEAD_OF_HOUSEHOLD
 from ..forms import HouseholdHeadEligibilityForm
+from ..models import HouseholdHeadEligibility, HouseholdMember
 
 from .modeladmin_mixins import ModelAdminMixin
 
@@ -29,3 +30,12 @@ class HouseholdHeadEligibilityAdmin(ModelAdminMixin, admin.ModelAdmin):
         'report_datetime',
         'household_member__household_structure__survey',
         'household_member__household_structure__household__plot__map_area')
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+
+        if db_field.name == "household_member":
+            if request.GET.get('household_member'):
+                kwargs["queryset"] = HouseholdMember.objects.filter(
+                    relation=HEAD_OF_HOUSEHOLD,
+                    id__exact=request.GET.get('household_member', 0))
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
