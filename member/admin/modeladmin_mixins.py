@@ -14,7 +14,6 @@ from edc_base.modeladmin_mixins import (
 class HouseholdMemberAdminMixin:
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-
         if db_field.name == "household_structure":
             if request.GET.get('household_structure'):
                 kwargs["queryset"] = HouseholdStructure.objects.filter(
@@ -33,6 +32,3 @@ class ModelAdminMixin(ModelAdminFormInstructionsMixin, ModelAdminNextUrlRedirect
     list_per_page = 10
     date_hierarchy = 'modified'
     empty_value_display = '-'
-
-    def redirect_url(self, request, obj, post_url_continue=None):
-        return request.GET.get('next')
