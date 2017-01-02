@@ -1,6 +1,7 @@
 from django.db import models
 
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
+from edc_base.utils import get_utcnow
 
 from household.models import HouseholdStructure
 
@@ -21,7 +22,7 @@ class RepresentativeEligibility(RepresentativeEligibilityMixin, BaseUuidModel):
     """A model completed by the user that checks the eligibility of household member
     to be the household representative."""
 
-    report_datetime = models.DateTimeField()
+    report_datetime = models.DateTimeField(default=get_utcnow)
 
     household_structure = models.OneToOneField(HouseholdStructure, on_delete=models.PROTECT)
 
