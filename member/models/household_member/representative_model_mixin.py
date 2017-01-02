@@ -66,8 +66,7 @@ class RepresentativeModelMixin(models.Model):
                 relation=HEAD_OF_HOUSEHOLD, eligible_member=True)
             if self.relation == HEAD_OF_HOUSEHOLD and self.id != household_member.id:
                 raise EnumerationRepresentativeError(
-                    'Only one member may be the head of household. {} is already '
-                    'head of household. Got {}'.format(household_member, self))
+                    '{} is already head of household.'.format(household_member.first_name), 'relation')
         except self.__class__.DoesNotExist:
             household_member = None
             if self.relation != HEAD_OF_HOUSEHOLD or not is_eligible_member(self):
@@ -87,6 +86,12 @@ class RepresentativeModelMixin(models.Model):
                         HouseholdHeadEligibility._meta.verbose_name))
         # if all OK, add members as you like ...
         super().common_clean()
+
+    @property
+    def common_clean_exceptions(self):
+        common_clean_exceptions = super().common_clean_exceptions
+        common_clean_exceptions.extend([EnumerationRepresentativeError])
+        return common_clean_exceptions
 
     class Meta:
         abstract = True
