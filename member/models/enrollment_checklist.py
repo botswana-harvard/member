@@ -15,6 +15,7 @@ from ..managers import MemberEntryManager
 
 from .household_member import is_minor
 from .model_mixins import HouseholdMemberModelMixin
+from edc_base.utils import age
 
 
 class EnrollmentModelMixin(models.Model):
@@ -40,7 +41,7 @@ class EnrollmentModelMixin(models.Model):
         if self.household_member.is_consented:
             raise MemberEnrollmentError('Member is already consented')
         # compare values to member, raise where they dont match
-        if self.age_in_years != self.household_member.age_in_years:
+        if age(self.dob, self.report_datetime).years != self.household_member.age_in_years:
             raise MemberEnrollmentError(
                 'Enrollment Checklist Age does not match Household Member age. '
                 'Got {0} <> {1}'.format(self.age_in_years, self.household_member.age_in_years))
@@ -59,7 +60,7 @@ class EnrollmentModelMixin(models.Model):
         super().common_clean()
 
     def save(self, *args, **kwargs):
-        self.age_in_years = relativedelta(self.report_datetime.date(), self.dob).years
+        self.age_in_years = age(self.dob, self.report_datetime).years
         # is eligible or collect reasons not eligible, but do not raise an exception
         loss_reason = []
         if self.has_identity == NO:
