@@ -118,8 +118,8 @@ REASONS_ABSENT = (
 )
 
 BLOCK_CONTINUE = (
-    (BLOCK_PARTICIPATION, 'Yes( Block from further participation)'),
-    ('Continue', 'No (Can continue and participate)'),
+    (BLOCK_PARTICIPATION, 'Yes (Do not allow further participation)'),
+    ('Continue', 'No (May continue and participate)'),
     (NOT_APPLICABLE, 'Not applicable'),
 )
 

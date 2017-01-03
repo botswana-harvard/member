@@ -3,11 +3,11 @@ from django.contrib import admin
 from ..admin_site import member_admin
 from ..models import RefusedMemberHistory
 
-from .modeladmin_mixins import HouseholdMemberAdminMixin
+from .modeladmin_mixins import ModelAdminMixin
 
 
 @admin.register(RefusedMemberHistory, site=member_admin)
-class RefusedMemberHistoryAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
+class RefusedMemberHistoryAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     fields = (
         'household_member',

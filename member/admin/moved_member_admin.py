@@ -4,11 +4,11 @@ from ..admin_site import member_admin
 from ..forms import MovedMemberForm
 from ..models import MovedMember
 
-from .modeladmin_mixins import HouseholdMemberAdminMixin
+from .modeladmin_mixins import ModelAdminMixin
 
 
 @admin.register(MovedMember, site=member_admin)
-class MovedMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
+class MovedMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
     form = MovedMemberForm
     fields = (
         'household_member',

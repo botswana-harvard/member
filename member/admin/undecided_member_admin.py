@@ -4,11 +4,11 @@ from ..admin_site import member_admin
 from ..forms import UndecidedMemberForm
 from ..models import UndecidedMember
 
-from .modeladmin_mixins import HouseholdMemberAdminMixin
+from .modeladmin_mixins import ModelAdminMixin
 
 
 @admin.register(UndecidedMember, site=member_admin)
-class UndecidedMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
+class UndecidedMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     form = UndecidedMemberForm
 

@@ -4,11 +4,11 @@ from ..admin_site import member_admin
 from ..forms import RefusedMemberForm
 from ..models import RefusedMember
 
-from .modeladmin_mixins import HouseholdMemberAdminMixin
+from .modeladmin_mixins import ModelAdminMixin
 
 
 @admin.register(RefusedMember, site=member_admin)
-class RefusedMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
+class RefusedMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
     form = RefusedMemberForm
     fields = (
         'household_member',

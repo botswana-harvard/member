@@ -4,11 +4,11 @@ from ..admin_site import member_admin
 from ..forms import MemberAppointmentForm
 from ..models import MemberAppointment
 
-from .modeladmin_mixins import HouseholdMemberAdminMixin
+from .modeladmin_mixins import ModelAdminMixin
 
 
 @admin.register(MemberAppointment, site=member_admin)
-class MemberAppointmentAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
+class MemberAppointmentAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     form = MemberAppointmentForm
 

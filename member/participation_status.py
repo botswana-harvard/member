@@ -1,16 +1,22 @@
 from edc_constants.constants import CONSENTED, REFUSED
 
-from .constants import AVAILABLE, DECEASED, HTC_ELIGIBLE, ABSENT, UNDECIDED
+from .constants import (
+    AVAILABLE, DECEASED, HTC_ELIGIBLE, ABSENT, UNDECIDED, ELIGIBLE,
+    INELIGIBLE)
 from .models import DeceasedMember, RefusedMember, HtcMember
 
 
 class ParticipationStatus:
     def __init__(self, household_member):
+        participation_status = None
         if household_member.is_consented:
             participation_status = CONSENTED
-            reports = [(CONSENTED, None)]
+        elif hasattr(household_member, 'enrollmentchecklist'):
+            if household_member.enrollmentchecklist.is_eligible:
+                participation_status = ELIGIBLE
+            else:
+                participation_status = INELIGIBLE
         else:
-            participation_status = None
             for model, label in [
                     (DeceasedMember, DECEASED), (HtcMember, HTC_ELIGIBLE), (RefusedMember, REFUSED)]:
                 try:
@@ -34,3 +40,6 @@ class ParticipationStatus:
             self.final_status_pending = True
         else:
             self.final_status_pending = False
+
+    def get_participation_status_display(self):
+        return ' '.join(self.participation_status.split('_')).lower().capitalize()
