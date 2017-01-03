@@ -1,4 +1,7 @@
+import arrow
+
 from django.db import models
+from django.utils.timezone import get_default_timezone
 
 from django_crypto_fields.fields import EncryptedCharField, EncryptedTextField
 
@@ -48,8 +51,8 @@ class MemberEntryMixin(models.Model):
 
     report_date = models.DateField(
         verbose_name="Report date",
-        validators=[datetime_not_future],
-        unique=True)
+        validators=[date_not_future],
+        default=get_utcnow)
 
     report_datetime = models.DateTimeField(
         default=get_utcnow,
@@ -81,8 +84,14 @@ class MemberEntryMixin(models.Model):
         help_text=('IMPORTANT: Do not include any names or other personally identifying '
                    'information in this comment'))
 
+    def save(self, *args, **kwargs):
+        self.report_datetime = arrow.Arrow.fromdate(
+            self.report_date, tzinfo=get_default_timezone()).to('UTC').datetime
+        super().save(*args, **kwargs)
+
     class Meta:
         abstract = True
+        unique_together = ('household_member', 'report_date')
 
 
 class RepresentativeEligibilityMixin(models.Model):
