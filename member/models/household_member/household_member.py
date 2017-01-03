@@ -89,8 +89,8 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
         verbose_name="Do any of the following reasons apply to the participant?",
         max_length=17,
         choices=INABILITY_TO_PARTICIPATE_REASON,
-        help_text=("Participant can only participate if NONE is selected. "
-                   "(Any of these reasons make the participant unable to take "
+        help_text=("Participant can only participate if ABLE is selected. "
+                   "(Any other reason make the participant unable to take "
                    "part in the informed consent process)"))
 
     inability_to_participate_other = OtherCharField(

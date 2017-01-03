@@ -10,8 +10,6 @@ from .modeladmin_mixins import HouseholdMemberAdminMixin
 @admin.register(HtcMember, site=member_admin)
 class HtcMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
     form = HtcMemberForm
-    dashboard_type = 'subject'
-    subject_identifier_attribute = 'registration_identifier'
     fields = (
         'household_member',
         'report_datetime',

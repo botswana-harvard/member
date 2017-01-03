@@ -10,12 +10,9 @@ from .modeladmin_mixins import HouseholdMemberAdminMixin
 @admin.register(MovedMember, site=member_admin)
 class MovedMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
     form = MovedMemberForm
-    dashboard_type = 'subject'
-    subject_identifier_attribute = 'registration_identifier'
-
     fields = (
         'household_member',
-        'report_datetime',
+        'report_date',
         'moved_household',
         'moved_community',
         'new_community',

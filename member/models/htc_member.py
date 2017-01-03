@@ -4,11 +4,11 @@ from django.db import models
 from edc_base.model.models import HistoricalRecords, BaseUuidModel
 from edc_constants.choices import YES_NO, YES_NO_NA
 from edc_constants.constants import NOT_APPLICABLE
+from edc_identifier.short_identifier import ShortIdentifier
 
 from ..choices import HIV_RESULT
 
 from .model_mixins import HouseholdMemberModelMixin
-from edc_identifier.short_identifier import ShortIdentifier
 
 HIV_RESULT = list(HIV_RESULT)
 HIV_RESULT.append((NOT_APPLICABLE, 'Not applicable'))

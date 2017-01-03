@@ -2,8 +2,6 @@ from django.contrib import admin
 
 from edc_base.modeladmin_mixins import TabularInlineMixin
 
-from household.models import HouseholdStructure
-
 from ..admin_site import member_admin
 from ..forms import HouseholdMemberForm
 from ..models import HouseholdMember
