@@ -11,7 +11,7 @@ class AbsentMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     fields = (
         'household_member',
-        'report_date',
+        'report_datetime',
         'next_appt_datetime',
         'next_appt_datetime_source',
         'reason',

@@ -4,10 +4,8 @@ from django.dispatch import receiver
 from .constants import HEAD_OF_HOUSEHOLD
 
 from .models import (
-    AbsentMember, EnrollmentChecklist, EnrollmentLoss, HouseholdHeadEligibility, HouseholdMember)
-from member.models.refused_member import RefusedMember
-from member.models.undecided_member import UndecidedMember
-from member.models.deceased_member import DeceasedMember
+    AbsentMember, EnrollmentChecklist, EnrollmentLoss, HouseholdHeadEligibility, HouseholdMember,
+    RefusedMember, UndecidedMember, DeceasedMember, MovedMember)
 
 
 @receiver(post_save, weak=False, sender=HouseholdMember, dispatch_uid="household_member_on_post_save")
@@ -53,7 +51,7 @@ def enrollment_checklist_on_post_save(sender, instance, raw, created, using, **k
             instance.household_member.eligible_subject = True
         instance.household_member.enrollment_checklist_completed = True
         if created:
-            instance.household_member.visit_attempts = (instance.household_member.visit_attempts or 0) + 1
+            instance.household_member.visit_attempts += 1
         instance.household_member.save()
 
 
@@ -62,8 +60,9 @@ def enrollment_checklist_on_post_delete(sender, instance, using, **kwargs):
     EnrollmentLoss.objects.filter(household_member=instance.household_member).delete()
     instance.household_member.enrollment_checklist_completed = False
     instance.household_member.eligible_subject = False
-    visit_attempts = (instance.household_member.visit_attempts or 0) - 1
-    instance.household_member.visit_attempts = 0 if visit_attempts <= 0 else visit_attempts
+    instance.household_member.visit_attempts -= 1
+    if instance.household_member.visit_attempts < 0:
+        instance.household_member.visit_attempts = 0
     instance.household_member.save()
 
 
@@ -84,15 +83,16 @@ def enrollment_loss_on_post_delete(sender, instance, using, **kwargs):
 def absent_member_on_post_save(sender, instance, raw, created, using, **kwargs):
     if not raw:
         if created:
-            instance.household_member.visit_attempts = (instance.household_member.visit_attempts or 0) + 1
+            instance.household_member.visit_attempts += 1
         instance.household_member.absent = True
         instance.household_member.save()
 
 
 @receiver(post_delete, weak=False, sender=AbsentMember, dispatch_uid="absent_member_on_post_delete")
 def absent_member_on_post_delete(sender, instance, using, **kwargs):
-    visit_attempts = (instance.household_member.visit_attempts or 0) - 1
-    instance.household_member.visit_attempts = 0 if visit_attempts <= 0 else visit_attempts
+    instance.household_member.visit_attempts -= 1
+    if instance.household_member.visit_attempts < 0:
+        instance.household_member.visit_attempts = 0
     if instance.household_member.absentmember_set.all().count() == 0:
         instance.household_member.absent = False
     instance.household_member.save()
@@ -102,15 +102,16 @@ def absent_member_on_post_delete(sender, instance, using, **kwargs):
 def undecided_member_on_post_save(sender, instance, raw, created, using, **kwargs):
     if not raw:
         if created:
-            instance.household_member.visit_attempts = (instance.household_member.visit_attempts or 0) + 1
+            instance.household_member.visit_attempts += 1
         instance.household_member.undecided = True
         instance.household_member.save()
 
 
 @receiver(post_delete, weak=False, sender=AbsentMember, dispatch_uid="undecided_member_on_post_delete")
 def undecided_member_on_post_delete(sender, instance, using, **kwargs):
-    visit_attempts = (instance.household_member.visit_attempts or 0) - 1
-    instance.household_member.visit_attempts = 0 if visit_attempts <= 0 else visit_attempts
+    instance.household_member.visit_attempts -= 1
+    if instance.household_member.visit_attempts < 0:
+        instance.household_member.visit_attempts = 0
     if instance.household_member.undecidedmember_set.all().count() == 0:
         instance.household_member.undecided = False
     instance.household_member.save()
@@ -118,8 +119,9 @@ def undecided_member_on_post_delete(sender, instance, using, **kwargs):
 
 @receiver(post_delete, weak=False, sender=RefusedMember, dispatch_uid="refused_member_on_post_delete")
 def refused_member_on_post_delete(sender, instance, using, **kwargs):
-    visit_attempts = (instance.household_member.visit_attempts or 0) - 1
-    instance.household_member.visit_attempts = 0 if visit_attempts <= 0 else visit_attempts
+    instance.household_member.visit_attempts -= 1
+    if instance.household_member.visit_attempts < 0:
+        instance.household_member.visit_attempts = 0
     instance.household_member.refused = False
     instance.household_member.save()
 
@@ -128,15 +130,16 @@ def refused_member_on_post_delete(sender, instance, using, **kwargs):
 def refused_member_on_post_save(sender, instance, raw, created, using, **kwargs):
     if not raw:
         if created:
-            instance.household_member.visit_attempts = (instance.household_member.visit_attempts or 0) + 1
+            instance.household_member.visit_attempts += 1
         instance.household_member.refused = True
         instance.household_member.save()
 
 
 @receiver(post_delete, weak=False, sender=DeceasedMember, dispatch_uid="deceased_member_on_post_delete")
 def deceased_member_on_post_delete(sender, instance, using, **kwargs):
-    visit_attempts = (instance.household_member.visit_attempts or 0) - 1
-    instance.household_member.visit_attempts = 0 if visit_attempts <= 0 else visit_attempts
+    instance.household_member.visit_attempts -= 1
+    if instance.household_member.visit_attempts < 0:
+        instance.household_member.visit_attempts = 0
     instance.household_member.deceased = False
     instance.household_member.save()
 
@@ -145,9 +148,28 @@ def deceased_member_on_post_delete(sender, instance, using, **kwargs):
 def deceased_member_on_post_save(sender, instance, raw, created, using, **kwargs):
     if not raw:
         if created:
-            instance.household_member.visit_attempts = (instance.household_member.visit_attempts or 0) + 1
+            instance.household_member.visit_attempts += 1
         instance.household_member.refused = True
         instance.household_member.save()
+
+
+@receiver(post_save, weak=False, sender=MovedMember, dispatch_uid="moved_member_on_post_save")
+def moved_member_on_post_save(sender, instance, raw, created, using, **kwargs):
+    if not raw:
+        if created:
+            instance.household_member.visit_attempts += 1
+        instance.household_member.moved = True
+        instance.household_member.save()
+
+
+@receiver(post_delete, weak=False, sender=MovedMember, dispatch_uid="moved_member_on_post_delete")
+def moved_member_on_post_delete(sender, instance, using, **kwargs):
+    instance.household_member.visit_attempts -= 1
+    if instance.household_member.visit_attempts < 0:
+        instance.household_member.visit_attempts = 0
+    if instance.household_member.absentmember_set.all().count() == 0:
+        instance.household_member.moved = False
+    instance.household_member.save()
 
 # @receiver(post_save, weak=False, sender=HouseholdMember, dispatch_uid="household_member_on_post_save")
 # def household_member_on_post_save(sender, instance, raw, created, using, **kwargs):

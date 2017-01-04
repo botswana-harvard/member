@@ -13,7 +13,9 @@ class MemberFormMixin(CommonCleanModelFormMixin, forms.ModelForm):
     def clean(self):
         cleaned_data = super(MemberFormMixin, self).clean()
         try:
-            has_todays_log_entry_or_raise(cleaned_data.get('household_member').household_structure)
+            has_todays_log_entry_or_raise(
+                cleaned_data.get('household_member').household_structure,
+                report_datetime=cleaned_data.get('report_datetime'))
         except EnumerationRepresentativeError as e:
             raise forms.ValidationError(str(e))
         report_dt = arrow.Arrow.fromdate(

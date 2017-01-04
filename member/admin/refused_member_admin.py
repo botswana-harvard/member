@@ -12,7 +12,7 @@ class RefusedMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
     form = RefusedMemberForm
     fields = (
         'household_member',
-        'report_date',
+        'report_datetime',
         'refusal_date',
         'reason',
         'reason_other',

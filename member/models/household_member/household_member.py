@@ -21,6 +21,7 @@ from .member_eligibility_model_mixin import MemberEligibilityModelMixin
 from .member_identifier_model_mixin import MemberIdentifierModelMixin
 from .member_status_model_mixin import MemberStatusModelMixin
 from .representative_model_mixin import RepresentativeModelMixin
+from member.models.household_member.utils import has_todays_log_entry_or_raise
 
 
 class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeModelMixin,
@@ -196,6 +197,9 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
     natural_key.dependencies = ['household.householdstructure']
 
     def common_clean(self):
+        has_todays_log_entry_or_raise(
+            self.household_structure,
+            report_datetime=self.report_datetime)
         if self.survival_status == DEAD and self.present_today == YES:
             raise MemberValidationError(
                 'Invalid combination. Got member status == {} but present today == {}'.format(

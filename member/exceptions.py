@@ -17,3 +17,7 @@ class MemberEnrollmentError(Exception):
 
 class MemberValidationError(Exception):
     pass
+
+
+class HouseholdLogRequired(Exception):
+    pass

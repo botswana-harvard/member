@@ -17,7 +17,7 @@ from ..choices import REASONS_REFUSED
 from ..constants import REFUSED
 
 from .household_member import HouseholdMember
-from member.exceptions import EnumerationRepresentativeError
+from member.exceptions import EnumerationError
 from member.models.household_member.utils import has_todays_log_entry_or_raise
 
 
@@ -37,6 +37,18 @@ class HouseholdMemberModelMixin(models.Model):
     def __str__(self):
         return str(self.household_member)
 
+    def common_clean(self):
+        has_todays_log_entry_or_raise(
+            self.household_member.household_structure,
+            report_datetime=self.report_datetime)
+        super().common_clean()
+
+    @property
+    def common_clean_exceptions(self):
+        common_clean_exceptions = super().common_clean_exceptions
+        common_clean_exceptions.extend([EnumerationError])
+        return common_clean_exceptions
+
     def natural_key(self):
         return self.household_member.natural_key()
     natural_key.dependencies = ['member.householdmember', ]
@@ -52,13 +64,12 @@ class MemberEntryMixin(models.Model):
     household_member = models.ForeignKey(HouseholdMember, on_delete=models.PROTECT)
 
     report_date = models.DateField(
-        verbose_name="Report date",
-        validators=[date_not_future],
-        default=get_utcnow)
+        editable=False)
 
     report_datetime = models.DateTimeField(
-        default=get_utcnow,
-        editable=False)
+        verbose_name="Report date",
+        validators=[datetime_not_future],
+        default=get_utcnow)
 
     reason_other = OtherCharField()
 
@@ -87,18 +98,24 @@ class MemberEntryMixin(models.Model):
                    'information in this comment'))
 
     def save(self, *args, **kwargs):
-        self.report_datetime = arrow.Arrow.fromdate(
-            self.report_date, tzinfo=get_default_timezone()).to('UTC').datetime
+        if not self.id and self.report_date:
+            raise ValueError(
+                'Expected report_date to be None. Got {}. Set report datetime, '
+                'not report_date.'.format(self.report_date))
+        self.report_date = arrow.Arrow.fromdatetime(
+            self.report_datetime, tzinfo=self.report_datetime.tzinfo).to('UTC').date()
         super().save(*args, **kwargs)
 
     def common_clean(self):
-        has_todays_log_entry_or_raise(self.household_member.household_structure)
+        has_todays_log_entry_or_raise(
+            self.household_member.household_structure,
+            report_datetime=self.report_datetime)
         super().common_clean()
 
     @property
     def common_clean_exceptions(self):
         common_clean_exceptions = super().common_clean_exceptions
-        common_clean_exceptions.extend([EnumerationRepresentativeError])
+        common_clean_exceptions.extend([EnumerationError])
         return common_clean_exceptions
 
     class Meta:

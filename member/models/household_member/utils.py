@@ -1,8 +1,12 @@
 import arrow
-from django.db.models import Max
+
+from django.core.exceptions import ObjectDoesNotExist
+
 from edc_constants.constants import DEAD, NOT_APPLICABLE, YES
-from household.models.household_log_entry import HouseholdLogEntry
-from member.exceptions import EnumerationRepresentativeError
+
+from household.models import is_failed_enumeration_attempt, HouseholdLogEntry
+
+from ...exceptions import EnumerationError, HouseholdLogRequired
 
 
 def is_eligible_member(obj):
@@ -25,20 +29,22 @@ def is_age_eligible(age_in_years):
     return 16 <= age_in_years <= 64
 
 
-def has_todays_log_entry_or_raise(household_structure):
-    try:
-        report_datetime = HouseholdLogEntry.objects.filter(
-            household_log__household_structure=household_structure).aggregate(
-                Max('report_datetime')).get('report_datetime__max')
-        HouseholdLogEntry.objects.get(
-            household_log__household_structure=household_structure,
-            report_datetime=report_datetime)
-        r = arrow.Arrow.fromdatetime(report_datetime, report_datetime.tzinfo).to('utc')
-        if not r.date() == arrow.utcnow().date():
-            raise EnumerationRepresentativeError(
-                'Enumeration blocked. Please complete today\'s \'{}\' form first.'.format(
-                    HouseholdLogEntry._meta.verbose_name))
-    except HouseholdLogEntry.DoesNotExist:
-        raise EnumerationRepresentativeError(
-            'Enumeration blocked. Please complete today\'s \'{}\' form first.'.format(
-                HouseholdLogEntry._meta.verbose_name))
+def has_todays_log_entry_or_raise(household_structure, report_datetime):
+    """Raises an exception if date part of report_datetime does not match
+    a household log entry."""
+    report_datetime = arrow.Arrow.fromdatetime(
+        report_datetime, report_datetime.tzinfo).to('utc').datetime
+    household_log_entries = household_structure.householdlog.householdlogentry_set.filter(
+        report_datetime__date=report_datetime.date()).order_by('report_datetime')
+    # no entries, so raise
+    if not household_log_entries:
+        raise HouseholdLogRequired(
+            'A \'{}\' does not exist for report date {}.'.format(
+                HouseholdLogEntry._meta.verbose_name, report_datetime.strftime('%Y-%m-%d')))
+    # some entries, raise if all are failed attempts
+    household_log_entries = [obj for obj in household_log_entries if not is_failed_enumeration_attempt(obj)]
+    if not household_log_entries:
+        raise HouseholdLogRequired(
+            '\'{}\'s exist for report date {} but all are failed enumeration attempt.'.format(
+                HouseholdLogEntry._meta.verbose_name, report_datetime.strftime('%Y-%m-%d')))
+    return household_log_entries

@@ -9,7 +9,7 @@ from edc_constants.constants import NOT_APPLICABLE, YES, ALIVE, FEMALE
 
 from .models import (
     HouseholdMember, RepresentativeEligibility, HouseholdHeadEligibility, EnrollmentChecklist,
-    AbsentMember, RefusedMember, UndecidedMember, DeceasedMember, HtcMember)
+    AbsentMember, RefusedMember, UndecidedMember, DeceasedMember, HtcMember, MovedMember)
 
 
 fake = Faker()
@@ -46,6 +46,7 @@ householdheadeligibility = Recipe(
 
 absentmember = Recipe(
     AbsentMember,
+    report_date=None,
 )
 
 refusedmember = Recipe(
@@ -54,6 +55,11 @@ refusedmember = Recipe(
 
 undecidedmember = Recipe(
     UndecidedMember,
+    report_date=None,
+)
+
+movedmember = Recipe(
+    MovedMember,
 )
 
 deceasedmember = Recipe(

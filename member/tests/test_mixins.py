@@ -2,14 +2,15 @@ from faker import Faker
 from model_mommy import mommy
 
 from edc_base_test.mixins import LoadListDataMixin
-
-from household.tests.test_mixins import HouseholdMixin
 from edc_constants.constants import MALE
+
+from household.models import HouseholdStructure, HouseholdLogEntry
+from household.tests.test_mixins import HouseholdMixin
 
 from ..constants import HEAD_OF_HOUSEHOLD
 from ..list_data import list_data
 from ..models import HouseholdMember
-from household.models.household_log_entry import HouseholdLogEntry
+
 
 fake = Faker()
 
@@ -29,8 +30,8 @@ class MemberMixin(MemberTestMixin):
         """Returns household_structure after adding representative eligibility."""
         make_hoh = True if make_hoh is None else make_hoh
         household_structure = super().make_household_ready_for_enumeration()
-        household_log_entry = HouseholdLogEntry.objects.filter(
-            household_log__household_structure=household_structure).order_by('report_datetime').last()
+        household_log_entry = household_structure.householdlog.householdlogentry_set.all().order_by(
+            'report_datetime').last()
         # add representative eligibility
         mommy.make_recipe(
             'member.representativeeligibility',
@@ -53,39 +54,22 @@ class MemberMixin(MemberTestMixin):
         return household_structure
 
     def make_enumerated_household_with_male_member(self):
-        household_structure = super().make_household_ready_for_enumeration()
-        household_log_entry = HouseholdLogEntry.objects.filter(
-            household_log__household_structure=household_structure).order_by('report_datetime').last()
-        # add representative eligibility
-        mommy.make_recipe(
-            'member.representativeeligibility',
-            report_datetime=household_log_entry.report_datetime,
-            household_structure=household_structure)
-        first_name = fake.first_name()
-        last_name = fake.last_name()
-        household_member = mommy.make_recipe(
-            'member.householdmember',
-            report_datetime=household_log_entry.report_datetime,
-            first_name=first_name,
-            initials=first_name[0] + last_name[0],
-            gender=MALE,
-            household_structure=household_structure,
-            relation=HEAD_OF_HOUSEHOLD)
-        mommy.make_recipe(
-            'member.householdheadeligibility',
-            household_member=household_member)
+        household_structure = self.make_household_ready_for_enumeration()
+        household_member = household_structure.householdmember_set.all()[0]
+        household_member.gender = MALE
+        household_member.save()
+        household_structure = HouseholdStructure.objects.get(pk=household_structure.pk)
         return household_structure
 
     def add_household_member(self, household_structure, **options):
         """Returns a household member that is by default eligible."""
         first_name = fake.first_name()
         last_name = fake.last_name()
-        household_log_entry = HouseholdLogEntry.objects.filter(
-            household_log__household_structure=household_structure).order_by('report_datetime').last()
-        options.update(
-            initials=options.get('initials', first_name[0] + last_name[0]),
-            report_datetime=options.get('report_datetime', household_log_entry.report_datetime),
-        )
+        if not options.get('report_datetime'):
+            household_log_entry = HouseholdLogEntry.objects.filter(
+                household_log__household_structure=household_structure).order_by('report_datetime').last()
+            options.update(report_datetime=household_log_entry.report_datetime)
+        options.update(initials=options.get('initials', first_name[0] + last_name[0]))
         return mommy.make_recipe(
             'member.householdmember',
             household_structure=household_structure,
@@ -118,6 +102,12 @@ class MemberMixin(MemberTestMixin):
         """Returns a household member after adding a undecided member report."""
         options.update(report_datetime=options.get('report_datetime', self.get_utcnow()))
         mommy.make_recipe('member.undecidedmember', household_member=household_member, **options)
+        return HouseholdMember.objects.get(pk=household_member.pk)
+
+    def make_moved_member(self, household_member, **options):
+        """Returns a household member after adding a undecided member report."""
+        options.update(report_datetime=options.get('report_datetime', self.get_utcnow()))
+        mommy.make_recipe('member.movedmember', household_member=household_member, **options)
         return HouseholdMember.objects.get(pk=household_member.pk)
 
     def make_deceased_member(self, household_member, **options):

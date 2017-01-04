@@ -12,7 +12,7 @@ class MovedMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
     form = MovedMemberForm
     fields = (
         'household_member',
-        'report_date',
+        'report_datetime',
         'moved_household',
         'moved_community',
         'new_community',
