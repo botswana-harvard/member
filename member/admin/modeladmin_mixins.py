@@ -26,10 +26,18 @@ class HouseholdMemberAdminMixin:
         return super(HouseholdMemberAdminMixin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
     def view_on_site(self, obj):
+        try:
+            household_identifier = obj.household_member.household_structure.household.household_identifier
+        except AttributeError:
+            household_identifier = obj.household_structure.household.household_identifier
+        try:
+            survey = obj.household_member.household_structure.survey
+        except AttributeError:
+            survey = obj.household_structure.survey
         return reverse(
             'enumeration:dashboard_url', kwargs=dict(
-                household_identifier=obj.household_member.household_structure.household.household_identifier,
-                survey=obj.household_member.household_structure.survey))
+                household_identifier=household_identifier,
+                survey=survey))
 
 
 class ModelAdminMixin(ModelAdminInstitutionMixin, ModelAdminFormInstructionsMixin, ModelAdminNextUrlRedirectMixin,
