@@ -51,6 +51,29 @@ class MemberMixin(MemberTestMixin):
                 household_member=household_member)
         return household_structure
 
+    def make_enumerated_household_with_male_member(self):
+        household_structure = super().make_household_ready_for_enumeration()
+        household_log_entry = HouseholdLogEntry.objects.filter(
+            household_log__household_structure=household_structure).order_by('report_datetime').last()
+        # add representative eligibility
+        mommy.make_recipe(
+            'member.representativeeligibility',
+            report_datetime=household_log_entry.report_datetime,
+            household_structure=household_structure)
+        first_name = fake.first_name()
+        last_name = fake.last_name()
+        household_member = mommy.make_recipe(
+            'member.householdmember_male',
+            report_datetime=household_log_entry.report_datetime,
+            first_name=first_name,
+            initials=first_name[0] + last_name[0],
+            household_structure=household_structure,
+            relation=HEAD_OF_HOUSEHOLD)
+        mommy.make_recipe(
+            'member.householdheadeligibility',
+            household_member=household_member)
+        return household_structure
+
     def add_household_member(self, household_structure, **options):
         """Returns a household member that is by default eligible."""
         first_name = fake.first_name()
@@ -70,6 +93,7 @@ class MemberMixin(MemberTestMixin):
     def add_enrollment_checklist(self, household_member, **options):
         options.update(
             initials=options.get('initials', household_member.initials),
+            gender=options.get('gender', household_member.gender),
             report_datetime=options.get('report_datetime', self.get_utcnow()))
         return mommy.make_recipe(
             'member.enrollmentchecklist',
