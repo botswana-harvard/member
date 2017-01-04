@@ -30,21 +30,6 @@ householdmember = Recipe(
     internal_identifier=None,
 )
 
-householdmember_male = Recipe(
-    HouseholdMember,
-    report_datetime=get_utcnow,
-    inability_to_participate=NOT_APPLICABLE,
-    survival_status=ALIVE,
-    age_in_years=25,
-    study_resident=YES,
-    gender=MALE,
-    relation='cousin',
-    subject_identifier=None,
-    subject_identifier_as_pk=None,
-    subject_identifier_aka=None,
-    internal_identifier=None,
-)
-
 representativeeligibility = Recipe(
     RepresentativeEligibility,
     report_datetime=get_utcnow,

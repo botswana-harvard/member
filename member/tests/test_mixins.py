@@ -4,6 +4,7 @@ from model_mommy import mommy
 from edc_base_test.mixins import LoadListDataMixin
 
 from household.tests.test_mixins import HouseholdMixin
+from edc_constants.constants import MALE
 
 from ..constants import HEAD_OF_HOUSEHOLD
 from ..list_data import list_data
@@ -63,10 +64,11 @@ class MemberMixin(MemberTestMixin):
         first_name = fake.first_name()
         last_name = fake.last_name()
         household_member = mommy.make_recipe(
-            'member.householdmember_male',
+            'member.householdmember',
             report_datetime=household_log_entry.report_datetime,
             first_name=first_name,
             initials=first_name[0] + last_name[0],
+            gender=MALE,
             household_structure=household_structure,
             relation=HEAD_OF_HOUSEHOLD)
         mommy.make_recipe(
