@@ -3,11 +3,11 @@ from django.contrib import admin
 from ..admin_site import member_admin
 from ..models import HtcMemberHistory
 
-from .modeladmin_mixins import HouseholdMemberAdminMixin
+from .modeladmin_mixins import ModelAdminMixin
 
 
 @admin.register(HtcMemberHistory, site=member_admin)
-class HtcMemberHistoryAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
+class HtcMemberHistoryAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     radio_fields = {"offered": admin.VERTICAL,
                     "accepted": admin.VERTICAL,

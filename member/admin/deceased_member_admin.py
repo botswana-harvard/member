@@ -4,11 +4,11 @@ from ..admin_site import member_admin
 from ..forms import DeceasedMemberForm
 from ..models import DeceasedMember
 
-from .modeladmin_mixins import HouseholdMemberAdminMixin
+from .modeladmin_mixins import ModelAdminMixin
 
 
 @admin.register(DeceasedMember, site=member_admin)
-class DeceasedMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
+class DeceasedMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     form = DeceasedMemberForm
 

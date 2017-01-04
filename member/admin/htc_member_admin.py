@@ -4,11 +4,11 @@ from ..admin_site import member_admin
 from ..forms import HtcMemberForm
 from ..models import HtcMember
 
-from .modeladmin_mixins import HouseholdMemberAdminMixin
+from .modeladmin_mixins import ModelAdminMixin
 
 
 @admin.register(HtcMember, site=member_admin)
-class HtcMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
+class HtcMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
     form = HtcMemberForm
     fields = (
         'household_member',

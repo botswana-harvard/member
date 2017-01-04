@@ -3,11 +3,11 @@ from django.contrib import admin
 from ..admin_site import member_admin
 from ..models import AbsentMember
 
-from .modeladmin_mixins import HouseholdMemberAdminMixin
+from .modeladmin_mixins import ModelAdminMixin
 
 
 @admin.register(AbsentMember, site=member_admin)
-class AbsentMemberAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
+class AbsentMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     fields = (
         'household_member',

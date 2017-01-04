@@ -4,11 +4,11 @@ from ..admin_site import member_admin
 from ..forms import HouseholdInfoForm
 from ..models import HouseholdInfo
 
-from .modeladmin_mixins import HouseholdMemberAdminMixin
+from .modeladmin_mixins import ModelAdminMixin
 
 
 @admin.register(HouseholdInfo, site=member_admin)
-class HouseholdInfoAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
+class HouseholdInfoAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     form = HouseholdInfoForm
     fields = (

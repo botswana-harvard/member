@@ -15,6 +15,7 @@ from ..managers import MemberEntryManager
 from .household_member import is_minor
 from .model_mixins import HouseholdMemberModelMixin
 from edc_base.model.validators.dob import dob_not_today
+from edc_base.exceptions import AgeValueError
 
 
 class EnrollmentModelMixin(models.Model):
@@ -40,23 +41,41 @@ class EnrollmentModelMixin(models.Model):
         if self.household_member.is_consented:
             raise MemberEnrollmentError('Member is already consented')
         # compare values to member, raise where they dont match
-        if age(self.dob, self.report_datetime).years != self.household_member.age_in_years:
-            raise MemberEnrollmentError(
-                'Enrollment Checklist Age does not match Household Member age. '
-                'Got {0} <> {1}'.format(self.age_in_years, self.household_member.age_in_years))
-        if self.household_member.study_resident != self.part_time_resident:
-            raise MemberEnrollmentError(
-                'Enrollment Checklist Residency does not match Household Member residency. '
-                'Got {0} <> {1}'.format(self.part_time_resident, self.household_member.study_resident))
-        if self.household_member.initials != self.initials:
-            raise MemberEnrollmentError(
-                'Enrollment Checklist Initials do not match Household Member initials. '
-                'Got {0} <> {1}'.format(self.initials, self.household_member.initials))
-        if self.household_member.gender != self.gender:
-            raise MemberEnrollmentError(
-                'Enrollment Checklist Gender does not match Household Member gender. '
-                'Got {0} <> {1}'.format(self.gender, self.household_member.gender))
+        if self.dob:
+            try:
+                age_in_years = age(self.dob, self.report_datetime).years
+            except AgeValueError as e:
+                raise MemberEnrollmentError({'dob': str(e)})
+            if age_in_years != self.household_member.age_in_years:
+                raise MemberEnrollmentError(
+                    'Age does not match member\'s age. Expected {}'.format(
+                        self.household_member.age_in_years),
+                    'dob')
+        if self.part_time_resident:
+            if self.household_member.study_resident != self.part_time_resident:
+                raise MemberEnrollmentError(
+                    'Residency does not match member\'s residency. Expected {}'.format(
+                        self.household_member.get_study_resident_display()),
+                    'part_time_resident')
+        if self.initials:
+            if self.household_member.initials != self.initials:
+                raise MemberEnrollmentError(
+                    'Initials do not match member\'s initials. Expected {}'.format(
+                        self.household_member.initials),
+                    'initials')
+        if self.gender:
+            if self.household_member.gender != self.gender:
+                raise MemberEnrollmentError(
+                    'Gender does not match member\'s gender. Expected {}'.format(
+                        self.household_member.get_gender_display()),
+                    'gender')
         super().common_clean()
+
+    @property
+    def common_clean_exceptions(self):
+        common_clean_exceptions = super().common_clean_exceptions
+        common_clean_exceptions.extend([MemberEnrollmentError])
+        return common_clean_exceptions
 
     def save(self, *args, **kwargs):
         self.age_in_years = age(self.dob, self.report_datetime).years
@@ -97,7 +116,8 @@ class EnrollmentChecklist(EnrollmentModelMixin, HouseholdMemberModelMixin, BaseU
         validators=[
             MinLengthValidator(2),
             MaxLengthValidator(3),
-            RegexValidator("^[A-Z]{1,3}$", "Must be Only CAPS and 2 or 3 letters. No spaces or numbers allowed.")])
+            RegexValidator(
+                "^[A-Z]{1,3}$", "Must be Only CAPS and 2 or 3 letters. No spaces or numbers allowed.")])
 
     dob = models.DateField(
         verbose_name="Date of birth",
@@ -111,11 +131,10 @@ class EnrollmentChecklist(EnrollmentModelMixin, HouseholdMemberModelMixin, BaseU
         max_length=10,
         choices=YES_NO_NA,
         default=NOT_APPLICABLE,
-        help_text="If a minor age 16 and 17, ensure a guardian is available otherwise"
-                  " participant will not be enrolled.")
+        help_text=("If a minor age 16 and 17, ensure a guardian is available otherwise "
+                   "participant will not be enrolled."))
 
     gender = models.CharField(
-        verbose_name="Gender",
         choices=GENDER,
         max_length=1,
         null=True,
@@ -125,8 +144,8 @@ class EnrollmentChecklist(EnrollmentModelMixin, HouseholdMemberModelMixin, BaseU
         verbose_name="[Interviewer] Has the subject presented a valid OMANG or other identity document?",
         max_length=10,
         choices=YES_NO,
-        help_text='Allow Omang, Passport number, driver\'s license number or Omang '
-                  'receipt number. If \'NO\' participant will not be enrolled.')
+        help_text=('Allow Omang, Passport number, driver\'s license number or Omang '
+                   'receipt number. If \'NO\' participant will not be enrolled.'))
 
     citizen = models.CharField(
         verbose_name="Are you a Botswana citizen? ",
@@ -144,7 +163,7 @@ class EnrollmentChecklist(EnrollmentModelMixin, HouseholdMemberModelMixin, BaseU
         help_text="If 'YES' then not eligible")
 
     confirm_participation = models.CharField(
-        verbose_name="If Yes, RA should obtain documentation of participation and ask CBS to"
+        verbose_name="If Yes, RA should obtain documentation of participation and ask CBS to "
                      "confirm (give Omang Number). Has Participation been confirmed",
         max_length=15,
         choices=BLOCK_CONTINUE,
@@ -163,7 +182,7 @@ class EnrollmentChecklist(EnrollmentModelMixin, HouseholdMemberModelMixin, BaseU
         help_text="If 'NO' participant will not be enrolled.")
 
     marriage_certificate = models.CharField(
-        verbose_name=("[Interviewer] Has the participant produced the marriage certificate, as proof? "),
+        verbose_name=("[Interviewer] Has the participant produced the marriage certificate, as proof?"),
         max_length=3,
         choices=YES_NO_NA,
         null=True,
@@ -173,8 +192,8 @@ class EnrollmentChecklist(EnrollmentModelMixin, HouseholdMemberModelMixin, BaseU
 
     # same as study_resident in household member
     part_time_resident = models.CharField(
-        verbose_name="In the past 12 months, have you typically spent 3 or"
-                     " more nights per month in this community? ",
+        verbose_name="In the past 12 months, have you typically spent 3 or "
+                     "more nights per month in this community? ",
         max_length=10,
         choices=YES_NO,
         help_text="If participant has moved into the "
@@ -191,11 +210,11 @@ class EnrollmentChecklist(EnrollmentModelMixin, HouseholdMemberModelMixin, BaseU
         help_text="If 'NO' participant will not be enrolled.")
 
     literacy = models.CharField(
-        verbose_name="Is the participant LITERATE?, or if ILLITERATE, is there a"
-                     "  LITERATE witness available ",
+        verbose_name="Is the participant LITERATE?, or if ILLITERATE, is there a "
+                     "LITERATE witness available ",
         max_length=10,
         choices=YES_NO,
-        help_text="If participate is illiterate, confirm there is a literate"
+        help_text="If participate is illiterate, confirm there is a literate "
                   "witness available otherwise participant will not be enrolled.")
 
     # TODO: what is this????

@@ -5,11 +5,11 @@ from ..admin_site import member_admin
 from ..forms import EnrollmentLossForm
 from ..models import EnrollmentLoss
 
-from .modeladmin_mixins import HouseholdMemberAdminMixin
+from .modeladmin_mixins import ModelAdminMixin
 
 
 @admin.register(EnrollmentLoss, site=member_admin)
-class EnrollmentLossAdmin(HouseholdMemberAdminMixin, admin.ModelAdmin):
+class EnrollmentLossAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     form = EnrollmentLossForm
 

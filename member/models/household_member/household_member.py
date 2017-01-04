@@ -107,7 +107,8 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
                    "spent 3 or more nights per month in this community."))
 
     personal_details_changed = models.CharField(
-        verbose_name=("Have your personal details (name/surname) changed since the last time we visited you?"),
+        verbose_name=(
+            "Have your personal details (name/surname) changed since the last time we visited you?"),
         max_length=10,
         null=True,
         blank=True,
