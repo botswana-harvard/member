@@ -9,8 +9,7 @@ from household.models import HouseholdLogEntry
 from ...choices import RELATIONS
 from ...constants import HEAD_OF_HOUSEHOLD
 from ...exceptions import EnumerationRepresentativeError
-
-from .utils import is_eligible_member
+from member.models.household_member.utils import has_todays_log_entry_or_raise
 
 
 class RepresentativeModelMixin(models.Model):
@@ -32,22 +31,7 @@ class RepresentativeModelMixin(models.Model):
         # TODO: the validations here may cause problems if importing the previous surveys members
 
         # confirm there is todays household log before editing household information.
-        try:
-            report_datetime = HouseholdLogEntry.objects.filter(
-                household_log__household_structure=self.household_structure).aggregate(
-                    Max('report_datetime')).get('report_datetime__max')
-            HouseholdLogEntry.objects.get(
-                household_log__household_structure=self.household_structure,
-                report_datetime=report_datetime)
-            r = arrow.Arrow.fromdatetime(report_datetime, report_datetime.tzinfo).to('utc')
-            if not r.date() == arrow.utcnow().date():
-                raise EnumerationRepresentativeError(
-                    'Enumeration blocked. Please complete today\'s \'{}\' form first.'.format(
-                        HouseholdLogEntry._meta.verbose_name))
-        except HouseholdLogEntry.DoesNotExist:
-            raise EnumerationRepresentativeError(
-                'Enumeration blocked. Please complete today\'s \'{}\' form first.'.format(
-                    HouseholdLogEntry._meta.verbose_name))
+        has_todays_log_entry_or_raise(self.household_structure)
 
         # confirm RepresentativeEligibility exists ...
         try:

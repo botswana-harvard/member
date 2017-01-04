@@ -17,6 +17,8 @@ from ..choices import REASONS_REFUSED
 from ..constants import REFUSED
 
 from .household_member import HouseholdMember
+from member.exceptions import EnumerationRepresentativeError
+from member.models.household_member.utils import has_todays_log_entry_or_raise
 
 
 class HouseholdMemberModelMixin(models.Model):
@@ -88,6 +90,16 @@ class MemberEntryMixin(models.Model):
         self.report_datetime = arrow.Arrow.fromdate(
             self.report_date, tzinfo=get_default_timezone()).to('UTC').datetime
         super().save(*args, **kwargs)
+
+    def common_clean(self):
+        has_todays_log_entry_or_raise(self.household_member.household_structure)
+        super().common_clean()
+
+    @property
+    def common_clean_exceptions(self):
+        common_clean_exceptions = super().common_clean_exceptions
+        common_clean_exceptions.extend([EnumerationRepresentativeError])
+        return common_clean_exceptions
 
     class Meta:
         abstract = True

@@ -9,8 +9,7 @@ from edc_base.utils import get_utcnow
 
 from ..managers import MemberEntryManager
 
-from .model_mixins import HouseholdMemberModelMixin
-from .model_mixins import RefusedMemberMixin
+from .model_mixins import HouseholdMemberModelMixin, RefusedMemberMixin
 
 
 class RefusedMember (HouseholdMemberModelMixin, RefusedMemberMixin, BaseUuidModel):

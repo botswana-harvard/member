@@ -4,12 +4,18 @@ from django import forms
 from edc_base.modelform_mixins import CommonCleanModelFormMixin
 from edc_consent.site_consents import site_consents
 from django.utils.timezone import get_default_timezone
+from member.models.household_member.utils import has_todays_log_entry_or_raise
+from member.exceptions import EnumerationRepresentativeError
 
 
 class MemberFormMixin(CommonCleanModelFormMixin, forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(MemberFormMixin, self).clean()
+        try:
+            has_todays_log_entry_or_raise(cleaned_data.get('household_member').household_structure)
+        except EnumerationRepresentativeError as e:
+            raise forms.ValidationError(str(e))
         report_dt = arrow.Arrow.fromdate(
             cleaned_data.get('report_date'), tzinfo=get_default_timezone()).datetime
         consent = site_consents.get_consent(
