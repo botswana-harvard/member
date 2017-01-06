@@ -10,11 +10,17 @@ from ..managers import MemberEntryManager
 
 from .list_models import ElectricalAppliances, TransportMode
 from .model_mixins import HouseholdMemberModelMixin
+from household.models.household_structure.household_structure import HouseholdStructure
+from edc_base.utils import get_utcnow
 
 
-class HouseholdInfo(HouseholdMemberModelMixin, BaseUuidModel):
+class HouseholdInfo(BaseUuidModel):
     """A model completed by the user that captures household economic status
     from the Head of Household."""
+
+    household_structure = models.OneToOneField(HouseholdStructure, on_delete=models.PROTECT)
+
+    report_datetime = models.DateTimeField(default=get_utcnow)
 
     flooring_type = models.CharField(
         verbose_name="What is the main type of flooring for this household?",
@@ -130,7 +136,7 @@ class HouseholdInfo(HouseholdMemberModelMixin, BaseUuidModel):
                                 'Fill head of household eligibility first.')
         return error_msg
 
-    class Meta(HouseholdMemberModelMixin.Meta):
+    class Meta:
         app_label = 'member'
         verbose_name = 'Household economic status'
         verbose_name_plural = 'Household economic status'
