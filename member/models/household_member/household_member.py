@@ -197,9 +197,10 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
     natural_key.dependencies = ['household.householdstructure']
 
     def common_clean(self):
-        has_todays_log_entry_or_raise(
-            self.household_structure,
-            report_datetime=self.report_datetime)
+        if not self.id:
+            has_todays_log_entry_or_raise(
+                self.household_structure,
+                report_datetime=self.report_datetime)
         if self.survival_status == DEAD and self.present_today == YES:
             raise MemberValidationError(
                 'Invalid combination. Got member status == {} but present today == {}'.format(

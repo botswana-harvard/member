@@ -5,9 +5,13 @@ from ..models import AbsentMember
 
 from .modeladmin_mixins import ModelAdminMixin
 
+from ..forms import AbsentMemberForm
+
 
 @admin.register(AbsentMember, site=member_admin)
 class AbsentMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
+
+    form = AbsentMemberForm
 
     fields = (
         'household_member',

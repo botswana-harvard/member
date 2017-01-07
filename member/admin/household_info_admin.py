@@ -12,7 +12,7 @@ class HouseholdInfoAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     form = HouseholdInfoForm
     fields = (
-        "household_member",
+        "household_structure",
         "report_datetime",
         "flooring_type",
         "flooring_type_other",
@@ -41,7 +41,12 @@ class HouseholdInfoAdmin(ModelAdminMixin, admin.ModelAdmin):
         "electrical_appliances",
         "transport_mode",
     )
+
+    search_fields = [
+        'household_structure__household__household_identifier',
+        'household_structure__household__plot__plot_identifier']
+
     list_filter = (
         'report_datetime',
-        'household_member__household_structure__survey',
-        'household_member__household_structure__household__plot__map_area')
+        'household_structure__survey',
+        'household_structure__household__plot__map_area')

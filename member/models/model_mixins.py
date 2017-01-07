@@ -1,7 +1,6 @@
 import arrow
 
 from django.db import models
-from django.utils.timezone import get_default_timezone
 
 from django_crypto_fields.fields import EncryptedCharField, EncryptedTextField
 
@@ -15,10 +14,9 @@ from household.choices import NEXT_APPOINTMENT_SOURCE
 
 from ..choices import REASONS_REFUSED
 from ..constants import REFUSED
+from ..exceptions import EnumerationError, HouseholdLogRequired, DuplicateReportError
 
-from .household_member import HouseholdMember
-from member.exceptions import EnumerationError
-from member.models.household_member.utils import has_todays_log_entry_or_raise
+from .household_member import HouseholdMember, has_todays_log_entry_or_raise
 
 
 class HouseholdMemberModelMixin(models.Model):
@@ -46,7 +44,7 @@ class HouseholdMemberModelMixin(models.Model):
     @property
     def common_clean_exceptions(self):
         common_clean_exceptions = super().common_clean_exceptions
-        common_clean_exceptions.extend([EnumerationError])
+        common_clean_exceptions.extend([EnumerationError, HouseholdLogRequired])
         return common_clean_exceptions
 
     def natural_key(self):
@@ -105,18 +103,6 @@ class MemberEntryMixin(models.Model):
         self.report_date = arrow.Arrow.fromdatetime(
             self.report_datetime, tzinfo=self.report_datetime.tzinfo).to('UTC').date()
         super().save(*args, **kwargs)
-
-    def common_clean(self):
-        has_todays_log_entry_or_raise(
-            self.household_member.household_structure,
-            report_datetime=self.report_datetime)
-        super().common_clean()
-
-    @property
-    def common_clean_exceptions(self):
-        common_clean_exceptions = super().common_clean_exceptions
-        common_clean_exceptions.extend([EnumerationError])
-        return common_clean_exceptions
 
     class Meta:
         abstract = True

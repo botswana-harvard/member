@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from edc_base.modeladmin_mixins import TabularInlineMixin
+from edc_base.modeladmin_mixins import TabularInlineMixin, audit_fieldset_tuple
 
 from ..admin_site import member_admin
 from ..forms import HouseholdMemberForm
@@ -21,18 +21,24 @@ class HouseholdMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
     list_select_related = ('household_structure', )
     list_per_page = 15
 
-    fields = ['household_structure',
-              'first_name',
-              'initials',
-              'gender',
-              'age_in_years',
-              'present_today',
-              'inability_to_participate',
-              'inability_to_participate_other',
-              'study_resident',
-              'relation',
-              'personal_details_changed',
-              'details_change_reason']
+    fieldsets = (
+        (None, {
+            'fields': (
+                'household_structure',
+                'first_name',
+                'initials',
+                'gender',
+                'age_in_years',
+                'present_today',
+                'inability_to_participate',
+                'inability_to_participate_other',
+                'study_resident',
+                'relation',
+                'personal_details_changed',
+                'details_change_reason')
+        }),
+        audit_fieldset_tuple,
+    )
 
     radio_fields = {
         "gender": admin.VERTICAL,
@@ -80,15 +86,16 @@ class HouseholdMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
                    'updated_after_auto_filled',
                    'household_structure__household__plot__map_area')
 
-    def get_fieldsets(self, request, obj=None):
-        """ The following fields are not required for the new members. They are required for the follow up members only
-            to determine the required validations.
-            """
-        fields = self.fields
-        if not obj:
-            try:
-                fields.remove('personal_details_changed')
-                fields.remove('details_change_reason')
-            except ValueError:
-                pass
-        return [(None, {'fields': fields})]
+# TODO: make this work using fieldsets
+#     def get_fieldsets(self, request, obj=None):
+#         """ The following fields are not required for the new members. They are required for the follow up members only
+#             to determine the required validations.
+#             """
+#         fields = self.fields
+#         if not obj:
+#             try:
+#                 fields.remove('personal_details_changed')
+#                 fields.remove('details_change_reason')
+#             except ValueError:
+#                 pass
+#         return [(None, {'fields': fields})]

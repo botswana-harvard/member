@@ -21,3 +21,7 @@ class MemberValidationError(Exception):
 
 class HouseholdLogRequired(Exception):
     pass
+
+
+class DuplicateReportError(Exception):
+    pass
