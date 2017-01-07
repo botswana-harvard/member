@@ -26,10 +26,10 @@ class MemberMixin(MemberTestMixin):
         super(MemberMixin, self).setUp()
         self.study_site = '40'
 
-    def make_household_ready_for_enumeration(self, make_hoh=None):
+    def make_household_ready_for_enumeration(self, make_hoh=None, survey=None):
         """Returns household_structure after adding representative eligibility."""
         make_hoh = True if make_hoh is None else make_hoh
-        household_structure = super().make_household_ready_for_enumeration()
+        household_structure = super().make_household_ready_for_enumeration(survey=survey)
         household_log_entry = household_structure.householdlog.householdlogentry_set.all().order_by(
             'report_datetime').last()
         # add representative eligibility
@@ -52,6 +52,8 @@ class MemberMixin(MemberTestMixin):
                 report_datetime=household_log_entry.report_datetime,
                 household_member=household_member)
         return household_structure
+
+    # def make_next_household_ready_for_enumeration(self, household_structure):
 
     def make_enumerated_household_with_male_member(self):
         household_structure = self.make_household_ready_for_enumeration()
