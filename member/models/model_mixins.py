@@ -11,12 +11,14 @@ from edc_base.utils import get_utcnow
 from edc_constants.choices import YES_NO
 
 from household.choices import NEXT_APPOINTMENT_SOURCE
+from household.exceptions import HouseholdLogRequired
+from household.models import has_todays_log_entry_or_raise
 
 from ..choices import REASONS_REFUSED
 from ..constants import REFUSED
-from ..exceptions import EnumerationError, HouseholdLogRequired, DuplicateReportError
+from ..exceptions import EnumerationError
 
-from .household_member import HouseholdMember, has_todays_log_entry_or_raise
+from .household_member import HouseholdMember
 
 
 class HouseholdMemberModelMixin(models.Model):

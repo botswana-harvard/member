@@ -10,6 +10,8 @@ from household.tests.test_mixins import HouseholdMixin
 from ..constants import HEAD_OF_HOUSEHOLD
 from ..list_data import list_data
 from ..models import HouseholdMember
+from survey.site_surveys import site_surveys
+from edc_base_test.exceptions import TestMixinError
 
 
 fake = Faker()

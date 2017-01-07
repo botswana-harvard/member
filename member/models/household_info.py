@@ -14,6 +14,16 @@ from household.models.household_structure.household_structure import HouseholdSt
 from edc_base.utils import get_utcnow
 
 
+class MyManager(models.Manager):
+
+    def get_by_natural_key(self, survey, household_identifier, plot_identifier):
+        return self.get(
+            household_structure__survey=survey,
+            household_structure__household__household_identifier=household_identifier,
+            household_structure__household__plot__plot_identifier=household_identifier
+        )
+
+
 class HouseholdInfo(BaseUuidModel):
     """A model completed by the user that captures household economic status
     from the Head of Household."""
@@ -118,13 +128,17 @@ class HouseholdInfo(BaseUuidModel):
         choices=SMALLER_MEALS,
         help_text="")
 
-    objects = MemberEntryManager()
+    objects = MyManager()
 
     history = HistoricalRecords()
 
     def save(self, *args, **kwargs):
         self.verified_household_head(self.household_member)
         super(HouseholdInfo, self).save(*args, **kwargs)
+
+    def natural_key(self):
+        return self.household_structure.natural_key()
+    natural_key.dependencies = ['household.householdstructure']
 
     def verified_household_head(self, household_member, exception_cls=None):
         error_msg = None

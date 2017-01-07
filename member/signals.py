@@ -14,9 +14,18 @@ def household_member_on_post_save(sender, instance, raw, created, using, **kwarg
     if not raw:
         if created:
             instance.household_structure.enumerated = True
+            instance.household_structure.enumerated_datetime = instance.report_datetime
             instance.household_structure.save()
         if not instance.eligible_member:
             EnrollmentChecklist.objects.filter(household_member=instance).delete()
+
+
+@receiver(post_delete, weak=False, sender=HouseholdMember, dispatch_uid="household_member_on_post_delete")
+def household_member_on_post_delete(sender, instance, using, **kwargs):
+    if not instance.household_structure.householdmember_set.exclude(id=instance.id).exists():
+        instance.household_structure.enumerated = False
+        instance.household_structure.enumerated_datetime = None
+        instance.household_structure.save()
 
 
 @receiver(post_save, weak=False, sender=HouseholdHeadEligibility,

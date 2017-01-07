@@ -19,9 +19,5 @@ class MemberValidationError(Exception):
     pass
 
 
-class HouseholdLogRequired(Exception):
-    pass
-
-
 class DuplicateReportError(Exception):
     pass

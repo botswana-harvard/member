@@ -1,3 +1,5 @@
+from dateutil.relativedelta import relativedelta
+
 from django.core.validators import (
     MinLengthValidator, MaxLengthValidator, MinValueValidator, MaxValueValidator, RegexValidator)
 from django_crypto_fields.fields import FirstnameField
@@ -6,12 +8,12 @@ from django.db import models
 from edc_base.model.fields import OtherCharField
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
 from edc_base.model.validators.date import datetime_not_future
-from edc_base.utils import get_utcnow, get_uuid
+from edc_base.utils import get_utcnow, get_uuid, age
 from edc_constants.choices import YES_NO, GENDER, YES_NO_DWTA, ALIVE_DEAD_UNKNOWN
 from edc_constants.constants import ALIVE, DEAD, YES
 from edc_registration.model_mixins import UpdatesOrCreatesRegistrationModelMixin
 
-from household.models import HouseholdStructure
+from household.models import HouseholdStructure, has_todays_log_entry_or_raise
 
 from ...choices import DETAILS_CHANGE_REASON, INABILITY_TO_PARTICIPATE_REASON
 from ...exceptions import MemberValidationError
@@ -21,7 +23,6 @@ from .member_eligibility_model_mixin import MemberEligibilityModelMixin
 from .member_identifier_model_mixin import MemberIdentifierModelMixin
 from .member_status_model_mixin import MemberStatusModelMixin
 from .representative_model_mixin import RepresentativeModelMixin
-from member.models.household_member.utils import has_todays_log_entry_or_raise
 
 
 class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeModelMixin,
@@ -56,21 +57,16 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
             MinLengthValidator(2),
             MaxLengthValidator(3),
             RegexValidator(
-                "^[A-Z]{1,3}$", ("Must be Only CAPS and 2 or 3 letters. No spaces or numbers allowed."))],
-        db_index=True)
+                "^[A-Z]{1,3}$", ("Must be Only CAPS and 2 or 3 letters. No spaces or numbers allowed."))])
 
     gender = models.CharField(
         verbose_name='Gender',
         max_length=1,
-        choices=GENDER,
-        db_index=True)
+        choices=GENDER)
 
     age_in_years = models.IntegerField(
         verbose_name='Age in years',
         validators=[MinValueValidator(0), MaxValueValidator(120)],
-        db_index=True,
-        null=True,
-        blank=False,
         help_text=(
             "If age is unknown, enter 0. If member is less than one year old, enter 1"))
 
@@ -78,17 +74,22 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
         verbose_name='Survival status',
         max_length=10,
         default=ALIVE,
-        choices=ALIVE_DEAD_UNKNOWN)
+        choices=ALIVE_DEAD_UNKNOWN,
+        null=True,
+        blank=False)
 
     present_today = models.CharField(
         verbose_name='Is the member present today?',
         max_length=3,
         choices=YES_NO,
-        db_index=True)
+        null=True,
+        blank=False)
 
     inability_to_participate = models.CharField(
         verbose_name="Do any of the following reasons apply to the participant?",
         max_length=17,
+        null=True,
+        blank=False,
         choices=INABILITY_TO_PARTICIPATE_REASON,
         help_text=("Participant can only participate if ABLE is selected. "
                    "(Any other reason make the participant unable to take "
@@ -102,6 +103,8 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
                      "more nights per month in this community? ",
         max_length=17,
         choices=YES_NO_DWTA,
+        null=True,
+        blank=False,
         help_text=("If participant has moved into the "
                    "community in the past 12 months, then "
                    "since moving in has the participant typically "
@@ -128,7 +131,6 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
 
     visit_attempts = models.IntegerField(
         default=0,
-        editable=False,
         help_text="")
 
     eligible_htc = models.BooleanField(
@@ -157,6 +159,10 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
         help_text=('Was autofilled for follow-up surveys using information from '
                    'previous survey. See EnumerationHelper')
     )
+
+    auto_filled_datetime = models.DateTimeField(
+        editable=False,
+        null=True)
 
     updated_after_auto_filled = models.BooleanField(
         default=True,
@@ -195,6 +201,27 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
     def natural_key(self):
         return (self.internal_identifier,) + self.household_structure.natural_key()
     natural_key.dependencies = ['household.householdstructure']
+
+    def clone(self, household_structure, report_datetime):
+
+        def new_age(report_datetime):
+            born = report_datetime - relativedelta(years=self.age_in_years)
+            return age(born, report_datetime).years
+
+        return self.__class__(
+            household_structure=household_structure,
+            report_datetime=report_datetime,
+            first_name=self.first_name,
+            initials=self.initials,
+            gender=self.gender,
+            age_in_years=new_age(report_datetime),
+            internal_identifier=self.internal_identifier,
+            subject_identifier=self.subject_identifier,
+            subject_identifier_as_pk=self.subject_identifier_as_pk,
+            auto_filled=True,
+            auto_filled_datetime=get_utcnow(),
+            updated_after_auto_filled=False
+        )
 
     def common_clean(self):
         if not self.id:

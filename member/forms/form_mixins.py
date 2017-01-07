@@ -7,7 +7,8 @@ from django.utils.timezone import get_default_timezone
 from edc_base.modelform_mixins import CommonCleanModelFormMixin
 from edc_consent.site_consents import site_consents
 
-from ..models.household_member import has_todays_log_entry_or_raise
+from household.models import has_todays_log_entry_or_raise
+
 from ..exceptions import EnumerationRepresentativeError
 
 

@@ -1,11 +1,9 @@
-import arrow
+from dateutil.relativedelta import relativedelta
 
 from edc_constants.constants import DEAD, NOT_APPLICABLE, YES
-
-from household.models import is_failed_enumeration_attempt, HouseholdLogEntry
-
-from ...exceptions import HouseholdLogRequired
-from django.utils.timezone import get_current_timezone_name
+from edc_base.utils import get_utcnow
+from survey.site_surveys import site_surveys
+from django.core.exceptions import ObjectDoesNotExist
 
 
 def is_eligible_member(obj):
@@ -28,24 +26,30 @@ def is_age_eligible(age_in_years):
     return 16 <= age_in_years <= 64
 
 
-def has_todays_log_entry_or_raise(household_structure, report_datetime):
-    """Raises an exception if date part of report_datetime does not match
-    a household log entry."""
-    rdate = arrow.Arrow.fromdatetime(
-        report_datetime, report_datetime.tzinfo).to('utc')
-    household_log_entries = household_structure.householdlog.householdlogentry_set.filter(
-        report_datetime__date=rdate.date()).order_by('report_datetime')
-    # no entries, so raise
-    if not household_log_entries:
-        raise HouseholdLogRequired(
-            'A \'{}\' does not exist for report date {}.'.format(
-                HouseholdLogEntry._meta.verbose_name, rdate.to(
-                    get_current_timezone_name()).datetime.strftime('%Y-%m-%d')))
-    # some entries, raise if all are failed attempts
-    household_log_entries = [obj for obj in household_log_entries if not is_failed_enumeration_attempt(obj)]
-    if not household_log_entries:
-        raise HouseholdLogRequired(
-            '\'{}\'s exist for report date {} but all are failed enumeration attempt.'.format(
-                HouseholdLogEntry._meta.verbose_name,
-                rdate.to(get_current_timezone_name()).datetime.strftime('%Y-%m-%d')))
-    return household_log_entries
+def clone_members(household_structure, report_datetime=None, create=None, now=None):
+    report_datetime = report_datetime or get_utcnow()
+    household_members = []
+    survey = site_surveys.get_survey(household_structure.survey)
+    survey = survey.previous
+    while survey:
+        try:
+            previous = household_structure.__class__.objects.get(
+                survey=survey.field_name,
+                household=household_structure.household)
+        except ObjectDoesNotExist:
+            survey = survey.previous
+        except AttributeError:
+            break
+        else:
+            for obj in previous.householdmember_set.all():
+                new_obj = obj.clone(
+                    household_structure=household_structure,
+                    report_datetime=report_datetime)
+                if create:
+                    new_obj.save()
+                household_members.append(new_obj)
+            if len(household_members) > 0:
+                break
+            else:
+                survey = survey.previous
+    return household_members
