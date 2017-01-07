@@ -2,7 +2,7 @@ from faker import Faker
 from model_mommy import mommy
 
 from edc_base_test.mixins import LoadListDataMixin
-from edc_constants.constants import MALE
+from edc_constants.constants import MALE, UNKNOWN
 
 from household.models import HouseholdStructure, HouseholdLogEntry
 from household.tests.test_mixins import HouseholdMixin
@@ -53,8 +53,43 @@ class MemberMixin(MemberTestMixin):
                 household_member=household_member)
         return household_structure
 
-    def make_enumerated_household_with_male_member(self):
-        household_structure = self.make_household_ready_for_enumeration()
+    def make_ahs_household_member(self, bhs_consented_household_member):
+        """Return a ahs household structure."""
+        household_structure = super().make_household_ready_for_enumeration()
+        household_log_entry = household_structure.householdlog.householdlogentry_set.all().order_by(
+            'report_datetime').last()
+        # add representative eligibility
+        mommy.make_recipe(
+            'member.representativeeligibility',
+            report_datetime=household_log_entry.report_datetime,
+            household_structure=household_structure)
+        options = dict(
+            household_structure=household_structure,
+            subject_identifier=bhs_consented_household_member.subject_identifier,
+            subject_identifier_as_pk='e4f5557b-df34-560c-8c49-675525d16a51',
+            first_name=bhs_consented_household_member.first_name,
+            initials=bhs_consented_household_member.initials,
+            age_in_years=bhs_consented_household_member.age_in_years,
+            gender=bhs_consented_household_member.gender,
+            relation=bhs_consented_household_member.relation,
+            study_resident=bhs_consented_household_member.study_resident,
+            inability_to_participate=bhs_consented_household_member.inability_to_participate,
+            internal_identifier=bhs_consented_household_member.internal_identifier,
+            is_consented=True,
+            survival_status=UNKNOWN
+        )
+        new_household_member = None
+        try:
+            new_household_member = HouseholdMember.objects.get(**options)
+        except HouseholdMember.DoesNotExist:
+            new_household_member = mommy.make_recipe(
+                'member.householdmember',
+                report_datetime=household_log_entry.report_datetime,
+                **options)
+        return new_household_member
+
+    def make_enumerated_household_with_male_member(self, survey=None):
+        household_structure = self.make_household_ready_for_enumeration(survey)
         household_member = household_structure.householdmember_set.all()[0]
         household_member.gender = MALE
         household_member.save()
