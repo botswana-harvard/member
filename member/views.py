@@ -50,11 +50,10 @@ class MembersView(EdcBaseViewMixin, TemplateView, SearchViewMixin, FormView):
     def queryset_wrapper(self, qs):
         results = []
         for obj in qs:
-            _, obj.survey_year, obj.survey_name, obj.community_name = obj.household_structure.survey.split('.')
-            obj.community_name = ' '.join(obj.community_name.split('_'))
             obj.plot_identifier = obj.household_structure.household.plot.plot_identifier
             obj.household_identifier = obj.household_structure.household.household_identifier
-            obj.survey = obj.household_structure.survey
+            obj.survey = obj.household_structure.survey_object
+            obj.community_name = ' '.join(obj.survey.map_area.split('_'))
             results.append(obj)
         return results
 

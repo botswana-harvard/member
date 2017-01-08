@@ -7,9 +7,8 @@ from django.utils.timezone import get_default_timezone
 from edc_base.modelform_mixins import CommonCleanModelFormMixin
 from edc_consent.site_consents import site_consents
 
+from household.exceptions import HouseholdLogRequired
 from household.models import has_todays_log_entry_or_raise
-
-from ..exceptions import EnumerationRepresentativeError
 
 
 class MemberFormMixin(CommonCleanModelFormMixin, forms.ModelForm):
@@ -20,7 +19,7 @@ class MemberFormMixin(CommonCleanModelFormMixin, forms.ModelForm):
             has_todays_log_entry_or_raise(
                 cleaned_data.get('household_member').household_structure,
                 report_datetime=cleaned_data.get('report_datetime'))
-        except EnumerationRepresentativeError as e:
+        except HouseholdLogRequired as e:
             raise forms.ValidationError(str(e))
 
         rdate = arrow.Arrow.fromdatetime(

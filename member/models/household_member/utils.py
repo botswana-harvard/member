@@ -34,7 +34,7 @@ def clone_members(household_structure, report_datetime=None, create=None, now=No
     while survey:
         try:
             previous = household_structure.__class__.objects.get(
-                survey=survey.field_name,
+                survey=survey.field_value,
                 household=household_structure.household)
         except ObjectDoesNotExist:
             survey = survey.previous

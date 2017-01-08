@@ -31,13 +31,13 @@
                             <td style="white-space: nowrap">
                               <a role="button" title="plot" class="btn btn-sm btn-default" href="{% url 'plot:list_url' plot_identifier=obj.plot_identifier %}"> <i class="fa fa-building-o fa-lg"></i></a>
                               <a role="button" title="household" class="btn btn-sm btn-default" href="{% url 'household:list_url' household_identifier=obj.household_identifier %}"> <i class="fa fa-home fa-lg"></i></a>
-                              <a role="button" title="enumeration" class="btn btn-sm btn-success" href="{% url 'enumeration:list_url' household_identifier=obj.household_identifier survey=obj.survey %}"><i class="fa fa-sitemap fa-sm"></i></a>
+                              <a role="button" title="enumeration" class="btn btn-sm btn-success" href="{% url 'enumeration:list_url' household_identifier=obj.household_identifier survey=obj.survey.field_value %}"><i class="fa fa-sitemap fa-sm"></i></a>
                             </td>
                             <td>{{ obj.first_name }} {{ obj.initials }} {{ obj.age_in_years }} {{ obj.get_gender_display }} </td>
                             <td>{{ obj.get_relation_display }}</td>
                             <td>{{ obj.community_name|title }}</td>
-                            <td>{{ obj.survey_name|upper }}</td>
-                            <td>{{ obj.survey_year|upper }}</td>
+                            <td>{{ obj.survey.name|upper }}</td>
+                            <td>{{ obj.survey.schedule_name|upper }}</td>
                             <td>{{ obj.modified|date:"Y-m-d H:i" }}</td>
                             <td>{{ obj.hostname_created }}</td>
                           </tr>

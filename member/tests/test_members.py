@@ -629,13 +629,13 @@ class TestMembers(MemberMixin, TestCase):
         for survey in site_surveys.current_surveys:
             household_structure = self.make_household_ready_for_enumeration(
                 make_hoh=False, survey=survey)
-            self.assertEqual(household_structure.survey, survey.field_name)
+            self.assertEqual(household_structure.survey, survey.field_value)
 
     def test_clone_members_none(self):
         survey = site_surveys.current_surveys[0]
         household_structure = self.make_household_ready_for_enumeration(
             make_hoh=False, survey=survey)
-        self.assertEqual(household_structure.survey, survey.field_name)
+        self.assertEqual(household_structure.survey, survey.field_value)
         survey = site_surveys.current_surveys[1]
         household_structure = self.make_household_ready_for_enumeration(
             make_hoh=False, survey=survey)
@@ -648,7 +648,7 @@ class TestMembers(MemberMixin, TestCase):
         survey = site_surveys.current_surveys[0]
         household_structure = self.make_household_ready_for_enumeration(
             make_hoh=False, survey=survey)
-        self.assertEqual(household_structure.survey, survey.field_name)
+        self.assertEqual(household_structure.survey, survey.field_value)
         members = clone_members(
             household_structure=household_structure,
             report_datetime=self.get_utcnow())
@@ -676,7 +676,7 @@ class TestCloneMembers(MemberMixin, TestCase):
         survey = self.survey.next
         household_structure = HouseholdStructure.objects.get(
             household=self.household,
-            survey=survey.field_name)
+            survey=survey.field_value)
         members = clone_members(
             household_structure=household_structure,
             report_datetime=self.get_utcnow())
@@ -686,7 +686,7 @@ class TestCloneMembers(MemberMixin, TestCase):
         survey = self.survey.next
         household_structure = HouseholdStructure.objects.get(
             household=self.household,
-            survey=survey.field_name)
+            survey=survey.field_value)
         members = clone_members(
             household_structure=household_structure,
             report_datetime=self.get_utcnow())
@@ -705,7 +705,7 @@ class TestCloneMembers(MemberMixin, TestCase):
         survey = self.survey.next
         household_structure = HouseholdStructure.objects.get(
             household=self.household,
-            survey=survey.field_name)
+            survey=survey.field_value)
         household_log_entry = self.make_household_log_entry(
             household_log=household_structure.householdlog,
             report_datetime=self.get_utcnow())

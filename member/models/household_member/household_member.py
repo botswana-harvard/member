@@ -47,8 +47,7 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
     first_name = FirstnameField(
         verbose_name='First name',
         validators=[RegexValidator(
-            "^[A-Z]{1,250}$", ("Ensure first name is only CAPS and does not contain any spaces or numbers"))],
-        db_index=True)
+            "^[A-Z]{1,250}$", ("Ensure first name is only CAPS and does not contain any spaces or numbers"))])
 
     initials = models.CharField(
         verbose_name='Initials',
