@@ -56,9 +56,8 @@ class MemberMixin(MemberTestMixin):
                 household_member=household_member)
         return household_structure
 
-    def make_ahs_household_member(self, bhs_consented_household_member):
+    def make_ahs_household_member(self, bhs_consented_household_member, survey):
         """Return a ahs household structure."""
-        survey = site_surveys.current_surveys[1]
         household_structure = HouseholdStructure.objects.get(
             household=bhs_consented_household_member.household_structure.household,
             survey=survey.field_value)
