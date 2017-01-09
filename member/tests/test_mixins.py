@@ -2,16 +2,16 @@ from faker import Faker
 from model_mommy import mommy
 
 from edc_base_test.mixins import LoadListDataMixin
-from edc_constants.constants import MALE, UNKNOWN
+from edc_constants.constants import MALE
 
 from household.models import HouseholdStructure, HouseholdLogEntry
 from household.tests.test_mixins import HouseholdMixin
+from survey.site_surveys import site_surveys
 
 from ..constants import HEAD_OF_HOUSEHOLD
 from ..list_data import list_data
 from ..models import HouseholdMember
-from survey.site_surveys import site_surveys
-from edc_base_test.exceptions import TestMixinError
+from member.models.household_member.utils import clone_members
 
 
 fake = Faker()
@@ -31,6 +31,7 @@ class MemberMixin(MemberTestMixin):
     def make_household_ready_for_enumeration(self, make_hoh=None, survey=None, **options):
         """Returns household_structure after adding representative eligibility."""
         make_hoh = True if make_hoh is None else make_hoh
+        survey = site_surveys.current_surveys[0]
         household_structure = super().make_household_ready_for_enumeration(survey=survey)
         household_log_entry = household_structure.householdlog.householdlogentry_set.all().order_by(
             'report_datetime').last()
@@ -57,41 +58,29 @@ class MemberMixin(MemberTestMixin):
 
     def make_ahs_household_member(self, bhs_consented_household_member):
         """Return a ahs household structure."""
-        household_structure = super().make_household_ready_for_enumeration()
-        household_log_entry = household_structure.householdlog.householdlogentry_set.all().order_by(
-            'report_datetime').last()
-        # add representative eligibility
+        survey = site_surveys.current_surveys[1]
+        household_structure = HouseholdStructure.objects.get(
+            household=bhs_consented_household_member.household_structure.household,
+            survey=survey.field_value)
+        household_log_entry = self.make_household_log_entry(
+            household_log=household_structure.householdlog,
+            report_datetime=self.get_utcnow())
         mommy.make_recipe(
             'member.representativeeligibility',
             report_datetime=household_log_entry.report_datetime,
             household_structure=household_structure)
-        options = dict(
+        household_structure = HouseholdStructure.objects.get(
+            id=household_structure.id)
+        member = clone_members(
             household_structure=household_structure,
-            subject_identifier=bhs_consented_household_member.subject_identifier,
-            subject_identifier_as_pk='e4f5557b-df34-560c-8c49-675525d16a51',
-            first_name=bhs_consented_household_member.first_name,
-            initials=bhs_consented_household_member.initials,
-            age_in_years=bhs_consented_household_member.age_in_years,
-            gender=bhs_consented_household_member.gender,
-            relation=bhs_consented_household_member.relation,
-            study_resident=bhs_consented_household_member.study_resident,
-            inability_to_participate=bhs_consented_household_member.inability_to_participate,
-            internal_identifier=bhs_consented_household_member.internal_identifier,
-            is_consented=True,
-            survival_status=UNKNOWN
-        )
-        new_household_member = None
-        try:
-            new_household_member = HouseholdMember.objects.get(**options)
-        except HouseholdMember.DoesNotExist:
-            new_household_member = mommy.make_recipe(
-                'member.householdmember',
-                report_datetime=household_log_entry.report_datetime,
-                **options)
-        return new_household_member
+            report_datetime=self.get_utcnow())[0]
+        member.save()
+        return member
 
-    def make_household_with_male_member(self, survey=None):
-        household_structure = self.make_household_ready_for_enumeration()
+    def make_enumerated_household_with_male_member(self, survey=None):
+        survey = site_surveys.current_surveys[0]
+        household_structure = self.make_household_ready_for_enumeration(
+            make_hoh=True, survey=survey)
         household_member = household_structure.householdmember_set.all()[0]
         household_member.gender = MALE
         household_member.save()
