@@ -28,7 +28,7 @@ class MemberMixin(MemberTestMixin):
         super(MemberMixin, self).setUp()
         self.study_site = '40'
 
-    def make_household_ready_for_enumeration(self, make_hoh=None, survey=None):
+    def make_household_ready_for_enumeration(self, make_hoh=None, survey=None, **options):
         """Returns household_structure after adding representative eligibility."""
         make_hoh = True if make_hoh is None else make_hoh
         survey = site_surveys.current_surveys[0]

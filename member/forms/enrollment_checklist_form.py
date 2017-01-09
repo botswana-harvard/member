@@ -6,6 +6,7 @@ from edc_base.utils import age
 from edc_constants.constants import NOT_APPLICABLE, NO, YES
 
 from ..models import EnrollmentChecklist
+from member.models.household_member.utils import is_minor, is_adult, is_child
 
 
 class EnrollmentChecklistForm(CommonCleanModelFormMixin, forms.ModelForm):
@@ -29,14 +30,15 @@ class EnrollmentChecklistForm(CommonCleanModelFormMixin, forms.ModelForm):
                 age_in_years = age(cleaned_data.get('dob'), cleaned_data.get('report_datetime')).years
             except AgeValueError as e:
                 raise forms.ValidationError({'dob': str(e)})
-            if age_in_years in [16, 17] and cleaned_data.get('is_minor') == NOT_APPLICABLE:
+            if is_minor(age_in_years) and cleaned_data.get('guardian') == NOT_APPLICABLE:
                 raise forms.ValidationError(
-                    'Subject a minor. Got {0} years. Answer to \'if minor, is there '
-                    'guardian available\', cannot be N/A.'.format(age_in_years))
-            if age_in_years > 17 and not cleaned_data.get('guardian') == NOT_APPLICABLE:
+                    {'guardian': 'Subject a minor. Got {}y'.format(age_in_years)})
+            if is_adult(age_in_years) and not cleaned_data.get('guardian') == NOT_APPLICABLE:
                 raise forms.ValidationError(
-                    'Subject a not minor. Got {0} years. Answer to \'if minor, is '
-                    'there guardian available\', should be N/A.'.format(age_in_years))
+                    {'guardian': 'Subject a not minor. Got {}y'.format(age_in_years)})
+            if is_child(age_in_years):
+                raise forms.ValidationError(
+                    {'dob': 'Subject is a child. Got {}y.'.format(age_in_years)})
 
     def validate_study_participation(self):
         cleaned_data = self.cleaned_data

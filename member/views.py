@@ -21,7 +21,7 @@ class SearchPlotForm(SearchForm):
         self.helper.form_action = reverse('member:list_url')
 
 
-class MembersView(EdcBaseViewMixin, TemplateView, SearchViewMixin, FormView):
+class ListView(EdcBaseViewMixin, TemplateView, SearchViewMixin, FormView):
 
     form_class = SearchPlotForm
     template_name = app_config.list_template_name

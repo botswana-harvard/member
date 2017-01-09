@@ -21,14 +21,14 @@ from household.patterns import household_identifier
 from plot.patterns import plot_identifier
 
 from .admin_site import member_admin
-from .views import MembersView
+from .views import ListView
 
 urlpatterns = [
     url(r'^admin/', member_admin.urls),
-    url(r'^list/(?P<page>\d+)/', MembersView.as_view(), name='list_url'),
+    url(r'^list/(?P<page>\d+)/', ListView.as_view(), name='list_url'),
     url(r'^list/(?P<household_identifier>' + household_identifier + ')/',
-        MembersView.as_view(), name='list_url'),
-    url(r'^list/(?P<plot_identifier>' + plot_identifier + ')/', MembersView.as_view(), name='list_url'),
-    url(r'^list/(?P<id>' + UUID_PATTERN.pattern + ')/', MembersView.as_view(), name='list_url'),
-    url(r'^list/', MembersView.as_view(), name='list_url'),
+        ListView.as_view(), name='list_url'),
+    url(r'^list/(?P<plot_identifier>' + plot_identifier + ')/', ListView.as_view(), name='list_url'),
+    url(r'^list/(?P<id>' + UUID_PATTERN.pattern + ')/', ListView.as_view(), name='list_url'),
+    url(r'^list/', ListView.as_view(), name='list_url'),
 ]

@@ -18,9 +18,8 @@
                           <th></th>
                           <th>Member</th>
                       		<th>Relation</th>
-                          <th>Community</th>
                           <th>Survey</th>
-                          <th>Year</th>
+                          <th>Community</th>
                       		<th>Modified</th>
                           <th>Host</th>
                         </thead>
@@ -35,9 +34,8 @@
                             </td>
                             <td>{{ obj.first_name }} {{ obj.initials }} {{ obj.age_in_years }} {{ obj.get_gender_display }} </td>
                             <td>{{ obj.get_relation_display }}</td>
+                            <td>{{ obj.survey.schedule_name|upper }}.{{ obj.survey.name|upper }}</td>
                             <td>{{ obj.community_name|title }}</td>
-                            <td>{{ obj.survey.name|upper }}</td>
-                            <td>{{ obj.survey.schedule_name|upper }}</td>
                             <td>{{ obj.modified|date:"Y-m-d H:i" }}</td>
                             <td>{{ obj.hostname_created }}</td>
                           </tr>

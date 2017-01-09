@@ -1,6 +1,7 @@
 from django.core.validators import MinLengthValidator, MaxLengthValidator, RegexValidator
 from django.db import models
 
+from edc_base.exceptions import AgeValueError
 from edc_base.model.models import HistoricalRecords, BaseUuidModel
 from edc_base.model.validators import dob_not_future
 from edc_base.utils import age
@@ -14,8 +15,6 @@ from ..managers import MemberEntryManager
 
 from .household_member import is_minor
 from .model_mixins import HouseholdMemberModelMixin
-from edc_base.model.validators.dob import dob_not_today
-from edc_base.exceptions import AgeValueError
 
 
 class EnrollmentModelMixin(models.Model):

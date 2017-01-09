@@ -1,9 +1,9 @@
-from dateutil.relativedelta import relativedelta
+from django.core.exceptions import ObjectDoesNotExist
 
 from edc_constants.constants import DEAD, NOT_APPLICABLE, YES
 from edc_base.utils import get_utcnow
+
 from survey.site_surveys import site_surveys
-from django.core.exceptions import ObjectDoesNotExist
 
 
 def is_eligible_member(obj):
@@ -12,6 +12,10 @@ def is_eligible_member(obj):
     return (
         obj.age_in_years >= 16 and obj.age_in_years <= 64 and obj.study_resident == YES and
         obj.inability_to_participate == NOT_APPLICABLE)
+
+
+def is_child(age_in_years):
+    return age_in_years < 16
 
 
 def is_minor(age_in_years):

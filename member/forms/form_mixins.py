@@ -47,7 +47,7 @@ class MemberFormMixin(CommonCleanModelFormMixin, forms.ModelForm):
                 raise forms.ValidationError(
                     'Report may not be submitted for survey {}. '
                     'Subject is already consented for this survey.'.format(
-                        subject_consent.survey.survey_name,))
+                        subject_consent.survey_object.short_name,))
         except consent.model.DoesNotExist:
             pass
         return cleaned_data
