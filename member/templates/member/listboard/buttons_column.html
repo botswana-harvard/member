@@ -1,0 +1,17 @@
+
+    <td style="white-space: nowrap">
+
+      <a role="button" title="plot" class="btn btn-sm btn-default"
+        href="{% url plot_listboard_url_name plot_identifier=result.plot_identifier %}">
+            <i class="fa fa-building-o fa-lg"></i>
+      </a>
+      <a role="button" title="household" class="btn btn-sm btn-default"
+        href="{% url household_listboard_url_name household_identifier=result.household_identifier %}">
+            <i class="fa fa-home fa-lg"></i>
+      </a>
+      <a role="button" title="enumeration" class="btn btn-sm btn-success"
+        href="{% url enumeration_listboard_url_name household_identifier=result.household_identifier survey=result.survey.field_value %}">
+            <i class="fa fa-sitemap fa-sm"></i>
+      </a>
+    </td>
+

@@ -19,16 +19,25 @@ from edc_constants.constants import UUID_PATTERN
 
 from household.patterns import household_identifier
 from plot.patterns import plot_identifier
+from survey.patterns import survey
 
 from .admin_site import member_admin
-from .views import ListView
+from .views import ListBoardView
 
 urlpatterns = [
     url(r'^admin/', member_admin.urls),
-    url(r'^list/(?P<page>\d+)/', ListView.as_view(), name='list_url'),
-    url(r'^list/(?P<household_identifier>' + household_identifier + ')/',
-        ListView.as_view(), name='list_url'),
-    url(r'^list/(?P<plot_identifier>' + plot_identifier + ')/', ListView.as_view(), name='list_url'),
-    url(r'^list/(?P<id>' + UUID_PATTERN.pattern + ')/', ListView.as_view(), name='list_url'),
-    url(r'^list/', ListView.as_view(), name='list_url'),
+    url(r'^listboard/(?P<household_identifier>' + household_identifier + ')/(?P<survey>' + survey + ')/(?P<page>\d+)/',
+        ListBoardView.as_view(), name='listboard_url'),
+    url(r'^listboard/(?P<household_identifier>' + household_identifier + ')/(?P<survey>' + survey + ')/',
+        ListBoardView.as_view(), name='listboard_url'),
+    url(r'^listboard/(?P<household_identifier>' + household_identifier + ')/',
+        ListBoardView.as_view(), name='listboard_url'),
+    url(r'^listboard/(?P<plot_identifier>' + plot_identifier + ')/',
+        ListBoardView.as_view(), name='listboard_url'),
+    url(r'^listboard/(?P<id>' + UUID_PATTERN.pattern + ')/',
+        ListBoardView.as_view(), name='listboard_url'),
+    url(r'^listboard/(?P<page>\d+)/',
+        ListBoardView.as_view(), name='listboard_url'),
+    url(r'^listboard/',
+        ListBoardView.as_view(), name='listboard_url'),
 ]

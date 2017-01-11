@@ -3,7 +3,10 @@ from django.apps import AppConfig as DjangoApponfig
 
 class AppConfig(DjangoApponfig):
     name = 'member'
-    list_template_name = None
+    listboard_template_name = 'member/listboard.html'
+    listboard_url_name = 'member:listboard_url'
+    admin_site_name = 'member_admin'
+    url_namespace = 'member'
 
     def ready(self):
         from member.signals import (
