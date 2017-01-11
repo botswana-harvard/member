@@ -12,6 +12,7 @@ from ..constants import HEAD_OF_HOUSEHOLD
 from ..list_data import list_data
 from ..models import HouseholdMember
 from member.models.household_member.utils import clone_members
+from pprint import pprint
 
 
 fake = Faker()

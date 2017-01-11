@@ -12,7 +12,7 @@ from edc_constants.choices import YES_NO
 
 from household.choices import NEXT_APPOINTMENT_SOURCE
 from household.exceptions import HouseholdLogRequired
-from household.models import has_todays_log_entry_or_raise
+from household.models import todays_log_entry_or_raise
 
 from ..choices import REASONS_REFUSED
 from ..constants import REFUSED
@@ -38,8 +38,8 @@ class HouseholdMemberModelMixin(models.Model):
         return str(self.household_member)
 
     def common_clean(self):
-        has_todays_log_entry_or_raise(
-            self.household_member.household_structure,
+        todays_log_entry_or_raise(
+            household_structure=self.household_member.household_structure,
             report_datetime=self.report_datetime)
         super().common_clean()
 
@@ -105,6 +105,19 @@ class MemberEntryMixin(models.Model):
         self.report_date = arrow.Arrow.fromdatetime(
             self.report_datetime, tzinfo=self.report_datetime.tzinfo).to('UTC').date()
         super().save(*args, **kwargs)
+
+    def common_clean(self):
+        todays_log_entry_or_raise(
+            household_structure=self.household_member.household_structure,
+            report_datetime=self.report_datetime)
+        super().common_clean()
+
+    @property
+    def common_clean_exceptions(self):
+        common_clean_exceptions = super().common_clean_exceptions
+        common_clean_exceptions.extend([HouseholdLogRequired])
+        return common_clean_exceptions
+
 
     class Meta:
         abstract = True

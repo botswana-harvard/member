@@ -15,7 +15,8 @@ from ..constants import (
     MENTAL_INCAPACITY, HEAD_OF_HOUSEHOLD, BLOCK_PARTICIPATION, ELIGIBLE_FOR_CONSENT,
     NOT_ELIGIBLE, ABSENT, UNDECIDED, DECEASED, HTC_ELIGIBLE)
 from ..exceptions import EnumerationRepresentativeError, MemberEnrollmentError, MemberValidationError
-from ..models import HouseholdMember, EnrollmentLoss, EnrollmentChecklist
+from ..models import (
+    HouseholdMember, EnrollmentLoss, EnrollmentChecklist, AbsentMember, UndecidedMember, RefusedMember)
 from ..participation_status import ParticipationStatus
 
 from .test_mixins import MemberMixin
@@ -41,6 +42,7 @@ class TestMembers(MemberMixin, TestCase):
             relation=HEAD_OF_HOUSEHOLD)
         self.assertTrue(household_member.eligible_member)
 
+    @tag('me')
     def test_cant_add_representative_eligibility_with_no_todays_log_entry(self):
         """Assert can not add representative eligibility without today's household log entry."""
         plot = self.make_confirmed_plot(household_count=1)
@@ -52,7 +54,8 @@ class TestMembers(MemberMixin, TestCase):
                 mommy.make_recipe,
                 'member.householdmember',
                 household_structure=household_structure,
-                relation=HEAD_OF_HOUSEHOLD)
+                relation=HEAD_OF_HOUSEHOLD,
+                report_datetime=self.get_utcnow())
 
     def test_cannot_add_more_members_if_no_hoh_eligibility(self):
         """Assert can add head of household."""
@@ -514,10 +517,11 @@ class TestMembers(MemberMixin, TestCase):
             report_datetime=report_datetime)
         self.assertEqual(household_member.visit_attempts, 4)
 
-    @tag('me')
-    def test_model_requires_household_log_entry(self):
+    @tag('me3')
+    def test_add_model_requires_current_household_log_entry(self):
         household_structure = self.make_household_ready_for_enumeration()
-        report_datetime = self.get_utcnow() - relativedelta(weeks=1)
+        household_structure.householdlog.householdlogentry_set.all().delete()
+        report_datetime = self.get_utcnow()
         self.make_household_log_entry(
             household_log=household_structure.householdlog,
             household_status=ELIGIBLE_REPRESENTATIVE_PRESENT,
@@ -532,15 +536,34 @@ class TestMembers(MemberMixin, TestCase):
                 HouseholdLogRequired,
                 getattr(self, func_name),
                 household_member=household_member,
-                report_datetime=report_datetime + relativedelta(days=1))
+                report_datetime=report_datetime + relativedelta(days=5))
 
-    def test_absent_uniqueness(self):
+    @tag('me3')
+    def test_change_model_requires_household_log_entry_for_report_datetime(self):
         household_structure = self.make_household_ready_for_enumeration()
-        report_datetime = self.get_utcnow() - relativedelta(weeks=1)
+        household_structure.householdlog.householdlogentry_set.all().delete()
+        report_datetime = self.get_utcnow() - relativedelta(days=5)
         self.make_household_log_entry(
             household_log=household_structure.householdlog,
             household_status=ELIGIBLE_REPRESENTATIVE_PRESENT,
             report_datetime=report_datetime)
+        household_member = self.add_household_member(
+            household_structure=household_structure,
+            report_datetime=report_datetime)
+        self.make_absent_member(household_member, report_datetime=report_datetime)
+        self.make_undecided_member(household_member, report_datetime=report_datetime)
+        self.make_refused_member(household_member, report_datetime=report_datetime)
+        absent_member = AbsentMember.objects.get(household_member__pk=household_member.pk)
+        absent_member.save()
+        undecided_member = UndecidedMember.objects.get(household_member__pk=household_member.pk)
+        undecided_member.save()
+        refused_member = RefusedMember.objects.get(household_member__pk=household_member.pk)
+        refused_member.save()
+
+    @tag('me')
+    def test_absent_uniqueness(self):
+        household_structure = self.make_household_ready_for_enumeration()
+        report_datetime = self.get_utcnow()
         household_member = self.add_household_member(
             household_structure=household_structure,
             report_datetime=report_datetime)
@@ -553,16 +576,13 @@ class TestMembers(MemberMixin, TestCase):
             household_member=household_member,
             report_datetime=report_datetime)
 
+    @tag('me')
     def test_undecided_uniqueness(self):
         household_structure = self.make_household_ready_for_enumeration()
-        report_datetime = self.get_utcnow() - relativedelta(weeks=1)
-        self.make_household_log_entry(
-            household_log=household_structure.householdlog,
-            household_status=ELIGIBLE_REPRESENTATIVE_PRESENT,
-            report_datetime=report_datetime)
+        report_datetime = self.get_utcnow()
         household_member = self.add_household_member(
             household_structure=household_structure,
-            report_datetime=self.get_utcnow() - relativedelta(weeks=1))
+            report_datetime=self.get_utcnow())
         household_member = self.make_undecided_member(
             household_member=household_member,
             report_datetime=report_datetime)
@@ -593,38 +613,31 @@ class TestMembers(MemberMixin, TestCase):
         household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
         self.assertEqual(household_structure.household.plot.eligible_members, 0)
 
+    @tag('me')
     def test_add_members_updates_household_structure(self):
         household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
-        report_datetime = self.get_utcnow() - relativedelta(weeks=1)
-        self.make_household_log_entry(
-            household_log=household_structure.householdlog,
-            household_status=ELIGIBLE_REPRESENTATIVE_PRESENT,
-            report_datetime=report_datetime)
         for _ in range(0, 3):
             self.add_household_member(
                 household_structure=household_structure,
-                report_datetime=self.get_utcnow() - relativedelta(weeks=1))
+                report_datetime=self.get_utcnow())
         household_structure = HouseholdStructure.objects.get(pk=household_structure.pk)
         self.assertTrue(household_structure.enumerated)
         self.assertIsNotNone(household_structure.enumerated_datetime)
 
+    @tag('me')
     def test_delete_members_updates_household_structure(self):
         household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
-        report_datetime = self.get_utcnow() - relativedelta(weeks=1)
-        self.make_household_log_entry(
-            household_log=household_structure.householdlog,
-            household_status=ELIGIBLE_REPRESENTATIVE_PRESENT,
-            report_datetime=report_datetime)
         for _ in range(0, 3):
             self.add_household_member(
                 household_structure=household_structure,
-                report_datetime=self.get_utcnow() - relativedelta(weeks=1))
+                report_datetime=self.get_utcnow())
         household_structure = HouseholdStructure.objects.get(pk=household_structure.pk)
         household_structure.householdmember_set.all().delete()
         household_structure = HouseholdStructure.objects.get(pk=household_structure.pk)
         self.assertFalse(household_structure.enumerated)
         self.assertIsNone(household_structure.enumerated_datetime)
 
+    @tag('me')
     def test_mixin_returns_household_structure_for_survey(self):
         for survey in site_surveys.current_surveys:
             household_structure = self.make_household_ready_for_enumeration(
@@ -655,7 +668,6 @@ class TestMembers(MemberMixin, TestCase):
         self.assertEqual(members, [])
 
 
-@tag('me1')
 class TestCloneMembers(MemberMixin, TestCase):
 
     def setUp(self):

@@ -8,7 +8,7 @@ from edc_base.modelform_mixins import CommonCleanModelFormMixin
 from edc_consent.site_consents import site_consents
 
 from household.exceptions import HouseholdLogRequired
-from household.models import has_todays_log_entry_or_raise
+from household.models import todays_log_entry_or_raise
 
 
 class MemberFormMixin(CommonCleanModelFormMixin, forms.ModelForm):
@@ -16,8 +16,8 @@ class MemberFormMixin(CommonCleanModelFormMixin, forms.ModelForm):
     def clean(self):
         cleaned_data = super(MemberFormMixin, self).clean()
         try:
-            has_todays_log_entry_or_raise(
-                cleaned_data.get('household_member').household_structure,
+            todays_log_entry_or_raise(
+                household_structure=cleaned_data.get('household_member').household_structure,
                 report_datetime=cleaned_data.get('report_datetime'))
         except HouseholdLogRequired as e:
             raise forms.ValidationError(str(e))

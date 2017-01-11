@@ -13,7 +13,7 @@ from edc_constants.choices import YES_NO, GENDER, YES_NO_DWTA, ALIVE_DEAD_UNKNOW
 from edc_constants.constants import ALIVE, DEAD, YES
 from edc_registration.model_mixins import UpdatesOrCreatesRegistrationModelMixin
 
-from household.models import HouseholdStructure, has_todays_log_entry_or_raise
+from household.models import HouseholdStructure, todays_log_entry_or_raise
 
 from ...choices import DETAILS_CHANGE_REASON, INABILITY_TO_PARTICIPATE_REASON
 from ...exceptions import MemberValidationError
@@ -23,6 +23,7 @@ from .member_eligibility_model_mixin import MemberEligibilityModelMixin
 from .member_identifier_model_mixin import MemberIdentifierModelMixin
 from .member_status_model_mixin import MemberStatusModelMixin
 from .representative_model_mixin import RepresentativeModelMixin
+from household.exceptions import HouseholdLogRequired
 
 
 class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeModelMixin,
@@ -224,8 +225,8 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
 
     def common_clean(self):
         if not self.id:
-            has_todays_log_entry_or_raise(
-                self.household_structure,
+            todays_log_entry_or_raise(
+                household_structure=self.household_structure,
                 report_datetime=self.report_datetime)
         if self.survival_status == DEAD and self.present_today == YES:
             raise MemberValidationError(
@@ -236,7 +237,7 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
     @property
     def common_clean_exceptions(self):
         common_clean_exceptions = super().common_clean_exceptions
-        common_clean_exceptions.extend([MemberValidationError])
+        common_clean_exceptions.extend([MemberValidationError, HouseholdLogRequired])
         return common_clean_exceptions
 
 #         selected_member_status = None
