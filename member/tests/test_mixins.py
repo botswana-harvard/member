@@ -29,7 +29,9 @@ class MemberMixin(MemberTestMixin):
         self.study_site = '40'
 
     def make_household_ready_for_enumeration(self, make_hoh=None, survey_schedule=None, **options):
-        """Returns household_structure after adding representative eligibility."""
+        """Returns household_structure after adding representative eligibility.
+
+        By default the household_structure is that of the first survey_schedule."""
         make_hoh = True if make_hoh is None else make_hoh
         survey_schedule = survey_schedule or site_surveys.get_survey_schedules(current=True)[0]
         household_structure = super().make_household_ready_for_enumeration(
