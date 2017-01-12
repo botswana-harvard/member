@@ -18,6 +18,8 @@ fake = Faker()
 householdmember = Recipe(
     HouseholdMember,
     report_datetime=get_utcnow,
+    first_name=fake.first_name,
+    initials='XX',
     inability_to_participate=NOT_APPLICABLE,
     survival_status=ALIVE,
     age_in_years=25,
@@ -33,6 +35,9 @@ householdmember = Recipe(
 representativeeligibility = Recipe(
     RepresentativeEligibility,
     report_datetime=get_utcnow,
+    aged_over_18=YES,
+    household_residency=YES,
+    verbal_script=YES,
 )
 
 

@@ -42,7 +42,6 @@ class TestMembers(MemberMixin, TestCase):
             relation=HEAD_OF_HOUSEHOLD)
         self.assertTrue(household_member.eligible_member)
 
-    @tag('me')
     def test_cant_add_representative_eligibility_with_no_todays_log_entry(self):
         """Assert can not add representative eligibility without today's household log entry."""
         plot = self.make_confirmed_plot(household_count=1)
@@ -517,7 +516,6 @@ class TestMembers(MemberMixin, TestCase):
             report_datetime=report_datetime)
         self.assertEqual(household_member.visit_attempts, 4)
 
-    @tag('me3')
     def test_add_model_requires_current_household_log_entry(self):
         household_structure = self.make_household_ready_for_enumeration()
         household_structure.householdlog.householdlogentry_set.all().delete()
@@ -538,7 +536,6 @@ class TestMembers(MemberMixin, TestCase):
                 household_member=household_member,
                 report_datetime=report_datetime + relativedelta(days=5))
 
-    @tag('me3')
     def test_change_model_requires_household_log_entry_for_report_datetime(self):
         household_structure = self.make_household_ready_for_enumeration()
         household_structure.householdlog.householdlogentry_set.all().delete()
@@ -560,7 +557,6 @@ class TestMembers(MemberMixin, TestCase):
         refused_member = RefusedMember.objects.get(household_member__pk=household_member.pk)
         refused_member.save()
 
-    @tag('me')
     def test_absent_uniqueness(self):
         household_structure = self.make_household_ready_for_enumeration()
         report_datetime = self.get_utcnow()
@@ -576,7 +572,6 @@ class TestMembers(MemberMixin, TestCase):
             household_member=household_member,
             report_datetime=report_datetime)
 
-    @tag('me')
     def test_undecided_uniqueness(self):
         household_structure = self.make_household_ready_for_enumeration()
         report_datetime = self.get_utcnow()
@@ -613,7 +608,6 @@ class TestMembers(MemberMixin, TestCase):
         household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
         self.assertEqual(household_structure.household.plot.eligible_members, 0)
 
-    @tag('me')
     def test_add_members_updates_household_structure(self):
         household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
         for _ in range(0, 3):
@@ -624,7 +618,6 @@ class TestMembers(MemberMixin, TestCase):
         self.assertTrue(household_structure.enumerated)
         self.assertIsNotNone(household_structure.enumerated_datetime)
 
-    @tag('me')
     def test_delete_members_updates_household_structure(self):
         household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
         for _ in range(0, 3):
@@ -637,31 +630,31 @@ class TestMembers(MemberMixin, TestCase):
         self.assertFalse(household_structure.enumerated)
         self.assertIsNone(household_structure.enumerated_datetime)
 
-    @tag('me')
     def test_mixin_returns_household_structure_for_survey(self):
-        for survey in site_surveys.current_surveys:
+        for survey_schedule in site_surveys.get_survey_schedules(current=True):
             household_structure = self.make_household_ready_for_enumeration(
-                make_hoh=False, survey=survey)
-            self.assertEqual(household_structure.survey, survey.field_value)
+                make_hoh=False, survey_schedule=survey_schedule)
+            self.assertEqual(
+                household_structure.survey_schedule, survey_schedule.field_value)
 
     def test_clone_members_none(self):
-        survey = site_surveys.current_surveys[0]
+        survey_schedule = site_surveys.get_survey_schedules(current=True)[0]
         household_structure = self.make_household_ready_for_enumeration(
-            make_hoh=False, survey=survey)
-        self.assertEqual(household_structure.survey, survey.field_value)
-        survey = site_surveys.current_surveys[1]
+            make_hoh=False, survey_schedule=survey_schedule)
+        self.assertEqual(household_structure.survey_schedule, survey_schedule.field_value)
+        survey_schedule = survey_schedule.next
         household_structure = self.make_household_ready_for_enumeration(
-            make_hoh=False, survey=survey)
+            make_hoh=False, survey_schedule=survey_schedule)
         members = clone_members(
             household_structure=household_structure,
             report_datetime=self.get_utcnow())
         self.assertEqual(members, [])
 
     def test_clone_members_no_previous(self):
-        survey = site_surveys.current_surveys[0]
+        survey_schedule = site_surveys.get_survey_schedules(current=True)[0]
         household_structure = self.make_household_ready_for_enumeration(
-            make_hoh=False, survey=survey)
-        self.assertEqual(household_structure.survey, survey.field_value)
+            make_hoh=False, survey_schedule=survey_schedule)
+        self.assertEqual(household_structure.survey_schedule, survey_schedule.field_value)
         members = clone_members(
             household_structure=household_structure,
             report_datetime=self.get_utcnow())
@@ -672,33 +665,33 @@ class TestCloneMembers(MemberMixin, TestCase):
 
     def setUp(self):
         super().setUp()
-        survey = site_surveys.current_surveys[0]
+        survey_schedule = site_surveys.get_survey_schedules(current=True)[0]
         household_structure = self.make_household_ready_for_enumeration(
-            make_hoh=False, survey=survey)
+            make_hoh=False, survey_schedule=survey_schedule)
         self.add_household_member(household_structure)
         self.add_household_member(household_structure)
         self.add_household_member(household_structure)
         household_structure = HouseholdStructure.objects.get(id=household_structure.id)
         self.assertEqual(
             household_structure.householdmember_set.all().count(), 3)
-        self.survey = survey
+        self.survey_schedule = survey_schedule
         self.household = household_structure.household
 
     def test_clone_members_from_previous(self):
-        survey = self.survey.next
+        survey_schedule = self.survey_schedule.next
         household_structure = HouseholdStructure.objects.get(
             household=self.household,
-            survey=survey.field_value)
+            survey_schedule=survey_schedule.field_value)
         members = clone_members(
             household_structure=household_structure,
             report_datetime=self.get_utcnow())
         self.assertEqual(len(members), 3)
 
     def test_clone_members_from_previous_attrs(self):
-        survey = self.survey.next
+        survey_schedule = self.survey_schedule.next
         household_structure = HouseholdStructure.objects.get(
             household=self.household,
-            survey=survey.field_value)
+            survey_schedule=survey_schedule.field_value)
         members = clone_members(
             household_structure=household_structure,
             report_datetime=self.get_utcnow())
@@ -714,10 +707,10 @@ class TestCloneMembers(MemberMixin, TestCase):
             self.assertFalse(member.updated_after_auto_filled)
 
     def test_clone_members_from_previous_create(self):
-        survey = self.survey.next
+        survey_schedule = self.survey_schedule.next
         household_structure = HouseholdStructure.objects.get(
             household=self.household,
-            survey=survey.field_value)
+            survey_schedule=survey_schedule.field_value)
         household_log_entry = self.make_household_log_entry(
             household_log=household_structure.householdlog,
             report_datetime=self.get_utcnow())

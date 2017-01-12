@@ -106,7 +106,7 @@ class EnrollmentModelMixin(models.Model):
 
 
 class EnrollmentChecklist(EnrollmentModelMixin, HouseholdMemberModelMixin, BaseUuidModel):
-    """A model completed by the user that captures and confirms survey enrollment eligibility
+    """A model completed by the user that captures and confirms enrollment eligibility
     criteria."""
 
     initials = models.CharField(

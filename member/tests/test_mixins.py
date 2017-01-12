@@ -11,8 +11,7 @@ from survey.site_surveys import site_surveys
 from ..constants import HEAD_OF_HOUSEHOLD
 from ..list_data import list_data
 from ..models import HouseholdMember
-from member.models.household_member.utils import clone_members
-from pprint import pprint
+from ..models.household_member.utils import clone_members
 
 
 fake = Faker()
@@ -29,11 +28,12 @@ class MemberMixin(MemberTestMixin):
         super(MemberMixin, self).setUp()
         self.study_site = '40'
 
-    def make_household_ready_for_enumeration(self, make_hoh=None, survey=None, **options):
+    def make_household_ready_for_enumeration(self, make_hoh=None, survey_schedule=None, **options):
         """Returns household_structure after adding representative eligibility."""
         make_hoh = True if make_hoh is None else make_hoh
-        survey = site_surveys.current_surveys[0]
-        household_structure = super().make_household_ready_for_enumeration(survey=survey)
+        survey_schedule = survey_schedule or site_surveys.get_survey_schedules(current=True)[0]
+        household_structure = super().make_household_ready_for_enumeration(
+            survey_schedule=survey_schedule)
         household_log_entry = household_structure.householdlog.householdlogentry_set.all().order_by(
             'report_datetime').last()
         # add representative eligibility
@@ -57,11 +57,11 @@ class MemberMixin(MemberTestMixin):
                 household_member=household_member)
         return household_structure
 
-    def make_ahs_household_member(self, bhs_consented_household_member, survey):
+    def make_ahs_household_member(self, bhs_consented_household_member, survey_schedule):
         """Return a ahs household structure."""
         household_structure = HouseholdStructure.objects.get(
             household=bhs_consented_household_member.household_structure.household,
-            survey=survey.field_value)
+            survey_schedule=survey_schedule.field_value)
         household_log_entry = self.make_household_log_entry(
             household_log=household_structure.householdlog,
             report_datetime=self.get_utcnow())
@@ -77,10 +77,9 @@ class MemberMixin(MemberTestMixin):
         member.save()
         return member
 
-    def make_enumerated_household_with_male_member(self, survey=None):
-        survey = site_surveys.current_surveys[0]
+    def make_enumerated_household_with_male_member(self, survey_schedule=None):
         household_structure = self.make_household_ready_for_enumeration(
-            make_hoh=True, survey=survey)
+            make_hoh=True, survey_schedule=survey_schedule)
         household_member = household_structure.householdmember_set.all()[0]
         household_member.gender = MALE
         household_member.save()

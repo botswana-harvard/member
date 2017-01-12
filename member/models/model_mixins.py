@@ -118,7 +118,6 @@ class MemberEntryMixin(models.Model):
         common_clean_exceptions.extend([HouseholdLogRequired])
         return common_clean_exceptions
 
-
     class Meta:
         abstract = True
         unique_together = ('household_member', 'report_date')

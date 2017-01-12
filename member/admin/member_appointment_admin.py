@@ -16,7 +16,7 @@ class MemberAppointmentAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     list_display = (
         'household_member',
-        # 'survey',
+        # 'survey_schedule',
         'label',
         # 'composition',
         # 'call_list',
@@ -28,7 +28,7 @@ class MemberAppointmentAdmin(ModelAdminMixin, admin.ModelAdmin):
     )
 
     list_filter = (
-        'household_member__household_structure__survey',
+        'household_member__household_structure__survey_schedule',
         'label',
         'appt_date',
         'appt_status',

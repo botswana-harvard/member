@@ -37,7 +37,7 @@ class HtcMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
     list_filter = (
         'report_datetime',
         'offered', 'accepted', 'referred',
-        'household_member__household_structure__survey',
+        'household_member__household_structure__survey_schedule',
         'household_member__household_structure__household__plot__map_area')
 
     def get_readonly_fields(self, request, obj=None):

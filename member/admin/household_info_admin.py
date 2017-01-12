@@ -48,5 +48,5 @@ class HouseholdInfoAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     list_filter = (
         'report_datetime',
-        'household_structure__survey',
+        'household_structure__survey_schedule',
         'household_structure__household__plot__map_area')

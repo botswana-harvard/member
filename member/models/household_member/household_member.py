@@ -24,11 +24,13 @@ from .member_identifier_model_mixin import MemberIdentifierModelMixin
 from .member_status_model_mixin import MemberStatusModelMixin
 from .representative_model_mixin import RepresentativeModelMixin
 from household.exceptions import HouseholdLogRequired
+from survey.model_mixins import SurveyScheduleModelMixin
 
 
 class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeModelMixin,
                       MemberStatusModelMixin, MemberEligibilityModelMixin,
-                      MemberIdentifierModelMixin, BaseUuidModel):
+                      MemberIdentifierModelMixin,
+                      SurveyScheduleModelMixin, BaseUuidModel):
     """A model completed by the user to represent an enumerated household member."""
 
     household_structure = models.ForeignKey(HouseholdStructure, on_delete=models.PROTECT)
@@ -191,11 +193,12 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
     def __str__(self):
         return '{} {} {}{} {}'.format(
             self.first_name, self.initials, self.age_in_years,
-            self.gender, self.household_structure.survey)
+            self.gender, self.household_structure.survey_schedule)
 
     def save(self, *args, **kwargs):
         if not self.id:
             self.internal_identifier = get_uuid()
+        self.survey_schedule = self.household_structure.survey_schedule
         super().save(*args, **kwargs)
 
     def natural_key(self):
@@ -240,59 +243,6 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
         common_clean_exceptions.extend([MemberValidationError, HouseholdLogRequired])
         return common_clean_exceptions
 
-#         selected_member_status = None
-#         using = kwargs.get('using')
-#         clear_enrollment_fields = []
-#         self.check_eligible_representative_filled(self.household_structure, using=using)
-#         if self.member_status == DECEASED:
-#             self.set_death_flags
-#         else:
-#             self.clear_death_flags
-#         self.eligible_member = self.is_eligible_member
-#         if self.present_today == NO and not self.survival_status == DEAD:
-#             self.absent = True
-#         if kwargs.get('update_fields') == ['member_status']:  # when updated by participation view
-#             selected_member_status = self.member_status
-#             clear_enrollment_fields = self.update_member_status(selected_member_status, clear_enrollment_fields)
-#         if self.intervention and self.plot_enrolled:
-#             self.eligible_htc = self.evaluate_htc_eligibility
-#         elif not self.intervention:
-#             self.eligible_htc = self.evaluate_htc_eligibility
-#         household_member_helper = HouseholdMemberHelper(self)
-#         self.member_status = household_member_helper.member_status(selected_member_status)
-#         if self.auto_filled:
-#             self.updated_after_auto_filled = True
-#         try:
-#             update_fields = kwargs.get('update_fields') + [
-#                 'member_status', 'undecided', 'absent', 'refused', 'eligible_member', 'eligible_htc',
-#                 'enrollment_checklist_completed', 'enrollment_loss_completed', 'htc', 'survival_status',
-#                 'present_today'] + clear_enrollment_fields
-#             kwargs.update({'update_fields': update_fields})
-#         except TypeError:
-#             pass
-
-#     def update_member_status(self, selected_member_status, clear_enrollment_fields):
-#         if self.member_status == ELIGIBLE_FOR_SCREENING:
-#             self.undecided = False
-#             self.absent = False
-#             self.eligible_htc = False
-#             self.refused_htc = False
-#             if self.refused:
-#                 self.clear_refusal
-#             if self.enrollment_checklist_completed:
-#                 clear_enrollment_fields = self.clear_enrollment_checklist
-#             if self.htc:
-#                 self.clear_htc
-#         if self.member_status == REFUSED:
-#             if self.enrollment_checklist_completed:
-#                 clear_enrollment_fields = self.clear_enrollment_checklist
-#         else:
-#             self.undecided = True if selected_member_status == UNDECIDED else False
-#             self.absent = True if selected_member_status == ABSENT else False
-#         if self.eligible_hoh:
-#             self.relation = HEAD_OF_HOUSEHOLD
-#         return clear_enrollment_fields
-
 #     @property
 #     def evaluate_htc_eligibility(self):
 #         # from ..models import EnrollmentChecklist
@@ -315,79 +265,6 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
 #                 eligible_htc = True
 #         return eligible_htc
 #
-#     def update_household_member_count_on_post_save(self, sender, using=None):
-#         """Updates the member count on the household_structure model."""
-#         household_members = sender.objects.using(using).filter(
-#             household_structure=self.household_structure)
-#         self.household_structure.member_count = household_members.count()
-#         self.household_structure.enrolled_member_count = len(
-#             [household_member for household_member in household_members if household_member.is_consented])
-#         self.household_structure.save(using=using)
-#
-#     def delete_deceased_member_on_post_save(self):
-#         """Deletes the death form if it exists when survival status
-#         changes from Dead to Alive """
-#         if self.survival_status == ALIVE:
-#             DeceasedMember = django_apps.get_model('member', 'DeceasedMember')
-#             try:
-#                 DeceasedMember.objects.get(subject_identifier=self.subject_identifier).delete()
-#             except DeceasedMember.DoesNotExist:
-#                 pass
-#
-#     @property
-#     def member_status_choices(self):
-#         try:
-#             return HouseholdMemberHelper(self).member_status_choices
-#         except TypeError:
-#             return None
-#
-#     @property
-#     def is_consented_bhs(self):
-#         """Returns True if the subject consent is directly related to THIS
-#         household_member and False if related to a previous household_member."""
-#         if self.is_consented and not self.consented_in_previous_survey:
-#             return True
-#         return False
-#
-#     @property
-#     def consented_in_previous_survey(self):
-#         """Returns True if the member was consented in a previous survey."""
-#         consented_in_previous_survey = False
-#         try:
-#             for consent in self.consents:
-#                 if self.household_structure.survey.datetime_start > consent.survey.datetime_start:
-#                     consented_in_previous_survey = True
-#                     break
-#         except AttributeError:
-#             pass
-#         return consented_in_previous_survey
-
-#     @property
-#     def show_participation_form(self):
-#         """Returns True for the member status participation on the
-#         Household Dashboard to show as a form OR False where it shows as text."""
-#         show = False
-#         if self.consented_in_previous_survey:
-#             show = True
-#         elif (not self.is_consented and not self.member_status == NOT_ELIGIBLE):
-#             show = True
-#         return show
-#
-#     @property
-#     def is_bhs(self):
-#         """Returns True if the member was survey as part of the BHS."""
-#         plot_identifier = self.household_structure.household.plot.plot_identifier
-#         clinic_plot_identifier = site_mappers.get_mapper(site_mappers.current_map_area).clinic_plot.plot_identifier
-#         is_bhs = plot_identifier != clinic_plot_identifier
-#         return is_bhs
-
-#     def is_the_household_member_for_current_survey(self):
-#         """ This traps that a household member is not created for an incorrect survey setting. Edit is OK."""
-#         if not self.id and settings.DEVICE_ID not in settings.SERVER_DEVICE_ID_LIST:
-#             if self.household_structure.survey != Survey.objects.current_survey():
-#                 raise ImproperlyConfigured(
-#                     'Your device is configured to create household_member for {0}'.format(
-#                         Survey.objects.current_survey()))
 
     class Meta:
         app_label = 'member'

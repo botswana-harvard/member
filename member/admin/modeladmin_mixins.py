@@ -31,13 +31,13 @@ class HouseholdMemberAdminMixin:
         except AttributeError:
             household_identifier = obj.household_structure.household.household_identifier
         try:
-            survey = obj.household_member.household_structure.survey
+            survey_schedule = obj.household_member.household_structure.survey_schedule
         except AttributeError:
-            survey = obj.household_structure.survey
+            survey_schedule = obj.household_structure.survey_schedule
         return reverse(
             'enumeration:dashboard_url', kwargs=dict(
                 household_identifier=household_identifier,
-                survey=survey))
+                survey_schedule=survey_schedule))
 
 
 class ModelAdminMixin(ModelAdminInstitutionMixin, ModelAdminFormInstructionsMixin, ModelAdminNextUrlRedirectMixin,

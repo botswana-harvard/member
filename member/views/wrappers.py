@@ -11,17 +11,17 @@ class HouseholdMemberModelWrapper(ModelWrapper):
     admin_site_name = app_config.admin_site_name
     url_namespace = app_config.url_namespace
     next_url_name = app_config.listboard_url_name
-    extra_querystring_attrs = {'member.householdmember': ['survey']}
-    next_url_attrs = {'member.householdmember': ['household_identifier', 'survey']}
-    url_instance_attrs = ['household_identifier', 'survey']
+    extra_querystring_attrs = {'member.householdmember': ['survey_schedule']}
+    next_url_attrs = {'member.householdmember': ['household_identifier', 'survey_schedule']}
+    url_instance_attrs = ['household_identifier', 'survey_schedule']
 
     @property
     def household_identifier(self):
         return self._original_object.household_structure.household.household_identifier
 
     @property
-    def survey(self):
-        return self._original_object.household_structure.survey_object
+    def survey_schedule(self):
+        return self._original_object.household_structure.survey_schedule_object
 
     @property
     def plot_identifier(self):

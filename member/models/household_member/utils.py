@@ -3,8 +3,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from edc_constants.constants import DEAD, NOT_APPLICABLE, YES
 from edc_base.utils import get_utcnow
 
-from survey.site_surveys import site_surveys
-
 
 def is_eligible_member(obj):
     if obj.survival_status == DEAD:
@@ -33,15 +31,15 @@ def is_age_eligible(age_in_years):
 def clone_members(household_structure, report_datetime=None, create=None, now=None):
     report_datetime = report_datetime or get_utcnow()
     household_members = []
-    survey = site_surveys.get_survey(household_structure.survey)
-    survey = survey.previous
-    while survey:
+    survey_schedule = household_structure.survey_schedule_object
+    survey_schedule = survey_schedule.previous
+    while survey_schedule:
         try:
             previous = household_structure.__class__.objects.get(
-                survey=survey.field_value,
+                survey_schedule=survey_schedule.field_value,
                 household=household_structure.household)
         except ObjectDoesNotExist:
-            survey = survey.previous
+            survey_schedule = survey_schedule.previous
         except AttributeError:
             break
         else:
@@ -55,5 +53,5 @@ def clone_members(household_structure, report_datetime=None, create=None, now=No
             if len(household_members) > 0:
                 break
             else:
-                survey = survey.previous
+                survey_schedule = survey_schedule.previous
     return household_members
