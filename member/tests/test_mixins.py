@@ -12,6 +12,7 @@ from ..constants import HEAD_OF_HOUSEHOLD
 from ..list_data import list_data
 from ..models import HouseholdMember
 from ..models.household_member.utils import clone_members
+from edc_base_test.exceptions import TestMixinError
 
 
 fake = Faker()
@@ -28,14 +29,15 @@ class MemberMixin(MemberTestMixin):
         super(MemberMixin, self).setUp()
         self.study_site = '40'
 
-    def make_household_ready_for_enumeration(self, make_hoh=None, survey_schedule=None, **options):
+    def make_household_structure_ready_for_enumeration(self, make_hoh=None, **options):
         """Returns household_structure after adding representative eligibility.
 
         By default the household_structure is that of the first survey_schedule."""
+        options.update(attempts=options.get('attempts', 1))
+        household_structure = super().make_household_structure_ready_for_enumeration(**options)
+
         make_hoh = True if make_hoh is None else make_hoh
-        survey_schedule = survey_schedule or site_surveys.get_survey_schedules(current=True)[0]
-        household_structure = super().make_household_ready_for_enumeration(
-            survey_schedule=survey_schedule)
+
         household_log_entry = household_structure.householdlog.householdlogentry_set.all().order_by(
             'report_datetime').last()
         # add representative eligibility
@@ -57,6 +59,8 @@ class MemberMixin(MemberTestMixin):
                 'member.householdheadeligibility',
                 report_datetime=household_log_entry.report_datetime,
                 household_member=household_member)
+        household_structure = HouseholdStructure.objects.get(
+            pk=household_structure.pk)
         return household_structure
 
     def make_ahs_household_member(self, bhs_consented_household_member, survey_schedule):
@@ -80,7 +84,7 @@ class MemberMixin(MemberTestMixin):
         return member
 
     def make_enumerated_household_with_male_member(self, survey_schedule=None):
-        household_structure = self.make_household_ready_for_enumeration(
+        household_structure = self.make_household_structure_ready_for_enumeration(
             make_hoh=True, survey_schedule=survey_schedule)
         household_member = household_structure.householdmember_set.all()[0]
         household_member.gender = MALE
@@ -97,11 +101,16 @@ class MemberMixin(MemberTestMixin):
                 household_log__household_structure=household_structure).order_by('report_datetime').last()
             options.update(report_datetime=household_log_entry.report_datetime)
         options.update(initials=options.get('initials', first_name[0] + last_name[0]))
-        return mommy.make_recipe(
+        household_member = mommy.make_recipe(
             'member.householdmember',
             household_structure=household_structure,
             first_name=first_name,
             **options)
+        if not options and not household_member.eligible_member:
+            raise TestMixinError(
+                'Default values expected to create an eligible household member. '
+                'Got eligible_member=False. Did someone mess with the mommy recipe?')
+        return household_member
 
     def add_enrollment_checklist(self, household_member, **options):
         options.update(
