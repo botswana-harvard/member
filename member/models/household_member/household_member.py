@@ -14,6 +14,8 @@ from edc_constants.constants import ALIVE, DEAD, YES
 from edc_registration.model_mixins import UpdatesOrCreatesRegistrationModelMixin
 
 from household.models import HouseholdStructure, todays_log_entry_or_raise
+from household.exceptions import HouseholdLogRequired
+from survey.model_mixins import SurveyScheduleModelMixin
 
 from ...choices import DETAILS_CHANGE_REASON, INABILITY_TO_PARTICIPATE_REASON
 from ...exceptions import MemberValidationError
@@ -23,8 +25,6 @@ from .member_eligibility_model_mixin import MemberEligibilityModelMixin
 from .member_identifier_model_mixin import MemberIdentifierModelMixin
 from .member_status_model_mixin import MemberStatusModelMixin
 from .representative_model_mixin import RepresentativeModelMixin
-from household.exceptions import HouseholdLogRequired
-from survey.model_mixins import SurveyScheduleModelMixin
 
 
 class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeModelMixin,
