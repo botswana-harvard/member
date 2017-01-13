@@ -8,9 +8,10 @@ from edc_constants.constants import NO, DEAD, FEMALE, MALE, YES, REFUSED
 
 from household.constants import ELIGIBLE_REPRESENTATIVE_PRESENT
 from household.exceptions import HouseholdLogRequired
-from household.models.household_structure.household_structure import HouseholdStructure
+from household.models import HouseholdStructure, Household
 from survey.site_surveys import site_surveys
 
+from ..clone import Clone
 from ..constants import (
     MENTAL_INCAPACITY, HEAD_OF_HOUSEHOLD, BLOCK_PARTICIPATION, ELIGIBLE_FOR_CONSENT,
     NOT_ELIGIBLE, ABSENT, UNDECIDED, DECEASED, HTC_ELIGIBLE)
@@ -20,7 +21,7 @@ from ..models import (
 from ..participation_status import ParticipationStatus
 
 from .test_mixins import MemberMixin
-from member.models.household_member.utils import clone_members
+from pprint import pprint
 
 
 class TestMembers(MemberMixin, TestCase):
@@ -637,65 +638,84 @@ class TestMembers(MemberMixin, TestCase):
             self.assertEqual(
                 household_structure.survey_schedule, survey_schedule.field_value)
 
+    def test_household_member_clone(self):
+        household_structure = self.make_household_ready_for_enumeration()
+        self.add_household_member(household_structure=household_structure)
+        self.add_household_member(household_structure=household_structure)
+        self.add_household_member(household_structure=household_structure)
+        previous_members = HouseholdMember.objects.filter(
+            household_structure=household_structure)
+        next_household_structure = self.get_next_household_structure_ready(
+            household_structure, make_hoh=None)
+        for obj in previous_members:
+            new_obj = obj.clone(
+                household_structure=next_household_structure,
+                report_datetime=self.get_utcnow())
+            self.assertEqual(obj.internal_identifier, new_obj.internal_identifier)
+            self.assertEqual(obj.subject_identifier, new_obj.subject_identifier)
+            new_obj.save()
+            new_obj = HouseholdMember.objects.get(pk=new_obj.pk)
+            self.assertEqual(obj.internal_identifier, new_obj.internal_identifier)
+            self.assertEqual(obj.subject_identifier, new_obj.subject_identifier)
+
+    @tag('erik')
     def test_clone_members_none(self):
         survey_schedule = site_surveys.get_survey_schedules(current=True)[0]
         household_structure = self.make_household_ready_for_enumeration(
             make_hoh=False, survey_schedule=survey_schedule)
-        self.assertEqual(household_structure.survey_schedule, survey_schedule.field_value)
-        survey_schedule = survey_schedule.next
-        household_structure = self.make_household_ready_for_enumeration(
-            make_hoh=False, survey_schedule=survey_schedule)
-        members = clone_members(
-            household_structure=household_structure,
+        next_household_structure = self.get_next_household_structure_ready(
+            household_structure, make_hoh=False)
+        clone = Clone(
+            household_structure=next_household_structure,
             report_datetime=self.get_utcnow())
-        self.assertEqual(members, [])
+        self.assertEqual(clone.members.all().count(), 0)
 
+    @tag('erik')
     def test_clone_members_no_previous(self):
         survey_schedule = site_surveys.get_survey_schedules(current=True)[0]
         household_structure = self.make_household_ready_for_enumeration(
             make_hoh=False, survey_schedule=survey_schedule)
-        self.assertEqual(household_structure.survey_schedule, survey_schedule.field_value)
-        members = clone_members(
-            household_structure=household_structure,
+        next_household_structure = self.get_next_household_structure_ready(
+            household_structure, make_hoh=False)
+        clone = Clone(
+            household_structure=next_household_structure,
             report_datetime=self.get_utcnow())
-        self.assertEqual(members, [])
+        self.assertEqual(clone.members.all().count(), 0)
 
 
 class TestCloneMembers(MemberMixin, TestCase):
 
     def setUp(self):
         super().setUp()
-        survey_schedule = site_surveys.get_survey_schedules(current=True)[0]
-        household_structure = self.make_household_ready_for_enumeration(
-            make_hoh=False, survey_schedule=survey_schedule)
-        self.add_household_member(household_structure)
-        self.add_household_member(household_structure)
-        self.add_household_member(household_structure)
-        household_structure = HouseholdStructure.objects.get(id=household_structure.id)
+
         self.assertEqual(
-            household_structure.householdmember_set.all().count(), 3)
-        self.survey_schedule = survey_schedule
-        self.household = household_structure.household
+            len(site_surveys.get_survey_schedules(current=True)), 3)
+        self.survey_schedule = site_surveys.get_survey_schedules(current=True)[0]
 
-    def test_clone_members_from_previous(self):
-        survey_schedule = self.survey_schedule.next
-        household_structure = HouseholdStructure.objects.get(
-            household=self.household,
-            survey_schedule=survey_schedule.field_value)
-        members = clone_members(
-            household_structure=household_structure,
-            report_datetime=self.get_utcnow())
-        self.assertEqual(len(members), 3)
+        household_structure = self.make_household_ready_for_enumeration(
+            make_hoh=False, survey_schedule=self.survey_schedule)
+        self.add_household_member(household_structure)
+        self.add_household_member(household_structure)
+        self.add_household_member(household_structure)
+        # requery
+        household_structure = HouseholdStructure.objects.get(id=household_structure.id)
 
-    def test_clone_members_from_previous_attrs(self):
-        survey_schedule = self.survey_schedule.next
-        household_structure = HouseholdStructure.objects.get(
+        self.get_next_household_structure_ready(household_structure, make_hoh=False)
+        self.household = Household.objects.get(pk=household_structure.household.pk)
+
+    def test_clone_members(self):
+        clone = Clone(
             household=self.household,
-            survey_schedule=survey_schedule.field_value)
-        members = clone_members(
-            household_structure=household_structure,
+            survey_schedule=self.survey_schedule.next,
             report_datetime=self.get_utcnow())
-        for member in members:
+        self.assertEqual(clone.members.all().count(), 3)
+
+    def test_clone_members_attrs(self):
+        clone = Clone(
+            household=self.household,
+            survey_schedule=self.survey_schedule.next,
+            report_datetime=self.get_utcnow())
+        for member in clone.members.all():
             self.assertIsNotNone(member.first_name)
             self.assertIsNotNone(member.gender)
             self.assertIsNotNone(member.age_in_years)
@@ -706,22 +726,64 @@ class TestCloneMembers(MemberMixin, TestCase):
             self.assertIsNotNone(member.auto_filled_datetime)
             self.assertFalse(member.updated_after_auto_filled)
 
-    def test_clone_members_from_previous_create(self):
-        survey_schedule = self.survey_schedule.next
+    def test_clone_members_create(self):
+        clone = Clone(
+            household=self.household,
+            survey_schedule=self.survey_schedule.next,
+            report_datetime=self.get_utcnow(),
+            create=False)
+        # returns a list of non-persisted model instances
+        for member in clone.members:
+            member.save()
+
+    def test_clone_members_internal_identifier(self):
+        # get members from enumerated household_structure
+        household_structure = self.household.householdstructure_set.get(
+            survey_schedule=self.survey_schedule.field_value)
+        members = HouseholdMember.objects.filter(household_structure=household_structure)
+        members_internal_identifiers = [m.internal_identifier for m in members]
+        members_internal_identifiers.sort()
+        pprint(members_internal_identifiers)
+
+        # clone members from enumerated household_structure
+        clone = Clone(
+            household=self.household,
+            survey_schedule=self.survey_schedule.next,
+            report_datetime=self.get_utcnow())
+        new_members_internal_identifiers = [m.internal_identifier for m in clone.members.all()]
+        new_members_internal_identifiers.sort()
+        pprint(new_members_internal_identifiers)
+        self.assertEqual(members_internal_identifiers, new_members_internal_identifiers)
+
+    @tag('erik')
+    def test_get_next_household_member(self):
+        household_structure = HouseholdStructure.objects.get(
+            household=self.household,
+            survey_schedule=self.survey_schedule.field_value)
+        household_member = household_structure.householdmember_set.all().first()
+
+        household_structure = HouseholdStructure.objects.get(
+            household=self.household,
+            survey_schedule=self.survey_schedule.next.field_value)
+        household_structure = self.get_next_household_structure_ready(
+            household_structure, make_hoh=False)
+        Clone(
+            household=self.household,
+            survey_schedule=self.survey_schedule,
+            report_datetime=self.get_utcnow())
+        try:
+            next_household_member = HouseholdMember.objects.get(
+                household_structure=household_structure,
+                internal_identifier=household_member.internal_identifier)
+        except HouseholdMember.DoesNotExist:
+            self.fail('HouseholdMember.DoesNotExist unexpectedly raised. '
+                      'household_structure={}'.format(household_structure))
+        self.assertEqual(next_household_member, household_member.next)
+
+    def test_household_member_internal_identifier(self):
+        survey_schedule = self.survey_schedule
         household_structure = HouseholdStructure.objects.get(
             household=self.household,
             survey_schedule=survey_schedule.field_value)
-        household_log_entry = self.add_enumeration_attempt2(
-            household_structure=household_structure,
-            report_datetime=self.get_utcnow())
-        mommy.make_recipe(
-            'member.representativeeligibility',
-            report_datetime=household_log_entry.report_datetime,
-            household_structure=household_structure)
-        household_structure = HouseholdStructure.objects.get(
-            id=household_structure.id)
-        members = clone_members(
-            household_structure=household_structure,
-            report_datetime=self.get_utcnow())
-        for member in members:
-            member.save()
+        household_member = household_structure.householdmember_set.all().first()
+        self.assertIsNotNone(household_member.internal_identifier)

@@ -12,7 +12,6 @@ from household.tests.test_mixins import HouseholdMixin
 from ..constants import HEAD_OF_HOUSEHOLD
 from ..list_data import list_data
 from ..models import HouseholdMember
-from ..models.household_member.utils import clone_members
 
 
 fake = Faker()
@@ -68,8 +67,11 @@ class MemberMixin(MemberTestMixin):
         household_structure = self.make_household_structure(**options)
         return self._make_ready(household_structure, make_hoh=make_hoh, **options)
 
-    def make_household_ready_for_next(self, household_structure, make_hoh=None, **options):
-        """Returns the `household_structure` for the next survey.
+    def get_next_household_structure_ready(self, household_structure, make_hoh=None, **options):
+        """Returns the next `household_structure` relative to given household_structure.
+
+            * household_structure: uses this instance to find the `next` household_structure.
+                Adds logs and returns the the `next`  household_structure.
 
         Same as `make_household_ready_for_enumeration` except uses the given
         `household_structure`.
@@ -77,17 +79,21 @@ class MemberMixin(MemberTestMixin):
         options.update(attempts=options.get('attempts', 1))
         survey_schedule = household_structure.survey_schedule_object.next
         try:
-            household_structure = HouseholdStructure.objects.get(
+            next_household_structure = HouseholdStructure.objects.get(
                 household=household_structure.household,
                 survey_schedule=survey_schedule.field_value)
         except HouseholdStructure.DoesNotExist:
             pass
         else:
+            if next_household_structure.householdlog.householdlogentry_set.all().count() > 0:
+                raise TestMixinError(
+                    'Household structure already "ready" for enumeration. Got {}'.format(
+                        next_household_structure))
             self._add_attempts(
-                household_structure,
+                next_household_structure,
                 survey_schedule=survey_schedule, **options)
 
-            return self._make_ready(household_structure, make_hoh=make_hoh, **options)
+            return self._make_ready(next_household_structure, make_hoh=make_hoh, **options)
         return None
 
     def make_household_ready_for_last(self, household_structure, make_hoh=None, **options):
@@ -100,26 +106,6 @@ class MemberMixin(MemberTestMixin):
         survey_schedule = household_structure.survey_schedule_object.last
         return self._make_ready(
             household_structure, survey_schedule=survey_schedule, make_hoh=make_hoh, **options)
-
-    def make_ahs_household_member(self, bhs_consented_household_member, survey_schedule):
-        """Return a ahs household structure."""
-        household_structure = HouseholdStructure.objects.get(
-            household=bhs_consented_household_member.household_structure.household,
-            survey_schedule=survey_schedule.field_value)
-        household_log_entry = self.make_household_log_entry(
-            household_log=household_structure.householdlog,
-            report_datetime=self.get_utcnow())
-        mommy.make_recipe(
-            'member.representativeeligibility',
-            report_datetime=household_log_entry.report_datetime,
-            household_structure=household_structure)
-        household_structure = HouseholdStructure.objects.get(
-            id=household_structure.id)
-        member = clone_members(
-            household_structure=household_structure,
-            report_datetime=self.get_utcnow())[0]
-        member.save()
-        return member
 
     def make_enumerated_household_with_male_member(self, survey_schedule=None):
         household_structure = self.make_household_ready_for_enumeration(

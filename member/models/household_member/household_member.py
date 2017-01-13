@@ -196,7 +196,7 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
             self.gender, self.household_structure.survey_schedule)
 
     def save(self, *args, **kwargs):
-        if not self.id:
+        if not self.id and not self.internal_identifier:
             self.internal_identifier = get_uuid()
         self.survey_schedule = self.household_structure.survey_schedule
         super().save(*args, **kwargs)
@@ -270,6 +270,5 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
         app_label = 'member'
         ordering = ['-created']
         unique_together = (
-            ("household_structure", "first_name", "initials", "additional_key"),
-            ('subject_identifier', 'household_structure'), )
+            ('subject_identifier', 'internal_identifier', 'household_structure'), )
         index_together = [['id', 'subject_identifier', 'created'], ]

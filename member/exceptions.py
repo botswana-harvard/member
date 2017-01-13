@@ -21,3 +21,7 @@ class MemberValidationError(Exception):
 
 class DuplicateReportError(Exception):
     pass
+
+
+class CloneError(Exception):
+    pass

@@ -4,7 +4,6 @@ from .test_mixins import MemberMixin
 from survey.site_surveys import site_surveys
 
 
-@tag('erik')
 class TestSurvey(MemberMixin, TestCase):
 
     """Tests to assert survey attrs."""
