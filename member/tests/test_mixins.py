@@ -34,7 +34,7 @@ class MemberMixin(MemberTestMixin):
 
         By default the household_structure is that of the first survey_schedule."""
         options.update(attempts=options.get('attempts', 1))
-        household_structure = super().make_household_structure_ready_for_enumeration(**options)
+        household_structure = self.make_household_structure(**options)
 
         make_hoh = True if make_hoh is None else make_hoh
 
