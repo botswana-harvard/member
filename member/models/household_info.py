@@ -6,12 +6,12 @@ from edc_base.model.models import HistoricalRecords, BaseUuidModel
 
 from ..choices import (
     FLOORING_TYPE, WATER_SOURCE, ENERGY_SOURCE, TOILET_FACILITY, SMALLER_MEALS)
-from ..managers import MemberEntryManager
 
 from .list_models import ElectricalAppliances, TransportMode
-from .model_mixins import HouseholdMemberModelMixin
 from household.models.household_structure.household_structure import HouseholdStructure
 from edc_base.utils import get_utcnow
+from ..constants import HEAD_OF_HOUSEHOLD
+from ..models.household_member import HouseholdMember
 
 
 class MyManager(models.Manager):
@@ -133,16 +133,22 @@ class HouseholdInfo(BaseUuidModel):
     history = HistoricalRecords()
 
     def save(self, *args, **kwargs):
-        self.verified_household_head(self.household_member)
+        self.verified_household_head(self.household_structure)
         super(HouseholdInfo, self).save(*args, **kwargs)
 
     def natural_key(self):
         return self.household_structure.natural_key()
     natural_key.dependencies = ['household.householdstructure']
 
-    def verified_household_head(self, household_member, exception_cls=None):
+    def verified_household_head(self, household_structure, exception_cls=None):
         error_msg = None
         exception_cls = exception_cls or ValidationError
+        try:
+            household_member = HouseholdMember.objects.get(
+                household_structure=self.household_structure,
+                relation=HEAD_OF_HOUSEHOLD)
+        except HouseholdMember.DoesNotExist:
+            household_member = None
         if not household_member:
             raise exception_cls('No Household Member selected.')
         if not household_member.eligible_hoh:
