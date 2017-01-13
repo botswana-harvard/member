@@ -12,13 +12,12 @@ from edc_constants.choices import YES_NO
 
 from household.choices import NEXT_APPOINTMENT_SOURCE
 from household.exceptions import HouseholdLogRequired
-from household.models import todays_log_entry_or_raise
 
 from ..choices import REASONS_REFUSED
 from ..constants import REFUSED
 from ..exceptions import EnumerationError
 
-from .household_member import HouseholdMember
+from .household_member import HouseholdMember, todays_log_entry_or_raise
 
 
 class HouseholdMemberModelMixin(models.Model):

@@ -22,6 +22,8 @@ from ..participation_status import ParticipationStatus
 
 from .test_mixins import MemberMixin
 from pprint import pprint
+from member.exceptions import CloneError
+from household.models.household_log_entry import HouseholdLogEntry
 
 
 class TestMembers(MemberMixin, TestCase):
@@ -658,7 +660,6 @@ class TestMembers(MemberMixin, TestCase):
             self.assertEqual(obj.internal_identifier, new_obj.internal_identifier)
             self.assertEqual(obj.subject_identifier, new_obj.subject_identifier)
 
-    @tag('erik')
     def test_clone_members_none(self):
         survey_schedule = site_surveys.get_survey_schedules(current=True)[0]
         household_structure = self.make_household_ready_for_enumeration(
@@ -667,10 +668,9 @@ class TestMembers(MemberMixin, TestCase):
             household_structure, make_hoh=False)
         clone = Clone(
             household_structure=next_household_structure,
-            report_datetime=self.get_utcnow())
+            report_datetime=next_household_structure.survey_schedule_object.start)
         self.assertEqual(clone.members.all().count(), 0)
 
-    @tag('erik')
     def test_clone_members_no_previous(self):
         survey_schedule = site_surveys.get_survey_schedules(current=True)[0]
         household_structure = self.make_household_ready_for_enumeration(
@@ -679,7 +679,7 @@ class TestMembers(MemberMixin, TestCase):
             household_structure, make_hoh=False)
         clone = Clone(
             household_structure=next_household_structure,
-            report_datetime=self.get_utcnow())
+            report_datetime=next_household_structure.survey_schedule_object.start)
         self.assertEqual(clone.members.all().count(), 0)
 
 
@@ -707,14 +707,14 @@ class TestCloneMembers(MemberMixin, TestCase):
         clone = Clone(
             household=self.household,
             survey_schedule=self.survey_schedule.next,
-            report_datetime=self.get_utcnow())
+            report_datetime=self.survey_schedule.next.start)
         self.assertEqual(clone.members.all().count(), 3)
 
     def test_clone_members_attrs(self):
         clone = Clone(
             household=self.household,
             survey_schedule=self.survey_schedule.next,
-            report_datetime=self.get_utcnow())
+            report_datetime=self.survey_schedule.next.start)
         for member in clone.members.all():
             self.assertIsNotNone(member.first_name)
             self.assertIsNotNone(member.gender)
@@ -730,7 +730,7 @@ class TestCloneMembers(MemberMixin, TestCase):
         clone = Clone(
             household=self.household,
             survey_schedule=self.survey_schedule.next,
-            report_datetime=self.get_utcnow(),
+            report_datetime=self.survey_schedule.next.start,
             create=False)
         # returns a list of non-persisted model instances
         for member in clone.members:
@@ -749,36 +749,64 @@ class TestCloneMembers(MemberMixin, TestCase):
         clone = Clone(
             household=self.household,
             survey_schedule=self.survey_schedule.next,
-            report_datetime=self.get_utcnow())
+            report_datetime=self.survey_schedule.next.start)
         new_members_internal_identifiers = [m.internal_identifier for m in clone.members.all()]
         new_members_internal_identifiers.sort()
         pprint(new_members_internal_identifiers)
         self.assertEqual(members_internal_identifiers, new_members_internal_identifiers)
 
-    @tag('erik')
-    def test_get_next_household_member(self):
+    def test_next_household_member(self):
         household_structure = HouseholdStructure.objects.get(
             household=self.household,
             survey_schedule=self.survey_schedule.field_value)
         household_member = household_structure.householdmember_set.all().first()
-
-        household_structure = HouseholdStructure.objects.get(
-            household=self.household,
-            survey_schedule=self.survey_schedule.next.field_value)
-        household_structure = self.get_next_household_structure_ready(
-            household_structure, make_hoh=False)
         Clone(
-            household=self.household,
-            survey_schedule=self.survey_schedule,
-            report_datetime=self.get_utcnow())
+            household_structure=household_structure.next,
+            report_datetime=self.survey_schedule.next.start)
         try:
             next_household_member = HouseholdMember.objects.get(
-                household_structure=household_structure,
+                household_structure=household_structure.next,
                 internal_identifier=household_member.internal_identifier)
         except HouseholdMember.DoesNotExist:
             self.fail('HouseholdMember.DoesNotExist unexpectedly raised. '
                       'household_structure={}'.format(household_structure))
         self.assertEqual(next_household_member, household_member.next)
+
+    def test_next_household_member2(self):
+        household_structure = HouseholdStructure.objects.get(
+            household=self.household,
+            survey_schedule=self.survey_schedule.field_value)
+        Clone(
+            household_structure=household_structure.next,
+            report_datetime=self.survey_schedule.next.start)
+        for household_member in household_structure.householdmember_set.all():
+            self.assertEqual(
+                household_member.internal_identifier,
+                household_member.next.internal_identifier)
+            self.assertNotEqual(household_member.pk, household_member.next.pk)
+
+    def test_clone_bad_report_datetime_in_new_survey_schedule(self):
+        household_structure = HouseholdStructure.objects.get(
+            household=self.household,
+            survey_schedule=self.survey_schedule.field_value)
+        report_datetime = self.survey_schedule.next.start - relativedelta(days=1)
+        self.assertRaises(
+            CloneError,
+            Clone,
+            household_structure=household_structure.next,
+            report_datetime=report_datetime)
+
+    def test_clone_good_report_datetime_in_new_survey_schedule(self):
+        household_structure = HouseholdStructure.objects.get(
+            household=self.household,
+            survey_schedule=self.survey_schedule.field_value)
+        report_datetime = self.survey_schedule.next.start
+        try:
+            Clone(
+                household_structure=household_structure.next,
+                report_datetime=report_datetime)
+        except CloneError:
+            self.fail('CloneError unexpectedly raised')
 
     def test_household_member_internal_identifier(self):
         survey_schedule = self.survey_schedule
@@ -787,3 +815,114 @@ class TestCloneMembers(MemberMixin, TestCase):
             survey_schedule=survey_schedule.field_value)
         household_member = household_structure.householdmember_set.all().first()
         self.assertIsNotNone(household_member.internal_identifier)
+
+    @tag('erik')
+    def test_todays_log_entry_or_raise_no_logs(self):
+        household_structure = self.make_household_structure()
+        self.assertEqual(HouseholdLogEntry.objects.filter(
+            household_log__household_structure=household_structure).count(), 0)
+        self.assertRaises(
+            HouseholdLogRequired,
+            self.add_household_member, household_structure)
+
+    @tag('erik')
+    def test_todays_log_entry_or_raise_one_log(self):
+        household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
+        try:
+            self.add_household_member(household_structure)
+        except HouseholdLogRequired:
+            self.fail('HouseholdLogRequired unexpectedly raised')
+
+    @tag('erik')
+    def test_todays_log_entry_or_raise_tomorrow(self):
+        household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
+        obj = HouseholdLogEntry.objects.filter(
+            household_log__household_structure=household_structure).last()
+        tomorrow = obj.report_datetime + relativedelta(days=1)
+        self.assertRaises(
+            HouseholdLogRequired,
+            self.add_household_member,
+            household_structure,
+            report_datetime=tomorrow)
+
+    @tag('erik')
+    def test_todays_log_entry_or_raise_multiple_log_entry(self):
+        household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
+        self.add_enumeration_attempt(household_structure)
+        self.add_enumeration_attempt(household_structure)
+        self.add_enumeration_attempt(household_structure)
+        self.add_enumeration_attempt(household_structure)
+        obj = HouseholdLogEntry.objects.filter(
+            household_log__household_structure=household_structure).last()
+        tomorrow = obj.report_datetime + relativedelta(days=1)
+        self.assertRaises(
+            HouseholdLogRequired,
+            self.add_household_member,
+            household_structure,
+            report_datetime=tomorrow)
+
+    @tag('erik')
+    def test_todays_log_entry_or_raise_yesterday(self):
+        household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
+        self.add_enumeration_attempt(household_structure)
+        self.add_enumeration_attempt(household_structure)
+        self.add_enumeration_attempt(household_structure)
+        self.add_enumeration_attempt(household_structure)
+        obj = HouseholdLogEntry.objects.filter(
+            household_log__household_structure=household_structure).last()
+        yesterday = obj.report_datetime - relativedelta(days=10)
+        self.assertRaises(
+            HouseholdLogRequired,
+            self.add_household_member,
+            household_structure,
+            report_datetime=yesterday)
+
+    @tag('erik')
+    def test_todays_log_entry_or_raise_absentmember(self):
+        household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
+        self.add_enumeration_attempt(household_structure)
+        self.add_enumeration_attempt(household_structure)
+        self.add_enumeration_attempt(household_structure)
+        household_structure = self.add_enumeration_attempt(household_structure)
+        obj = HouseholdLogEntry.objects.filter(
+            household_log__household_structure=household_structure).last()
+        self.add_household_member(household_structure, report_datetime=obj.report_datetime)
+        self.add_household_member(household_structure, report_datetime=obj.report_datetime)
+        household_member = self.add_household_member(
+            household_structure, report_datetime=obj.report_datetime)
+
+        tomorrow = obj.report_datetime + relativedelta(days=1)
+
+        self.assertRaises(
+            HouseholdLogRequired,
+            mommy.make_recipe,
+            'member.absentmember',
+            household_member=household_member,
+            report_datetime=tomorrow)
+
+    @tag('erik')
+    def test_todays_log_entry_or_raise_absentmember_ok(self):
+        household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
+        self.add_enumeration_attempt(household_structure)
+        self.add_enumeration_attempt(household_structure)
+        self.add_enumeration_attempt(household_structure)
+        household_structure = self.add_enumeration_attempt(household_structure)
+        obj = HouseholdLogEntry.objects.filter(
+            household_log__household_structure=household_structure).last()
+        self.add_household_member(household_structure, report_datetime=obj.report_datetime)
+        self.add_household_member(household_structure, report_datetime=obj.report_datetime)
+        household_member = self.add_household_member(
+            household_structure, report_datetime=obj.report_datetime)
+
+        try:
+            mommy.make_recipe(
+                'member.absentmember',
+                household_member=household_member,
+                report_datetime=obj.report_datetime)
+        except HouseholdLogRequired:
+            self.fail('HouseholdLogRequired unexpectedly raised')
+
+        absent_member = AbsentMember.objects.get(
+            household_member=household_member,
+            report_datetime=obj.report_datetime)
+        absent_member.save()

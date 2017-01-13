@@ -124,7 +124,10 @@ class MemberMixin(MemberTestMixin):
         if not options.get('report_datetime'):
             last = household_structure.householdlog.householdlogentry_set.all().order_by(
                 'report_datetime').last()
-            options.update(report_datetime=last.report_datetime)
+            try:
+                options.update(report_datetime=last.report_datetime)
+            except AttributeError:
+                options.update(report_datetime=household_structure.survey_schedule_object.start)
 
         household_member = mommy.make_recipe(
             'member.householdmember',

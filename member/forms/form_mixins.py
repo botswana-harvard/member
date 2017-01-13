@@ -8,7 +8,8 @@ from edc_base.modelform_mixins import CommonCleanModelFormMixin
 from edc_consent.site_consents import site_consents
 
 from household.exceptions import HouseholdLogRequired
-from household.models import todays_log_entry_or_raise
+
+from ..models.household_member import todays_log_entry_or_raise
 
 
 class MemberFormMixin(CommonCleanModelFormMixin, forms.ModelForm):
