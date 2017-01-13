@@ -76,7 +76,17 @@ class MemberMixin(MemberTestMixin):
         """
         options.update(attempts=options.get('attempts', 1))
         survey_schedule = household_structure.survey_schedule_object.next
-        if survey_schedule:
+        try:
+            household_structure = HouseholdStructure.objects.get(
+                household=household_structure.household,
+                survey_schedule=survey_schedule.field_value)
+        except HouseholdStructure.DoesNotExist:
+            pass
+        else:
+            self._add_attempts(
+                household_structure,
+                survey_schedule=survey_schedule, **options)
+
             return self._make_ready(household_structure, make_hoh=make_hoh, **options)
         return None
 
