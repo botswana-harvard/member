@@ -1,7 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 
-from edc_constants.constants import DEAD, NOT_APPLICABLE, YES
 from edc_base.utils import get_utcnow
+from edc_constants.constants import DEAD, NOT_APPLICABLE, YES
 
 
 def is_eligible_member(obj):
@@ -29,6 +29,17 @@ def is_age_eligible(age_in_years):
 
 
 def clone_members(household_structure, report_datetime=None, create=None, now=None):
+    """Returns a queryset of household members or None for the \'next\' survey_schedule.
+
+        * household_structure: the cloned members will be added to this instance
+        * report_datetime: Default: utcnow
+
+    If no previous household_members, returns None.
+
+    The survey schedule is `field_value` of the `household_structure` given.
+
+    Walks back on previous household_structures until it finds one with household_members.
+    """
     report_datetime = report_datetime or get_utcnow()
     household_members = []
     survey_schedule = household_structure.survey_schedule_object
