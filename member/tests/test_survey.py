@@ -12,7 +12,7 @@ class TestSurvey(MemberMixin, TestCase):
     def test_household_member(self):
         self.survey_schedule = self.get_survey_schedule(0)
 
-        household_structure = self.make_household_structure_ready_for_enumeration(
+        household_structure = self.make_household_ready_for_enumeration(
             survey_schedule=self.survey_schedule)
 
         household_member = self.add_household_member(household_structure)
@@ -33,7 +33,7 @@ class TestSurvey(MemberMixin, TestCase):
 
         for index, survey_schedule in enumerate(
                 site_surveys.get_survey_schedules(group_name='example-survey')):
-            household_structure = self.make_household_structure_ready_for_enumeration(
+            household_structure = self.make_household_ready_for_enumeration(
                 survey_schedule=survey_schedule)
             household_member = self.add_household_member(household_structure)
             self.assertEqual(
