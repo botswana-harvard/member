@@ -8,7 +8,8 @@ from edc_base.modelform_mixins import CommonCleanModelFormMixin
 from edc_consent.site_consents import site_consents
 
 from household.exceptions import HouseholdLogRequired
-from household.models import todays_log_entry_or_raise
+
+from ..models.household_member import todays_log_entry_or_raise
 
 
 class MemberFormMixin(CommonCleanModelFormMixin, forms.ModelForm):
@@ -27,7 +28,7 @@ class MemberFormMixin(CommonCleanModelFormMixin, forms.ModelForm):
         try:
             obj = self._meta.model.objects.get(
                 household_member=cleaned_data.get('household_member'),
-                report_date=rdate.to('UTC').date())
+                report_datetime__date=rdate.to('UTC').date())
         except ObjectDoesNotExist:
             pass
         else:

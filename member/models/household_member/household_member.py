@@ -1,5 +1,8 @@
+import arrow
+
 from dateutil.relativedelta import relativedelta
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import (
     MinLengthValidator, MaxLengthValidator, MinValueValidator, MaxValueValidator, RegexValidator)
 from django_crypto_fields.fields import FirstnameField
@@ -13,8 +16,9 @@ from edc_constants.choices import YES_NO, GENDER, YES_NO_DWTA, ALIVE_DEAD_UNKNOW
 from edc_constants.constants import ALIVE, DEAD, YES
 from edc_registration.model_mixins import UpdatesOrCreatesRegistrationModelMixin
 
-from household.models import HouseholdStructure, todays_log_entry_or_raise
+from household.models import HouseholdStructure
 from household.exceptions import HouseholdLogRequired
+from member.exceptions import CloneError
 from survey.model_mixins import SurveyScheduleModelMixin
 
 from ...choices import DETAILS_CHANGE_REASON, INABILITY_TO_PARTICIPATE_REASON
@@ -25,7 +29,11 @@ from .member_eligibility_model_mixin import MemberEligibilityModelMixin
 from .member_identifier_model_mixin import MemberIdentifierModelMixin
 from .member_status_model_mixin import MemberStatusModelMixin
 from .representative_model_mixin import RepresentativeModelMixin
+<<<<<<< HEAD
 from edc_consent.site_consents import site_consents
+=======
+from .utils import todays_log_entry_or_raise
+>>>>>>> 2f35fdb350cfb83615eb5838aff35efe99d02dcc
 
 
 class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeModelMixin,
@@ -206,11 +214,42 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
         return (self.internal_identifier,) + self.household_structure.natural_key()
     natural_key.dependencies = ['household.householdstructure']
 
+    @property
+    def next(self):
+        try:
+            return self.household_structure.next.householdmember_set.get(
+                internal_identifier=self.internal_identifier,
+                survey_schedule=self.survey_schedule_object.next.field_value)
+        except ObjectDoesNotExist:
+            return None
+
+    @property
+    def previous(self):
+        try:
+            return self.household_structure.next.householdmember_set.get(
+                internal_identifier=self.internal_identifier,
+                survey_schedule=self.survey_schedule_object.previous.field_value)
+        except ObjectDoesNotExist:
+            return None
+
     def clone(self, household_structure, report_datetime):
 
         def new_age(report_datetime):
             born = report_datetime - relativedelta(years=self.age_in_years)
             return age(born, report_datetime).years
+        start = household_structure.survey_schedule_object.rstart
+        end = household_structure.survey_schedule_object.rend
+        rdate = arrow.Arrow.fromdatetime(report_datetime, report_datetime.tzinfo)
+        if not (start.to('utc').date() <= rdate.to('utc').date() <= end.to('utc').date()):
+            raise CloneError(
+                'Invalid report datetime. \'{}\' does not fall within '
+                'the date range for survey schedule \'{}\'. Expected any date '
+                'from \'{}\' to \'{}\'.'.format(
+                    report_datetime.strftime('%Y-%m-%d %Z'),
+                    household_structure.survey_schedule_object.field_value,
+                    start.to('utc').date().strftime('%Y-%m-%d %Z'),
+                    end.to('utc').date().strftime('%Y-%m-%d %Z')))
+
         return self.__class__(
             household_structure=household_structure,
             report_datetime=report_datetime,
@@ -272,5 +311,6 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
         app_label = 'member'
         ordering = ['-created']
         unique_together = (
-            ('subject_identifier', 'internal_identifier', 'household_structure'), )
+            ('internal_identifier', 'household_structure'),
+            ('first_name', 'initials', 'age_in_years', 'household_structure'))
         index_together = [['id', 'subject_identifier', 'created'], ]

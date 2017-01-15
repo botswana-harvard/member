@@ -5,6 +5,7 @@ class AppConfig(DjangoApponfig):
     name = 'member'
     listboard_template_name = 'member/listboard.html'
     listboard_url_name = 'member:listboard_url'
+    base_template_name = 'edc_base/base.html'
     admin_site_name = 'member_admin'
     url_namespace = 'member'
 

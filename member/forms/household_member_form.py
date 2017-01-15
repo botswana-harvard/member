@@ -31,12 +31,13 @@ class HouseholdMemberForm(CommonCleanModelFormMixin, forms.ModelForm):
             raise forms.ValidationError('Enrollment checklist exists. This member may not be changed.')
         except EnrollmentChecklist.DoesNotExist:
             pass
-        if cleaned_data.get('relation') == HEAD_OF_HOUSEHOLD and not cleaned_data.get('age_in_years') >= 18:
+        if cleaned_data.get('relation') == HEAD_OF_HOUSEHOLD and not cleaned_data.get('age_in_years', 0) >= 18:
             raise forms.ValidationError('Head of Household must be 18 years or older.')
-        if cleaned_data.get('eligible_hoh') and cleaned_data.get('age_in_years') < 18:
-            raise forms.ValidationError('This household member completed the HoH questionnaire. '
-                                        'You cannot change their age to less than 18. '
-                                        'Got {0}.'.format(cleaned_data.get('age_in_years')))
+        if cleaned_data.get('eligible_hoh') and cleaned_data.get('age_in_years', 0) < 18:
+            raise forms.ValidationError({
+                'age_in_years': ('This household member completed the HoH questionnaire. '
+                                 'You cannot change their age to less than 18. '
+                                 'Got {0}.'.format(cleaned_data.get('age_in_years')))})
         self.validate_on_gender()
 
         if cleaned_data.get('survival_status') == DEAD:

@@ -21,7 +21,11 @@ class HouseholdMemberModelWrapper(ModelWrapper):
 
     @property
     def survey_schedule(self):
-        return self._original_object.household_structure.survey_schedule_object.field_value
+        return self.survey_schedule_object.field_value
+
+    @property
+    def survey_schedule_object(self):
+        return self._original_object.household_structure.survey_schedule_object
 
     @property
     def plot_identifier(self):

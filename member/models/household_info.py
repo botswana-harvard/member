@@ -1,17 +1,15 @@
-from django.core.exceptions import ValidationError
 from django.db import models
 
 from edc_base.model.fields import OtherCharField
 from edc_base.model.models import HistoricalRecords, BaseUuidModel
+from edc_base.utils import get_utcnow
+
+from household.models import HouseholdStructure
 
 from ..choices import (
     FLOORING_TYPE, WATER_SOURCE, ENERGY_SOURCE, TOILET_FACILITY, SMALLER_MEALS)
 
 from .list_models import ElectricalAppliances, TransportMode
-from household.models.household_structure.household_structure import HouseholdStructure
-from edc_base.utils import get_utcnow
-from ..constants import HEAD_OF_HOUSEHOLD
-from ..models.household_member import HouseholdMember
 
 
 class MyManager(models.Manager):
@@ -132,29 +130,9 @@ class HouseholdInfo(BaseUuidModel):
 
     history = HistoricalRecords()
 
-    def save(self, *args, **kwargs):
-        self.verified_household_head(self.household_structure)
-        super(HouseholdInfo, self).save(*args, **kwargs)
-
     def natural_key(self):
         return self.household_structure.natural_key()
     natural_key.dependencies = ['household.householdstructure']
-
-    def verified_household_head(self, household_structure, exception_cls=None):
-        error_msg = None
-        exception_cls = exception_cls or ValidationError
-        try:
-            household_member = HouseholdMember.objects.get(
-                household_structure=self.household_structure,
-                relation=HEAD_OF_HOUSEHOLD)
-        except HouseholdMember.DoesNotExist:
-            household_member = None
-        if not household_member:
-            raise exception_cls('No Household Member selected.')
-        if not household_member.eligible_hoh:
-            raise exception_cls('Household Member is not eligible Head Of Household. '
-                                'Fill head of household eligibility first.')
-        return error_msg
 
     class Meta:
         app_label = 'member'
