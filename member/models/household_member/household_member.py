@@ -29,11 +29,7 @@ from .member_eligibility_model_mixin import MemberEligibilityModelMixin
 from .member_identifier_model_mixin import MemberIdentifierModelMixin
 from .member_status_model_mixin import MemberStatusModelMixin
 from .representative_model_mixin import RepresentativeModelMixin
-<<<<<<< HEAD
-from edc_consent.site_consents import site_consents
-=======
 from .utils import todays_log_entry_or_raise
->>>>>>> 2f35fdb350cfb83615eb5838aff35efe99d02dcc
 
 
 class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeModelMixin,
