@@ -52,5 +52,5 @@ class RepresentativeEligibility(RepresentativeEligibilityMixin, BaseUuidModel):
 
     class Meta:
         app_label = 'member'
-        verbose_name = 'Household representative eligibility'
-        verbose_name_plural = 'Household representative eligibility'
+        verbose_name = 'Representative eligibility'
+        verbose_name_plural = 'Representative eligibility'

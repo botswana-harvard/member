@@ -7,11 +7,12 @@
       </a>
       <a role="button" title="household" class="btn btn-sm btn-default"
         href="{% url household_listboard_url_name household_identifier=result.household_identifier %}">
-            <i class="fa fa-home fa-lg"></i>
+            <i class="fa fa-home fa-lg"></i> {{ result.household_identifier }}
       </a>
       <a role="button" title="enumeration" class="btn btn-sm btn-success"
-        href="{% url enumeration_listboard_url_name household_identifier=result.household_identifier survey_schedule=result.survey_schedule.field_value %}">
+        href="{% url enumeration_listboard_url_name household_identifier=result.household_identifier survey_schedule=result.survey_schedule_object.field_value %}">
             <i class="fa fa-sitemap fa-sm"></i>
       </a>
+
     </td>
 

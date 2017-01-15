@@ -1,17 +1,25 @@
+{% extends base_template_name %}
+
 {% load tz %}
 {% load staticfiles %}
 {% load crispy_forms_tags %}
 
+{% block main %}
 <div class="container">
    <div class="row">
       <div class="col-md-12">
         <div class="panel-group">
           <div class="panel panel-info">
-            <div class="panel-heading clearfix"><i class="fa fa-group fa-lg"></i>{% include 'edc_search/search_form.html' %}</div>
+
+            <div class="panel-heading clearfix">
+                <i class="fa fa-group fa-lg"></i>{% include 'edc_search/search_form.html' %}
+            </div>
+
             <div class="panel-body">
               <!--start results-->
               {% if results %}
                   <div class="table table-responsive">
+
                     <table class="table table-condensed table-hover small">
                       <thead>
 
@@ -25,6 +33,7 @@
                       </tbody>
                     </table>
                     {% include 'edc_dashboard/paginator.html' %}
+
                   </div>
               {% endif %}
               <!--end results-->
@@ -34,3 +43,4 @@
       </div>
     </div> 
   </div>
+{% endblock main %}

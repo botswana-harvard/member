@@ -26,6 +26,7 @@ from .views import ListBoardView
 
 urlpatterns = [
     url(r'^admin/', member_admin.urls),
+
     url(r'^listboard/'
         '(?P<household_identifier>' + household_identifier + ')/'
         '(?P<survey_schedule>' + survey_schedule + ')/'
@@ -37,6 +38,10 @@ urlpatterns = [
         ListBoardView.as_view(), name='listboard_url'),
     url(r'^listboard/'
         '(?P<household_identifier>' + household_identifier + ')/',
+        ListBoardView.as_view(), name='listboard_url'),
+    url(r'^listboard/'
+        '(?P<plot_identifier>' + plot_identifier + ')/'
+        '(?P<survey_schedule>' + survey_schedule + ')/',
         ListBoardView.as_view(), name='listboard_url'),
     url(r'^listboard/'
         '(?P<plot_identifier>' + plot_identifier + ')/',

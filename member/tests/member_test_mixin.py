@@ -3,29 +3,21 @@ from faker import Faker
 from model_mommy import mommy
 
 from edc_base_test.exceptions import TestMixinError
-from edc_base_test.mixins import LoadListDataMixin
 from edc_constants.constants import MALE
 
 from household.models import HouseholdStructure
-from household.tests.test_mixins import HouseholdMixin
 
 from ..constants import HEAD_OF_HOUSEHOLD
-from ..list_data import list_data
 from ..models import HouseholdMember
 
 
 fake = Faker()
 
 
-class MemberTestMixin(HouseholdMixin, LoadListDataMixin):
-
-    list_data = list_data
-
-
-class MemberMixin(MemberTestMixin):
+class MemberTestMixin:
 
     def setUp(self):
-        super(MemberMixin, self).setUp()
+        super().setUp()
         self.study_site = '40'
 
     def _make_ready(self, household_structure, make_hoh=None, **options):
@@ -34,8 +26,9 @@ class MemberMixin(MemberTestMixin):
         For internal use."""
         make_hoh = True if make_hoh is None else make_hoh
 
-        household_log_entry = household_structure.householdlog.householdlogentry_set.all().order_by(
-            'report_datetime').last()
+        household_log_entry = (
+            household_structure.householdlog.
+            householdlogentry_set.all().order_by('report_datetime').last())
         # add representative eligibility
         mommy.make_recipe(
             'member.representativeeligibility',
@@ -68,32 +61,26 @@ class MemberMixin(MemberTestMixin):
         return self._make_ready(household_structure, make_hoh=make_hoh, **options)
 
     def get_next_household_structure_ready(self, household_structure, make_hoh=None, **options):
-        """Returns the next `household_structure` relative to given household_structure.
+        """Returns the next `household_structure` or None relative to given household_structure.
 
             * household_structure: uses this instance to find the `next` household_structure.
-                Adds logs and returns the the `next`  household_structure.
+                Adds logs and returns the the `next`  household_structure or None.
 
         Same as `make_household_ready_for_enumeration` except uses the given
         `household_structure`.
         """
         options.update(attempts=options.get('attempts', 1))
-        survey_schedule = household_structure.survey_schedule_object.next
-        try:
-            next_household_structure = HouseholdStructure.objects.get(
-                household=household_structure.household,
-                survey_schedule=survey_schedule.field_value)
-        except HouseholdStructure.DoesNotExist:
-            pass
-        else:
-            if next_household_structure.householdlog.householdlogentry_set.all().count() > 0:
+        if household_structure.next:
+            survey_schedule = household_structure.next.survey_schedule_object
+            if household_structure.next.householdlog.householdlogentry_set.all().count() > 0:
                 raise TestMixinError(
                     'Household structure already "ready" for enumeration. Got {}'.format(
-                        next_household_structure))
+                        household_structure.next))
             self._add_attempts(
-                next_household_structure,
-                survey_schedule=survey_schedule, **options)
-
-            return self._make_ready(next_household_structure, make_hoh=make_hoh, **options)
+                household_structure.next,
+                survey_schedule=survey_schedule,
+                **options)
+            return self._make_ready(household_structure.next, make_hoh=make_hoh, **options)
         return None
 
     def make_household_ready_for_last(self, household_structure, make_hoh=None, **options):
@@ -141,11 +128,17 @@ class MemberMixin(MemberTestMixin):
         return household_member
 
     def add_enrollment_checklist(self, household_member, **options):
-        """Returns a new enrollment_checklistt."""
-        report_datetime = options.get('report_datetime', self.get_utcnow())
+        """Returns a new enrollment_checklist."""
+#         report_datetime = options.get(
+#             'report_datetime',
+#             household_member.survey_schedule_object.start)
+        report_datetime = options.get(
+            'report_datetime',
+            self.get_utcnow())
         if 'age_in_years' in options:
             raise TestMixinError('Invalid option. Got \'age_in_years\'')
         options.update(
+            report_datetime=report_datetime,
             initials=options.get('initials', household_member.initials),
             gender=options.get('gender', household_member.gender),
             dob=options.get('dob', (report_datetime - relativedelta(
@@ -157,36 +150,48 @@ class MemberMixin(MemberTestMixin):
 
     def make_absent_member(self, household_member, **options):
         """Returns a household member after adding a absent member report."""
-        options.update(report_datetime=options.get('report_datetime', self.get_utcnow()))
+        options.update(report_datetime=options.get(
+            'report_datetime',
+            household_member.survey_schedule_object.start))
         mommy.make_recipe('member.absentmember', household_member=household_member, **options)
         return HouseholdMember.objects.get(pk=household_member.pk)
 
     def make_refused_member(self, household_member, **options):
         """Returns a household member after adding a refused member report."""
-        options.update(report_datetime=options.get('report_datetime', self.get_utcnow()))
+        options.update(report_datetime=options.get(
+            'report_datetime',
+            household_member.survey_schedule_object.start))
         mommy.make_recipe('member.refusedmember', household_member=household_member, **options)
         return HouseholdMember.objects.get(pk=household_member.pk)
 
     def make_undecided_member(self, household_member, **options):
         """Returns a household member after adding a undecided member report."""
-        options.update(report_datetime=options.get('report_datetime', self.get_utcnow()))
+        options.update(report_datetime=options.get(
+            'report_datetime',
+            household_member.survey_schedule_object.start))
         mommy.make_recipe('member.undecidedmember', household_member=household_member, **options)
         return HouseholdMember.objects.get(pk=household_member.pk)
 
     def make_moved_member(self, household_member, **options):
         """Returns a household member after adding a undecided member report."""
-        options.update(report_datetime=options.get('report_datetime', self.get_utcnow()))
+        options.update(report_datetime=options.get(
+            'report_datetime',
+            household_member.survey_schedule_object.start))
         mommy.make_recipe('member.movedmember', household_member=household_member, **options)
         return HouseholdMember.objects.get(pk=household_member.pk)
 
     def make_deceased_member(self, household_member, **options):
         """Returns a household member after adding a deceased member report."""
-        options.update(report_datetime=options.get('report_datetime', self.get_utcnow()))
+        options.update(report_datetime=options.get(
+            'report_datetime',
+            household_member.survey_schedule_object.start))
         mommy.make_recipe('member.deceasedmember', household_member=household_member, **options)
         return HouseholdMember.objects.get(pk=household_member.pk)
 
     def make_htc_member(self, household_member, **options):
         """Returns a household member after adding a HTC member report."""
-        options.update(report_datetime=options.get('report_datetime', self.get_utcnow()))
+        options.update(report_datetime=options.get(
+            'report_datetime',
+            household_member.survey_schedule_object.start))
         mommy.make_recipe('member.htcmember', household_member=household_member, **options)
         return HouseholdMember.objects.get(pk=household_member.pk)

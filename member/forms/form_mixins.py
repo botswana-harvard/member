@@ -28,7 +28,7 @@ class MemberFormMixin(CommonCleanModelFormMixin, forms.ModelForm):
         try:
             obj = self._meta.model.objects.get(
                 household_member=cleaned_data.get('household_member'),
-                report_date=rdate.to('UTC').date())
+                report_datetime__date=rdate.to('UTC').date())
         except ObjectDoesNotExist:
             pass
         else:

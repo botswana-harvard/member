@@ -8,7 +8,7 @@ from edc_constants.constants import NOT_APPLICABLE
 class HtcMemberForm(forms.ModelForm):
 
     def clean(self):
-        cleaned_data = super(HtcMemberForm, self).clean()
+        cleaned_data = super().clean()
         if cleaned_data.get('offered') == 'Yes':
             self.offered_yes()
         else:
