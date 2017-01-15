@@ -25,6 +25,7 @@ from .member_eligibility_model_mixin import MemberEligibilityModelMixin
 from .member_identifier_model_mixin import MemberIdentifierModelMixin
 from .member_status_model_mixin import MemberStatusModelMixin
 from .representative_model_mixin import RepresentativeModelMixin
+from edc_consent.site_consents import site_consents
 
 
 class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeModelMixin,
@@ -210,7 +211,6 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
         def new_age(report_datetime):
             born = report_datetime - relativedelta(years=self.age_in_years)
             return age(born, report_datetime).years
-
         return self.__class__(
             household_structure=household_structure,
             report_datetime=report_datetime,
@@ -223,7 +223,9 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
             subject_identifier_as_pk=self.subject_identifier_as_pk,
             auto_filled=True,
             auto_filled_datetime=get_utcnow(),
-            updated_after_auto_filled=False
+            updated_after_auto_filled=False,
+            enrollment_checklist_completed=self.enrollment_checklist_completed,
+            survey_schedule=household_structure.survey_schedule,
         )
 
     def common_clean(self):
