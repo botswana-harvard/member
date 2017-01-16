@@ -235,7 +235,6 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
         def new_age(report_datetime):
             born = report_datetime - relativedelta(years=self.age_in_years)
             return age(born, report_datetime).years
-
         start = household_structure.survey_schedule_object.rstart
         end = household_structure.survey_schedule_object.rend
         rdate = arrow.Arrow.fromdatetime(report_datetime, report_datetime.tzinfo)
@@ -261,7 +260,9 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
             subject_identifier_as_pk=self.subject_identifier_as_pk,
             auto_filled=True,
             auto_filled_datetime=get_utcnow(),
-            updated_after_auto_filled=False
+            updated_after_auto_filled=False,
+            enrollment_checklist_completed=self.enrollment_checklist_completed,
+            survey_schedule=household_structure.survey_schedule,
         )
 
     def common_clean(self):
