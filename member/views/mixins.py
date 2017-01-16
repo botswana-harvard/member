@@ -43,8 +43,7 @@ class HouseholdMemberViewMixin:
             self.household_member = self.household_member_wrapper_class(household_member)
 
         household_members = self.household_structure.wrapped_object.householdmember_set.all().order_by('first_name')
-        self.household_members = [self.household_member_wrapper_class(obj) for obj in household_members]
-
+        self.household_members = (self.household_member_wrapper_class(obj) for obj in household_members)
         try:
             self.head_of_household = (
                 self.household_structure.wrapped_object.householdmember_set.get(

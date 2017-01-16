@@ -15,3 +15,4 @@ from .representative_eligibility import RepresentativeEligibility
 from .undecided_member import UndecidedMember
 from .undecided_member_history import UndecidedMemberHistory
 from .list_models import TransportMode, ElectricalAppliances
+from .model_mixins import MemberUrlMixin

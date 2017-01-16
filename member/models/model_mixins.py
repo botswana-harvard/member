@@ -20,7 +20,15 @@ from ..exceptions import EnumerationError
 from .household_member import HouseholdMember, todays_log_entry_or_raise
 
 
-class HouseholdMemberModelMixin(models.Model):
+class MemberUrlMixin(models.Model):
+
+    ADMIN_SITE_NAME = 'member_admin'
+
+    class Meta:
+        abstract = True
+
+
+class HouseholdMemberModelMixin(MemberUrlMixin):
 
     """ Mixin for models that need a foreignkey household_member model"""
 
@@ -57,7 +65,7 @@ class HouseholdMemberModelMixin(models.Model):
         ordering = ['-report_datetime']
 
 
-class MemberEntryMixin(models.Model):
+class MemberEntryMixin(MemberUrlMixin):
     """For absentee and undecided log models."""
 
     household_member = models.ForeignKey(HouseholdMember, on_delete=models.PROTECT)

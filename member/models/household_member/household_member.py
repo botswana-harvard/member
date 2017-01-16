@@ -38,6 +38,8 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
                       SurveyScheduleModelMixin, BaseUuidModel):
     """A model completed by the user to represent an enumerated household member."""
 
+    ADMIN_SITE_NAME = 'member_admin'
+
     household_structure = models.ForeignKey(HouseholdStructure, on_delete=models.PROTECT)
 
     internal_identifier = models.CharField(

@@ -6,6 +6,7 @@ from edc_base.utils import get_utcnow
 from edc_constants.choices import YES_NO
 
 from .household_member import HouseholdMember
+from .model_mixins import MemberUrlMixin
 
 
 class MyManager(models.Manager):
@@ -14,7 +15,7 @@ class MyManager(models.Manager):
         self.get(transaction=transaction)
 
 
-class HtcMemberHistory(BaseUuidModel):
+class HtcMemberHistory(MemberUrlMixin, BaseUuidModel):
     """A system model that tracks the history of deleted subject HTC instances."""
 
     transaction = models.UUIDField(unique=True)
