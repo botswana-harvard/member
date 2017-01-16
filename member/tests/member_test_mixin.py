@@ -143,10 +143,11 @@ class MemberTestMixin:
             gender=options.get('gender', household_member.gender),
             dob=options.get('dob', (report_datetime - relativedelta(
                 years=household_member.age_in_years)).date()))
-        return mommy.make_recipe(
+        mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
             **options)
+        return HouseholdMember.objects.get(pk=household_member.pk)
 
     def make_absent_member(self, household_member, **options):
         """Returns a household member after adding a absent member report."""
