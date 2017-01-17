@@ -64,9 +64,7 @@ class RepresentativeModelMixin(models.Model):
 
     @property
     def common_clean_exceptions(self):
-        common_clean_exceptions = super().common_clean_exceptions
-        common_clean_exceptions.extend([EnumerationRepresentativeError])
-        return common_clean_exceptions
+        return super().common_clean_exceptions + [EnumerationRepresentativeError]
 
     class Meta:
         abstract = True

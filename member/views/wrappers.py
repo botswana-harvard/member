@@ -1,32 +1,56 @@
 from django.apps import apps as django_apps
+from django.core.exceptions import ObjectDoesNotExist
 
 from edc_dashboard.wrappers import ModelWrapper
-from django.core.exceptions import ObjectDoesNotExist
+
+from member.models import AbsentMember, UndecidedMember, RefusedMember, DeceasedMember
+from member.models.enrollment_checklist import EnrollmentChecklist
 
 app_config = django_apps.get_app_config('member')
 
 
-class MemberStatusModelWrapperMixin(ModelWrapper):
+class HouseholdFormsModelWrapperMixin(ModelWrapper):
 
-    model_name = 'member.absentmember'
-    admin_site_name = app_config.admin_site_name
-    url_namespace = app_config.url_namespace
     next_url_name = django_apps.get_app_config('enumeration').dashboard_url_name
-    extra_querystring_attrs = {'member.absentmember': ['survey_schedule', 'household_member']}
-    next_url_attrs = {'member.absentmember': ['household_identifier', 'survey_schedule']}
-    url_instance_attrs = ['household_identifier', 'survey_schedule', 'household_member']
+    url_instance_attrs = ['household_identifier', 'survey_schedule', 'household_structure']
+
+    @property
+    def household_structure(self):
+        return self._original_object.household_structure
 
     @property
     def household_identifier(self):
-        return self._original_object.household_member.household_structure.household.household_identifier
+        return self.household_structure.household.household_identifier
 
     @property
     def survey_schedule(self):
-        return self._original_object.household_member.survey_schedule_object.field_value
+        return self.household_structure.survey_schedule_object.field_value
 
     @property
     def survey_schedule_object(self):
-        return self._original_object.household_member.survey_schedule_object
+        return self.household_structure.survey_schedule_object
+
+
+class MemberStatusModelWrapperMixin(ModelWrapper):
+
+    next_url_name = django_apps.get_app_config('enumeration').dashboard_url_name
+    url_instance_attrs = ['household_identifier', 'survey_schedule', 'household_member']
+
+    @property
+    def household_member(self):
+        return self._original_object.household_member
+
+    @property
+    def household_identifier(self):
+        return self.household_member.household_structure.household.household_identifier
+
+    @property
+    def survey_schedule(self):
+        return self.household_member.survey_schedule_object.field_value
+
+    @property
+    def survey_schedule_object(self):
+        return self.household_member.survey_schedule_object
 
 
 class AbsentMemberModelWrapper(MemberStatusModelWrapperMixin):
@@ -57,11 +81,37 @@ class DeceasedMemberModelWrapper(MemberStatusModelWrapperMixin):
     next_url_attrs = {'member.deceasedmember': ['household_identifier', 'survey_schedule']}
 
 
+class EnrollmentChecklistModelWrapper(MemberStatusModelWrapperMixin):
+
+    model_name = 'member.enrollmentchecklist'
+    extra_querystring_attrs = {'member.enrollmentchecklist': ['survey_schedule', 'household_member']}
+    next_url_attrs = {'member.enrollmentchecklist': ['household_identifier', 'survey_schedule']}
+
+
+class HeadOfHouseholdEligibilityModelWrapper(MemberStatusModelWrapperMixin):
+
+    model_name = 'member.householdheadeligibility'
+    extra_querystring_attrs = {'member.householdheadeligibility': ['survey_schedule', 'household_member']}
+    next_url_attrs = {'member.householdheadeligibility': ['household_identifier', 'survey_schedule']}
+
+
+class RepresentativeEligibilityModelWrapper(HouseholdFormsModelWrapperMixin):
+
+    model_name = 'member.representativeeligibility'
+    extra_querystring_attrs = {'member.representativeeligibility': ['survey_schedule', 'household_structure']}
+    next_url_attrs = {'member.representativeeligibility': ['household_identifier', 'survey_schedule']}
+
+
+class HouseholdInfoModelWrapper(HouseholdFormsModelWrapperMixin):
+
+    model_name = 'member.householdinfo'
+    extra_querystring_attrs = {'member.householdinfo': ['survey_schedule', 'household_structure']}
+    next_url_attrs = {'member.householdinfo': ['household_identifier', 'survey_schedule']}
+
+
 class HouseholdMemberModelWrapper(ModelWrapper):
 
     model_name = 'member.householdmember'
-    admin_site_name = app_config.admin_site_name
-    url_namespace = app_config.url_namespace
     next_url_name = app_config.listboard_url_name
     extra_querystring_attrs = {'member.householdmember': ['survey_schedule', 'household_structure']}
     next_url_attrs = {'member.householdmember': ['household_identifier', 'survey_schedule']}
@@ -89,22 +139,44 @@ class HouseholdMemberModelWrapper(ModelWrapper):
 
     @property
     def absent_members(self):
-        return (AbsentMemberModelWrapper(obj) for obj in self.wrapped_object.absentmember_set.all())
+        return (AbsentMemberModelWrapper(obj)
+                for obj in self.wrapped_object.absentmember_set.all())
+
+    @property
+    def new_absent_member(self):
+        return AbsentMemberModelWrapper(
+            AbsentMember(household_member=self._original_object))
 
     @property
     def undecided_members(self):
-        return (UndecidedMemberModelWrapper(obj) for obj in self.wrapped_object.undecidedmember_set.all())
+        return (UndecidedMemberModelWrapper(obj)
+                for obj in self.wrapped_object.undecidedmember_set.all())
+
+    @property
+    def new_undecided_member(self):
+        return UndecidedMemberModelWrapper(
+            UndecidedMember(household_member=self._original_object))
 
     @property
     def refused_member(self):
         try:
             return RefusedMemberModelWrapper(self.wrapped_object.refusedmember)
         except ObjectDoesNotExist:
-            return None
+            return RefusedMemberModelWrapper(
+                RefusedMember(household_member=self._original_object))
 
     @property
     def deceased_member(self):
         try:
-            return UndecidedMemberModelWrapper(self.wrapped_object.deceasedmember)
+            return DeceasedMemberModelWrapper(self.wrapped_object.deceasedmember)
         except ObjectDoesNotExist:
-            return None
+            return DeceasedMemberModelWrapper(
+                DeceasedMember(household_member=self._original_object))
+
+    @property
+    def enrollment_checklist(self):
+        try:
+            return EnrollmentChecklistModelWrapper(self.wrapped_object.enrollmentchecklist)
+        except ObjectDoesNotExist:
+            return EnrollmentChecklistModelWrapper(
+                EnrollmentChecklist(household_member=self._original_object))

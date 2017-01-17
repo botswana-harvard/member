@@ -72,9 +72,7 @@ class EnrollmentModelMixin(models.Model):
 
     @property
     def common_clean_exceptions(self):
-        common_clean_exceptions = super().common_clean_exceptions
-        common_clean_exceptions.extend([MemberEnrollmentError])
-        return common_clean_exceptions
+        return super().common_clean_exceptions + [MemberEnrollmentError]
 
     def save(self, *args, **kwargs):
         self.age_in_years = age(self.dob, self.report_datetime).years

@@ -52,9 +52,7 @@ class HouseholdMemberModelMixin(MemberUrlMixin):
 
     @property
     def common_clean_exceptions(self):
-        common_clean_exceptions = super().common_clean_exceptions
-        common_clean_exceptions.extend([EnumerationError, HouseholdLogRequired])
-        return common_clean_exceptions
+        return super().common_clean_exceptions + [EnumerationError, HouseholdLogRequired]
 
     def natural_key(self):
         return self.household_member.natural_key()
