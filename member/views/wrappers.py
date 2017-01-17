@@ -11,6 +11,8 @@ app_config = django_apps.get_app_config('member')
 
 class HouseholdFormsModelWrapperMixin(ModelWrapper):
 
+    """For models with a FK to household_structure."""
+
     next_url_name = django_apps.get_app_config('enumeration').dashboard_url_name
     url_instance_attrs = ['household_identifier', 'survey_schedule', 'household_structure']
 
@@ -20,37 +22,39 @@ class HouseholdFormsModelWrapperMixin(ModelWrapper):
 
     @property
     def household_identifier(self):
-        return self.household_structure.household.household_identifier
+        return self._original_object.household_structure.household.household_identifier
 
     @property
     def survey_schedule(self):
-        return self.household_structure.survey_schedule_object.field_value
+        return self._original_object.household_structure.survey_schedule_object.field_value
 
     @property
     def survey_schedule_object(self):
-        return self.household_structure.survey_schedule_object
+        return self._original_object.household_structure.survey_schedule_object
 
 
 class MemberStatusModelWrapperMixin(ModelWrapper):
+
+    """For models with a FK to household member."""
 
     next_url_name = django_apps.get_app_config('enumeration').dashboard_url_name
     url_instance_attrs = ['household_identifier', 'survey_schedule', 'household_member']
 
     @property
     def household_member(self):
-        return self._original_object.household_member
+        return str(self._original_object.household_member.id)
 
     @property
     def household_identifier(self):
-        return self.household_member.household_structure.household.household_identifier
+        return self._original_object.household_member.household_structure.household.household_identifier
 
     @property
     def survey_schedule(self):
-        return self.household_member.survey_schedule_object.field_value
+        return self._original_object.household_member.household_structure.survey_schedule_object.field_value
 
     @property
     def survey_schedule_object(self):
-        return self.household_member.survey_schedule_object
+        return self._original_object.household_member.household_structure.survey_schedule_object
 
 
 class AbsentMemberModelWrapper(MemberStatusModelWrapperMixin):
@@ -123,7 +127,7 @@ class HouseholdMemberModelWrapper(ModelWrapper):
 
     @property
     def survey_schedule(self):
-        return self.survey_schedule_object.field_value
+        return self._original_object.household_structure.survey_schedule_object.field_value
 
     @property
     def survey_schedule_object(self):
