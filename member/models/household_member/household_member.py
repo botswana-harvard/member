@@ -17,7 +17,6 @@ from edc_constants.constants import ALIVE, DEAD, YES
 from edc_registration.model_mixins import UpdatesOrCreatesRegistrationModelMixin
 
 from household.models import HouseholdStructure
-from household.exceptions import HouseholdLogRequired
 from member.exceptions import CloneError
 from survey.model_mixins import SurveyScheduleModelMixin
 
@@ -29,16 +28,14 @@ from .member_eligibility_model_mixin import MemberEligibilityModelMixin
 from .member_identifier_model_mixin import MemberIdentifierModelMixin
 from .member_status_model_mixin import MemberStatusModelMixin
 from .representative_model_mixin import RepresentativeModelMixin
-from .utils import todays_log_entry_or_raise
+from .requires_household_log_entry_mixin import RequiresHouseholdLogEntryMixin
 
 
 class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeModelMixin,
                       MemberStatusModelMixin, MemberEligibilityModelMixin,
-                      MemberIdentifierModelMixin,
+                      MemberIdentifierModelMixin, RequiresHouseholdLogEntryMixin,
                       SurveyScheduleModelMixin, BaseUuidModel):
     """A model completed by the user to represent an enumerated household member."""
-
-    ADMIN_SITE_NAME = 'member_admin'
 
     household_structure = models.ForeignKey(HouseholdStructure, on_delete=models.PROTECT)
 
@@ -266,10 +263,6 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
         )
 
     def common_clean(self):
-        if not self.id:
-            todays_log_entry_or_raise(
-                household_structure=self.household_structure,
-                report_datetime=self.report_datetime)
         if self.survival_status == DEAD and self.present_today == YES:
             raise MemberValidationError(
                 'Invalid combination. Got member status == {} but present today == {}'.format(
@@ -278,7 +271,7 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
 
     @property
     def common_clean_exceptions(self):
-        return super().common_clean_exceptions + [MemberValidationError, HouseholdLogRequired]
+        return super().common_clean_exceptions + [MemberValidationError]
 
 #     @property
 #     def evaluate_htc_eligibility(self):

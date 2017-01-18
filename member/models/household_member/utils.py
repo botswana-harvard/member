@@ -6,7 +6,6 @@ from edc_constants.constants import DEAD, NOT_APPLICABLE, YES
 
 from household.models import HouseholdLogEntry
 from household.exceptions import HouseholdLogRequired
-from django.utils.timezone import get_current_timezone_name
 
 
 def is_eligible_member(obj):
@@ -36,6 +35,9 @@ def is_age_eligible(age_in_years):
 def todays_log_entry_or_raise(household_structure=None, report_datetime=None, **options):
     """Returns the current HouseholdLogEntry or raises a
     HouseholdLogRequired exception.
+
+    If report_datetime is provided, use that. This means a model can be edited
+    if its report_datetime matches a household log entry.
 
     Comparison is by date not datetime"""
     rdate = arrow.Arrow.fromdatetime(

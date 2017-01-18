@@ -15,20 +15,11 @@ from household.exceptions import HouseholdLogRequired
 
 from ..choices import REASONS_REFUSED
 from ..constants import REFUSED
-from ..exceptions import EnumerationError
 
-from .household_member import HouseholdMember, todays_log_entry_or_raise
-
-
-class MemberUrlMixin(models.Model):
-
-    ADMIN_SITE_NAME = 'member_admin'
-
-    class Meta:
-        abstract = True
+from .household_member import HouseholdMember, RequiresHouseholdLogEntryMixin
 
 
-class HouseholdMemberModelMixin(MemberUrlMixin):
+class HouseholdMemberModelMixin(RequiresHouseholdLogEntryMixin, models.Model):
 
     """ Mixin for models that need a foreignkey household_member model"""
 
@@ -39,20 +30,8 @@ class HouseholdMemberModelMixin(MemberUrlMixin):
         default=get_utcnow,
         validators=[datetime_not_future])
 
-    # objects = HouseholdMemberManager()
-
     def __str__(self):
         return str(self.household_member)
-
-    def common_clean(self):
-        todays_log_entry_or_raise(
-            household_structure=self.household_member.household_structure,
-            report_datetime=self.report_datetime)
-        super().common_clean()
-
-    @property
-    def common_clean_exceptions(self):
-        return super().common_clean_exceptions + [EnumerationError, HouseholdLogRequired]
 
     def natural_key(self):
         return self.household_member.natural_key()
@@ -63,7 +42,7 @@ class HouseholdMemberModelMixin(MemberUrlMixin):
         ordering = ['-report_datetime']
 
 
-class MemberEntryMixin(MemberUrlMixin):
+class MemberEntryMixin(RequiresHouseholdLogEntryMixin, models.Model):
     """For absentee and undecided log models."""
 
     household_member = models.ForeignKey(HouseholdMember, on_delete=models.PROTECT)
@@ -110,18 +89,6 @@ class MemberEntryMixin(MemberUrlMixin):
         self.report_date = arrow.Arrow.fromdatetime(
             self.report_datetime, tzinfo=self.report_datetime.tzinfo).to('UTC').date()
         super().save(*args, **kwargs)
-
-    def common_clean(self):
-        todays_log_entry_or_raise(
-            household_structure=self.household_member.household_structure,
-            report_datetime=self.report_datetime)
-        super().common_clean()
-
-    @property
-    def common_clean_exceptions(self):
-        common_clean_exceptions = super().common_clean_exceptions
-        common_clean_exceptions.extend([HouseholdLogRequired])
-        return common_clean_exceptions
 
     class Meta:
         abstract = True

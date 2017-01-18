@@ -5,7 +5,7 @@ from edc_base.utils import get_utcnow
 
 from household.models import HouseholdStructure
 
-from .model_mixins import RepresentativeEligibilityMixin, MemberUrlMixin
+from .model_mixins import RepresentativeEligibilityMixin
 
 
 class MyManager(models.Manager):
@@ -18,7 +18,7 @@ class MyManager(models.Manager):
         )
 
 
-class RepresentativeEligibility(RepresentativeEligibilityMixin, MemberUrlMixin, BaseUuidModel):
+class RepresentativeEligibility(RepresentativeEligibilityMixin, BaseUuidModel):
     """A model completed by the user that checks the eligibility of household member
     to be the household representative."""
 

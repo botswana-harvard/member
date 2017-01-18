@@ -10,7 +10,7 @@ from ..choices import (
     FLOORING_TYPE, WATER_SOURCE, ENERGY_SOURCE, TOILET_FACILITY, SMALLER_MEALS)
 
 from .list_models import ElectricalAppliances, TransportMode
-from .model_mixins import MemberUrlMixin
+from .model_mixins import RequiresHouseholdLogEntryMixin
 
 
 class MyManager(models.Manager):
@@ -23,7 +23,7 @@ class MyManager(models.Manager):
         )
 
 
-class HouseholdInfo(MemberUrlMixin, BaseUuidModel):
+class HouseholdInfo(RequiresHouseholdLogEntryMixin, BaseUuidModel):
     """A model completed by the user that captures household economic status
     from the Head of Household."""
 

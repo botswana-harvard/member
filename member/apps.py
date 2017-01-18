@@ -13,8 +13,8 @@ class AppConfig(DjangoApponfig):
         from member.signals import (
             absent_member_on_post_delete,
             absent_member_on_post_save,
-            deceased_member_on_post_save,
             deceased_member_on_post_delete,
+            deceased_member_on_post_save,
             enrollment_checklist_on_post_delete,
             enrollment_checklist_on_post_save,
             enrollment_loss_on_post_delete,
