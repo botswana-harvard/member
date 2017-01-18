@@ -1,15 +1,15 @@
-from household.models import HouseholdStructure
-
-from ..models import HouseholdMember
-
-
 from django.contrib import admin
 from django.urls.base import reverse
+from django.urls.exceptions import NoReverseMatch
 from django_revision.modeladmin_mixin import ModelAdminRevisionMixin
 
 from edc_base.modeladmin_mixins import (
     ModelAdminNextUrlRedirectMixin, ModelAdminFormInstructionsMixin, ModelAdminFormAutoNumberMixin,
     ModelAdminReadOnlyMixin, ModelAdminAuditFieldsMixin, ModelAdminInstitutionMixin)
+
+from household.models import HouseholdStructure
+
+from ..models import HouseholdMember
 
 
 class HouseholdMemberAdminMixin:
@@ -34,10 +34,13 @@ class HouseholdMemberAdminMixin:
             survey_schedule = obj.household_member.household_structure.survey_schedule
         except AttributeError:
             survey_schedule = obj.household_structure.survey_schedule
-        return reverse(
-            'enumeration:dashboard_url', kwargs=dict(
-                household_identifier=household_identifier,
-                survey_schedule=survey_schedule))
+        try:
+            return reverse(
+                'enumeration:dashboard_url', kwargs=dict(
+                    household_identifier=household_identifier,
+                    survey_schedule=survey_schedule))
+        except NoReverseMatch:
+            return super().view_on_site(obj)
 
 
 class ModelAdminMixin(ModelAdminInstitutionMixin, ModelAdminFormInstructionsMixin, ModelAdminNextUrlRedirectMixin,
