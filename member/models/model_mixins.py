@@ -42,6 +42,31 @@ class HouseholdMemberModelMixin(RequiresHouseholdLogEntryMixin, models.Model):
         ordering = ['-report_datetime']
 
 
+class AnonymousHouseholdMemberModelMixin(RequiresHouseholdLogEntryMixin, models.Model):
+
+    """ Mixin for models that need a foreignkey household_member model"""
+
+    household_member = models.OneToOneField(
+        HouseholdMember, on_delete=models.PROTECT,
+        blank=True)
+
+    report_datetime = models.DateTimeField(
+        verbose_name="Report date",
+        default=get_utcnow,
+        validators=[datetime_not_future])
+
+    def __str__(self):
+        return str(self.household_member)
+
+    def natural_key(self):
+        return self.household_member.natural_key()
+    natural_key.dependencies = ['member.householdmember', ]
+
+    class Meta:
+        abstract = True
+        ordering = ['-report_datetime']
+
+
 class MemberEntryMixin(RequiresHouseholdLogEntryMixin, models.Model):
     """For absentee and undecided log models."""
 

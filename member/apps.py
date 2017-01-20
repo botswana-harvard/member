@@ -8,6 +8,7 @@ class AppConfig(DjangoApponfig):
     base_template_name = 'edc_base/base.html'
     admin_site_name = 'member_admin'
     url_namespace = 'member'
+    anonymous_listboard_url_name = 'member:anonymous_listboard_url'
 
     def ready(self):
         from member.signals import (

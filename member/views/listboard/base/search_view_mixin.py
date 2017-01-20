@@ -1,14 +1,13 @@
 from django.db.models import Q
 
-from edc_dashboard.view_mixins import FilteredListViewMixin
-from edc_search.view_mixins import SearchViewMixin
+from edc_search.view_mixins import SearchViewMixin as BaseSearchViewMixin
 
-from ..models import HouseholdMember
+from ....models import HouseholdMember
 
-from .wrappers import HouseholdMemberModelWrapper
+from ...wrappers import HouseholdMemberModelWrapper
 
 
-class MemberSearchViewMixin(SearchViewMixin):
+class SearchViewMixin(BaseSearchViewMixin):
 
     search_model = HouseholdMember
     search_model_wrapper_class = HouseholdMemberModelWrapper
@@ -28,14 +27,3 @@ class MemberSearchViewMixin(SearchViewMixin):
             Q(initials__exact=search_term) |
             Q(household_structure__household__household_identifier__icontains=search_term))
         return q, options
-
-
-class MemberFilteredListViewMixin(FilteredListViewMixin):
-
-    filter_model = HouseholdMember
-    filtered_model_wrapper_class = HouseholdMemberModelWrapper
-    filtered_queryset_ordering = '-modified'
-    url_lookup_parameters = [
-        'id', 'subject_identifier',
-        ('household_identifier', 'household_structure__household__household_identifier'),
-        ('plot_identifier', 'household_structure__household__plot__plot_identifier')]

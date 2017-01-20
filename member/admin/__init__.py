@@ -1,6 +1,7 @@
 from .absent_member_admin import AbsentMemberAdmin
 from .deceased_member_admin import DeceasedMemberAdmin
 from .enrollment_checklist_admin import EnrollmentChecklistAdmin
+from .enrollment_checklist_anonymous_admin import EnrollmentChecklistAnonymousAdmin
 from .enrollment_loss_admin import EnrollmentLossAdmin
 from .household_head_eligibilty_admin import HouseholdHeadEligibilityAdmin
 from .household_member_admin import HouseholdMemberAdmin

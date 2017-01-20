@@ -18,6 +18,7 @@ from edc_registration.model_mixins import UpdatesOrCreatesRegistrationModelMixin
 
 from household.models import HouseholdStructure
 from member.exceptions import CloneError
+from plot.utils import get_anonymous_plot
 from survey.model_mixins import SurveyScheduleModelMixin
 
 from ...choices import DETAILS_CHANGE_REASON, INABILITY_TO_PARTICIPATE_REASON
@@ -208,6 +209,13 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
     def natural_key(self):
         return (self.internal_identifier,) + self.household_structure.natural_key()
     natural_key.dependencies = ['household.householdstructure']
+
+    @property
+    def anonymous(self):
+        plot = get_anonymous_plot()
+        if self.household_structure.household.plot == plot:
+            return True
+        return False
 
     @property
     def next(self):

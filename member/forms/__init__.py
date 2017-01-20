@@ -1,6 +1,7 @@
 from .absent_member_form import AbsentMemberForm
 from .deceased_member_form import DeceasedMemberForm
 from .enrollment_checklist_form import EnrollmentChecklistForm
+from .enrollment_checklist_anonymous_form import EnrollmentChecklistAnonymousForm
 from .enrollment_loss_form import EnrollmentLossForm
 from .household_head_eligibility_form import HouseholdHeadEligibilityForm
 from .household_info_form import HouseholdInfoForm

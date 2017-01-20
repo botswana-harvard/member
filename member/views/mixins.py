@@ -1,7 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 
 from ..constants import HEAD_OF_HOUSEHOLD
-from ..models import HouseholdMember, HouseholdHeadEligibility
+from ..models import HouseholdMember
 
 from .wrappers import HouseholdMemberModelWrapper
 
