@@ -1,4 +1,5 @@
-from edc_dashboard.view_mixins import FilteredListViewMixin as BaseFilteredListViewMixin
+from edc_dashboard.view_mixins import (
+    FilteredListViewMixin as BaseFilteredListViewMixin)
 
 from ....models import HouseholdMember
 
@@ -13,5 +14,7 @@ class FilteredListViewMixin(BaseFilteredListViewMixin):
     url_lookup_parameters = [
         ('id', 'id'),
         ('subject_identifier', 'subject_identifier'),
-        ('household_identifier', 'household_structure__household__household_identifier'),
-        ('plot_identifier', 'household_structure__household__plot__plot_identifier')]
+        ('household_identifier',
+         'household_structure__household__household_identifier'),
+        ('plot_identifier',
+         'household_structure__household__plot__plot_identifier')]

@@ -1,4 +1,3 @@
-from faker import Faker
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
@@ -6,52 +5,7 @@ from .constants import HEAD_OF_HOUSEHOLD
 
 from .models import (
     AbsentMember, EnrollmentChecklist, EnrollmentLoss, HouseholdHeadEligibility, HouseholdMember,
-    RefusedMember, UndecidedMember, DeceasedMember, MovedMember, EnrollmentChecklistAnonymous)
-from bcpp_subject.models.anonymous.anonymous_consent import AnonymousConsent
-from dateutil.relativedelta import relativedelta
-from bcpp_subject.models.subject_consent import is_minor
-from edc_base.utils import get_utcnow
-
-
-fake = Faker()
-
-
-@receiver(post_save, weak=False, sender=EnrollmentChecklistAnonymous,
-          dispatch_uid="enrollment_checklist_anonymous_on_post_save")
-def enrollment_checklist_anonymous_on_post_save(sender, instance, raw, created, using, **kwargs):
-    if not raw:
-        if created:
-            # update HHM attrs
-            instance.household_member.enrollment_checklist_completed = True
-            instance.household_member.save()
-            # fill in consent
-            identity = fake.credit_card_number()
-            dob = instance.household_member.created - relativedelta(years=instance.age_in_years)
-            AnonymousConsent.objects.create(
-                household_member=instance.household_member,
-                consent_datetime=get_utcnow(),
-                gender=instance.gender,
-                dob=dob,
-                identity=identity,
-                confirm_identity=identity,
-                study_site='88',
-                first_name=instance.household_member.first_name,
-                initials=instance.household_member.initials,
-                may_store_samples=instance.may_store_samples,
-                citizen=instance.citizen,
-                is_minor=is_minor(dob, instance.created),
-                created=instance.user_created,
-                modified=instance.user_modified,
-                hostname_created=instance.hostname_created,
-                hostname_modified=instance.hostname_modified,
-            )
-
-
-@receiver(post_delete, weak=False, sender=EnrollmentChecklistAnonymous,
-          dispatch_uid="enrollment_checklist_anonymous_on_post_delete")
-def enrollment_checklist_anonymous_on_post_delete(sender, instance, raw, created, using, **kwargs):
-    instance.household_member.anonymousconsent.delete()
-    instance.household_member.delete()
+    RefusedMember, UndecidedMember, DeceasedMember, MovedMember)
 
 
 @receiver(post_save, weak=False, sender=HouseholdMember, dispatch_uid="household_member_on_post_save")

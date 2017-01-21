@@ -236,22 +236,29 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
             return None
 
     def clone(self, household_structure, report_datetime):
+        """Returns a new unsaved household member.
+
+            * household_structure: the "next" household_structure to
+              which the new members will be related."""
 
         def new_age(report_datetime):
             born = report_datetime - relativedelta(years=self.age_in_years)
             return age(born, report_datetime).years
+
         start = household_structure.survey_schedule_object.rstart
         end = household_structure.survey_schedule_object.rend
         rdate = arrow.Arrow.fromdatetime(report_datetime, report_datetime.tzinfo)
-        if not (start.to('utc').date() <= rdate.to('utc').date() <= end.to('utc').date()):
+
+        if not (start.to('utc').date() <= rdate.to('utc').date() <=
+                end.to('utc').date()):
             raise CloneError(
                 'Invalid report datetime. \'{}\' does not fall within '
                 'the date range for survey schedule \'{}\'. Expected any date '
                 'from \'{}\' to \'{}\'.'.format(
                     report_datetime.strftime('%Y-%m-%d %Z'),
                     household_structure.survey_schedule_object.field_value,
-                    start.to('utc').date().strftime('%Y-%m-%d %Z'),
-                    end.to('utc').date().strftime('%Y-%m-%d %Z')))
+                    start.to('utc').strftime('%Y-%m-%d %Z'),
+                    end.to('utc').strftime('%Y-%m-%d %Z')))
 
         return self.__class__(
             household_structure=household_structure,

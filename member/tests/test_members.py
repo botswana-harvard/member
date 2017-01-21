@@ -27,50 +27,50 @@ from .mixins import MemberMixin
 
 class TestMembers(MemberMixin, TestCase):
 
-    def test_cannot_add_first_member_if_not_hoh(self):
-        """Assert cannot add first member if not head of household."""
-        household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
-        mommy.make_recipe(
-            'member.householdmember',
-            household_structure=household_structure,
-            relation='Mother')
-
     def test_can_add_first_member_if_hoh(self):
         """Assert can add head of household."""
-        household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
+        survey_schedule_object = site_surveys.get_survey_schedules()[0]
+        household_structure = self.make_household_ready_for_enumeration(
+            make_hoh=False,
+            report_datetime=survey_schedule_object.start)
         household_member = mommy.make_recipe(
             'member.householdmember',
             household_structure=household_structure,
             relation=HEAD_OF_HOUSEHOLD,
-            report_datetime=household_structure.survey_schedule_object.start)
+            report_datetime=household_structure.report_datetime)
         self.assertTrue(household_member.eligible_member)
 
     def test_cant_add_representative_eligibility_with_no_todays_log_entry(self):
         """Assert can not add representative eligibility without today's household log entry."""
-        plot = self.make_confirmed_plot(household_count=1)
+        survey_schedule_object = site_surveys.get_survey_schedules()[0]
+        plot = self.make_confirmed_plot(
+            household_count=1,
+            report_datetime=survey_schedule_object.start)
         household_structures = HouseholdStructure.objects.filter(household__plot=plot)
         for household_structure in household_structures:
-            mommy.make_recipe('member.representativeeligibility', household_structure=household_structure)
+            mommy.make_recipe(
+                'member.representativeeligibility',
+                household_structure=household_structure)
             self.assertRaises(
                 HouseholdLogRequired,
                 mommy.make_recipe,
                 'member.householdmember',
                 household_structure=household_structure,
                 relation=HEAD_OF_HOUSEHOLD,
-                report_datetime=household_structure.survey_schedule_object.start)
+                report_datetime=household_structure.report_datetime)
 
     def test_cannot_add_more_members_if_no_hoh_eligibility(self):
         """Assert can add head of household."""
-        household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
-        mommy.make_recipe(
-            'member.householdmember',
-            household_structure=household_structure,
-            relation=HEAD_OF_HOUSEHOLD)
+        household_structure = self.make_household_ready_for_enumeration(
+            make_hoh=False)
+        self.add_household_member(
+            household_structure, relation=HEAD_OF_HOUSEHOLD)
         self.assertRaises(
             EnumerationRepresentativeError,
             mommy.make_recipe,
             'member.householdmember',
             household_structure=household_structure,
+            report_datetime=household_structure.report_datetime,
             relation='Mother')
 
     def test_can_add_more_members_if_hoh_eligibility(self):
@@ -91,6 +91,7 @@ class TestMembers(MemberMixin, TestCase):
         household_structure = self.make_household_ready_for_enumeration()
         household_member = mommy.make_recipe(
             'member.householdmember',
+            report_datetime=household_structure.report_datetime,
             household_structure=household_structure)
         self.assertTrue(household_member.eligible_member)
 
@@ -101,6 +102,7 @@ class TestMembers(MemberMixin, TestCase):
             mommy.make_recipe,
             'member.householdmember',
             household_structure=household_structure,
+            report_datetime=household_structure.report_datetime,
             survival_status=DEAD,
             present_today=YES)
 
@@ -108,6 +110,7 @@ class TestMembers(MemberMixin, TestCase):
         household_structure = self.make_household_ready_for_enumeration()
         household_member = mommy.make_recipe(
             'member.householdmember',
+            report_datetime=household_structure.report_datetime,
             household_structure=household_structure,
             age_in_years=15)
         self.assertFalse(household_member.eligible_member)
@@ -117,6 +120,7 @@ class TestMembers(MemberMixin, TestCase):
         household_member = mommy.make_recipe(
             'member.householdmember',
             household_structure=household_structure,
+            report_datetime=household_structure.report_datetime,
             age_in_years=65)
         self.assertFalse(household_member.eligible_member)
 
@@ -125,6 +129,7 @@ class TestMembers(MemberMixin, TestCase):
         household_member = mommy.make_recipe(
             'member.householdmember',
             household_structure=household_structure,
+            report_datetime=household_structure.report_datetime,
             study_resident=NO)
         self.assertFalse(household_member.eligible_member)
 
@@ -133,6 +138,7 @@ class TestMembers(MemberMixin, TestCase):
         household_member = mommy.make_recipe(
             'member.householdmember',
             household_structure=household_structure,
+            report_datetime=household_structure.report_datetime,
             inability_to_participate=MENTAL_INCAPACITY)
         self.assertFalse(household_member.eligible_member)
 
@@ -141,6 +147,7 @@ class TestMembers(MemberMixin, TestCase):
         household_member = mommy.make_recipe(
             'member.householdmember',
             household_structure=household_structure,
+            report_datetime=household_structure.report_datetime,
             survival_status=DEAD,
             present_today=NO)
         self.assertFalse(household_member.eligible_member)
@@ -152,6 +159,8 @@ class TestMembers(MemberMixin, TestCase):
         mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            report_datetime=household_structure.report_datetime,
+            dob=(household_structure.report_datetime - relativedelta(years=25)).date(),
             initials=household_member.initials,
         )
 
@@ -166,6 +175,7 @@ class TestMembers(MemberMixin, TestCase):
             mommy.make_recipe,
             'member.enrollmentchecklist',
             household_member=household_member,
+            report_datetime=household_structure.report_datetime,
             initials=household_member.initials,
             dob=(household_structure.survey_schedule_object.start - relativedelta(years=35)).date())
 
@@ -180,6 +190,8 @@ class TestMembers(MemberMixin, TestCase):
             mommy.make_recipe,
             'member.enrollmentchecklist',
             household_member=household_member,
+            dob=(household_structure.report_datetime - relativedelta(years=25)).date(),
+            report_datetime=household_structure.report_datetime,
             initials='XX')
 
     def test_enrollment_checklist_to_household_member_resident_mismatch(self):
@@ -193,6 +205,8 @@ class TestMembers(MemberMixin, TestCase):
             mommy.make_recipe,
             'member.enrollmentchecklist',
             household_member=household_member,
+            report_datetime=household_structure.report_datetime,
+            dob=(household_structure.report_datetime - relativedelta(years=25)).date(),
             initials=household_member.initials,
             part_time_resident=NO)
 
@@ -207,17 +221,21 @@ class TestMembers(MemberMixin, TestCase):
             mommy.make_recipe,
             'member.enrollmentchecklist',
             household_member=household_member,
+            report_datetime=household_structure.report_datetime,
+            dob=(household_structure.report_datetime - relativedelta(years=25)).date(),
             initials=household_member.initials,
             gender=FEMALE)
 
     # test enrollment loss / ineligible by the enrollment checklist
     def test_enrollment_checklist_eligible(self):
-        household_structure = self.make_household_ready_for_enumeration()
+        household_structure = self.make_household_ready_for_enumeration(make_hoh=False)
         household_member = self.add_household_member(
             household_structure=household_structure)
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            report_datetime=household_structure.report_datetime,
+            dob=(household_structure.report_datetime - relativedelta(years=25)).date(),
             initials=household_member.initials)
         household_member = HouseholdMember.objects.get(pk=household_member.pk)
         self.assertTrue(enrollment_checklist.is_eligible)
@@ -237,6 +255,7 @@ class TestMembers(MemberMixin, TestCase):
             mommy.make_recipe,
             'member.enrollmentchecklist',
             household_member=household_member,
+            report_datetime=household_structure.report_datetime,
             initials=household_member.initials,
             dob=(household_structure.survey_schedule_object.start - relativedelta(years=10)).date())
 
@@ -247,6 +266,8 @@ class TestMembers(MemberMixin, TestCase):
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            report_datetime=household_structure.report_datetime,
+            dob=(household_structure.report_datetime - relativedelta(years=25)).date(),
             initials=household_member.initials,
             has_identity=NO)
         self.assertIn('identity', enrollment_checklist.loss_reason)
@@ -258,6 +279,8 @@ class TestMembers(MemberMixin, TestCase):
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            report_datetime=household_structure.report_datetime,
+            dob=(household_structure.report_datetime - relativedelta(years=25)).date(),
             initials=household_member.initials,
             household_residency=NO)
         self.assertIn('household residency', enrollment_checklist.loss_reason)
@@ -271,6 +294,8 @@ class TestMembers(MemberMixin, TestCase):
             mommy.make_recipe,
             'member.enrollmentchecklist',
             household_member=household_member,
+            report_datetime=household_structure.report_datetime,
+            dob=(household_structure.report_datetime - relativedelta(years=25)).date(),
             initials=household_member.initials,
             part_time_resident=NO)
 
@@ -281,6 +306,8 @@ class TestMembers(MemberMixin, TestCase):
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            report_datetime=household_structure.report_datetime,
+            dob=(household_structure.report_datetime - relativedelta(years=25)).date(),
             initials=household_member.initials,
             citizen=NO,
             legal_marriage=NO)
@@ -293,6 +320,8 @@ class TestMembers(MemberMixin, TestCase):
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            report_datetime=household_structure.report_datetime,
+            dob=(household_structure.report_datetime - relativedelta(years=25)).date(),
             initials=household_member.initials,
             citizen=NO,
             legal_marriage=YES,
@@ -308,6 +337,8 @@ class TestMembers(MemberMixin, TestCase):
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            report_datetime=household_structure.report_datetime,
+            dob=(household_structure.report_datetime - relativedelta(years=25)).date(),
             initials=household_member.initials,
             literacy=NO)
         self.assertIn(
@@ -321,6 +352,8 @@ class TestMembers(MemberMixin, TestCase):
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            report_datetime=household_structure.report_datetime,
+            dob=(household_structure.report_datetime - relativedelta(years=25)).date(),
             initials=household_member.initials,
             confirm_participation=BLOCK_PARTICIPATION)
         self.assertIn(
@@ -331,10 +364,12 @@ class TestMembers(MemberMixin, TestCase):
         household_structure = self.make_household_ready_for_enumeration()
         household_member = self.add_household_member(
             household_structure=household_structure,
+            report_datetime=household_structure.report_datetime,
             age_in_years=17)
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            report_datetime=household_structure.report_datetime,
             initials=household_member.initials,
             dob=(household_structure.survey_schedule_object.start - relativedelta(years=17)).date(),
             guardian=NO)
@@ -349,6 +384,8 @@ class TestMembers(MemberMixin, TestCase):
         mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            report_datetime=household_structure.report_datetime,
+            dob=(household_structure.report_datetime - relativedelta(years=25)).date(),
             initials=household_member.initials,
             literacy=NO)
         try:
@@ -363,6 +400,8 @@ class TestMembers(MemberMixin, TestCase):
         mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            report_datetime=household_structure.report_datetime,
+            dob=(household_structure.report_datetime - relativedelta(years=25)).date(),
             initials=household_member.initials)
         try:
             EnrollmentLoss.objects.get(household_member=household_member)
@@ -378,6 +417,8 @@ class TestMembers(MemberMixin, TestCase):
         mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            report_datetime=household_structure.report_datetime,
+            dob=(household_structure.report_datetime - relativedelta(years=25)).date(),
             initials=household_member.initials,
             literacy=NO)
         try:
@@ -399,6 +440,8 @@ class TestMembers(MemberMixin, TestCase):
         mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            report_datetime=household_structure.report_datetime,
+            dob=(household_structure.report_datetime - relativedelta(years=25)).date(),
             initials=household_member.initials,
             literacy=NO)
         household_member = HouseholdMember.objects.get(pk=household_member.pk)
@@ -413,6 +456,8 @@ class TestMembers(MemberMixin, TestCase):
         mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
+            report_datetime=household_structure.report_datetime,
+            dob=(household_structure.report_datetime - relativedelta(years=25)).date(),
             initials=household_member.initials)
         household_member = HouseholdMember.objects.get(pk=household_member.pk)
         self.assertTrue(household_member.enrollment_checklist_completed)
@@ -430,6 +475,7 @@ class TestMembers(MemberMixin, TestCase):
         household_structure = self.make_household_ready_for_enumeration()
         household_member = self.add_household_member(
             household_structure=household_structure,
+            report_datetime=household_structure.report_datetime,
             age_in_years=10)
         self.assertEqual(household_member.member_status, NOT_ELIGIBLE)
 
@@ -573,7 +619,6 @@ class TestMembers(MemberMixin, TestCase):
             household_member=household_member,
             report_datetime=report_datetime)
 
-    @tag('erk')
     def test_undecided_uniqueness(self):
         report_datetime = self.get_utcnow()
         household_structure = self.make_household_ready_for_enumeration(
@@ -595,6 +640,7 @@ class TestMembers(MemberMixin, TestCase):
         household_member = mommy.make_recipe(
             'member.householdmember',
             household_structure=household_structure,
+            report_datetime=household_structure.report_datetime,
             relation=HEAD_OF_HOUSEHOLD)
         subject_identifier = household_member.subject_identifier
         subject_identifier_as_pk = household_member.subject_identifier_as_pk
@@ -616,7 +662,7 @@ class TestMembers(MemberMixin, TestCase):
         for _ in range(0, 3):
             self.add_household_member(
                 household_structure=household_structure,
-                report_datetime=household_structure.survey_schedule_object.start
+                report_datetime=household_structure.report_datetime
             )
         household_structure = HouseholdStructure.objects.get(pk=household_structure.pk)
         self.assertTrue(household_structure.enumerated)
@@ -627,7 +673,7 @@ class TestMembers(MemberMixin, TestCase):
         for _ in range(0, 3):
             self.add_household_member(
                 household_structure=household_structure,
-                report_datetime=household_structure.survey_schedule_object.start)
+                report_datetime=household_structure.report_datetime)
         household_structure = HouseholdStructure.objects.get(pk=household_structure.pk)
         household_structure.householdmember_set.all().delete()
         household_structure = HouseholdStructure.objects.get(pk=household_structure.pk)
@@ -642,18 +688,20 @@ class TestMembers(MemberMixin, TestCase):
                 household_structure.survey_schedule, survey_schedule.field_value)
 
     def test_household_member_clone(self):
-        household_structure = self.make_household_ready_for_enumeration()
+        survey_schedule = site_surveys.get_survey_schedules(current=True)[0]
+        household_structure = self.make_household_ready_for_enumeration(
+            make_hoh=False, survey_schedule=survey_schedule)
         self.add_household_member(household_structure=household_structure)
         self.add_household_member(household_structure=household_structure)
         self.add_household_member(household_structure=household_structure)
-        previous_members = HouseholdMember.objects.filter(
-            household_structure=household_structure)
         next_household_structure = self.get_next_household_structure_ready(
             household_structure, make_hoh=None)
+        previous_members = HouseholdMember.objects.filter(
+            household_structure=household_structure).order_by('report_datetime')
         for obj in previous_members:
             new_obj = obj.clone(
                 household_structure=next_household_structure,
-                report_datetime=household_structure.survey_schedule_object.start)
+                report_datetime=next_household_structure.report_datetime)
             self.assertEqual(obj.internal_identifier, new_obj.internal_identifier)
             self.assertEqual(obj.subject_identifier, new_obj.subject_identifier)
             new_obj.save()
@@ -669,7 +717,7 @@ class TestMembers(MemberMixin, TestCase):
             household_structure, make_hoh=False)
         clone = Clone(
             household_structure=next_household_structure,
-            report_datetime=next_household_structure.survey_schedule_object.start)
+            report_datetime=household_structure.report_datetime)
         self.assertEqual(clone.members.all().count(), 0)
 
     def test_clone_members_no_previous(self):
@@ -680,11 +728,10 @@ class TestMembers(MemberMixin, TestCase):
             household_structure, make_hoh=False)
         clone = Clone(
             household_structure=next_household_structure,
-            report_datetime=next_household_structure.survey_schedule_object.start)
+            report_datetime=household_structure.report_datetime)
         self.assertEqual(clone.members.all().count(), 0)
 
 
-@tag('erik')
 class TestCloneMembers(MemberMixin, TestCase):
 
     def setUp(self):
@@ -825,11 +872,13 @@ class TestCloneMembers(MemberMixin, TestCase):
         household_member = household_structure.householdmember_set.all().first()
         self.assertIsNotNone(household_member.internal_identifier)
 
-    @tag('erik')
     def test_todays_log_entry_or_raise_no_logs(self):
         household_structure = self.make_household_structure()
         self.assertEqual(HouseholdLogEntry.objects.filter(
             household_log__household_structure=household_structure).count(), 0)
+        mommy.make_recipe(
+            'member.representativeeligibility',
+            household_structure=household_structure)
         self.assertRaises(
             HouseholdLogRequired,
             self.add_household_member, household_structure)
