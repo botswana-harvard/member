@@ -39,12 +39,11 @@ class HouseholdMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
                 'personal_details_changed',
                 'details_change_reason')
         }),
-        survey_fieldset_tuple,
         audit_fieldset_tuple,
     )
 
     def get_readonly_fields(self, request, obj=None):
-        return super().get_readonly_fields(request, obj=obj) + survey_fields
+        return super().get_readonly_fields(request, obj=obj)
 
     radio_fields = {
         "gender": admin.VERTICAL,
