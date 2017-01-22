@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from edc_base.modeladmin_mixins import TabularInlineMixin, audit_fieldset_tuple
 
-from survey.admin import survey_fieldset_tuple, survey_fields
+from survey.admin import survey_schedule_fields, survey_schedule_fieldset_tuple
 
 from ..admin_site import member_admin
 from ..forms import HouseholdMemberForm
@@ -39,11 +39,25 @@ class HouseholdMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
                 'personal_details_changed',
                 'details_change_reason')
         }),
+#         ('Status', {
+#             'fields': (
+#                 'visit_attempts',
+#                 'eligible_member',
+#                 'eligible_subject',
+#                 'is_consented',
+#                 'enrollment_checklist_completed',
+#                 'enrollment_loss_completed',
+#                 'reported',
+#                 'refused',
+#                 'eligible_htc',),
+#             'classes': ('collapse',),
+#         }),
+        survey_schedule_fieldset_tuple,
         audit_fieldset_tuple,
     )
 
     def get_readonly_fields(self, request, obj=None):
-        return super().get_readonly_fields(request, obj=obj)
+        return super().get_readonly_fields(request, obj=obj) + survey_schedule_fields
 
     radio_fields = {
         "gender": admin.VERTICAL,

@@ -37,8 +37,11 @@ class HouseholdMemberViewMixin:
                     household_structure__id=self.household_structure.id)
             except HouseholdMember.DoesNotExist:
                 household_member = HouseholdMember(
-                    household_structure=self.household_structure._original_object)
-            self._household_member = self.household_member_wrapper_class(household_member)
+                    household_structure=self.household_structure._original_object,
+                    survey_schedule=(self.household_structure._original_object.
+                                     survey_schedule_object.field_value))
+            self._household_member = self.household_member_wrapper_class(
+                household_member)
         return self._household_member
 
     @property

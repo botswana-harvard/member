@@ -6,7 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import (
     MinLengthValidator, MaxLengthValidator, MinValueValidator, MaxValueValidator, RegexValidator)
 from django_crypto_fields.fields import FirstnameField
-from django.db import models
+from django.db import models, transaction
 
 from edc_base.model.fields import OtherCharField
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
@@ -212,6 +212,7 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
 
     @property
     def anonymous(self):
+        """Returns True if this member resides on the anonymous plot."""
         plot = get_anonymous_plot()
         if self.household_structure.household.plot == plot:
             return True
@@ -219,6 +220,8 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
 
     @property
     def next(self):
+        """Returns a household_member instance or None that is the
+        cloned household_member instance in the next household_structure."""
         try:
             return self.household_structure.next.householdmember_set.get(
                 internal_identifier=self.internal_identifier,
@@ -228,6 +231,8 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
 
     @property
     def previous(self):
+        """Returns a household_member instance or None that is the
+        cloned household_member instance in the previous household_structure."""
         try:
             return self.household_structure.next.householdmember_set.get(
                 internal_identifier=self.internal_identifier,
@@ -236,7 +241,7 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
             return None
 
     def clone(self, household_structure, report_datetime):
-        """Returns a new unsaved household member.
+        """Returns a new unsaved household member instance.
 
             * household_structure: the "next" household_structure to
               which the new members will be related."""
@@ -244,6 +249,17 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
         def new_age(report_datetime):
             born = report_datetime - relativedelta(years=self.age_in_years)
             return age(born, report_datetime).years
+
+        with transaction.atomic():
+            try:
+                self.__class__.get(
+                    household_structure=self.household_structure,
+                    survey_schedule=self.household_structure.survey_schedule_object.field_value)
+            except HouseholdMember.DoesNotExist:
+                pass
+            else:
+                raise CloneError(
+                    'Cannot create a clone of an existing household_member')
 
         start = household_structure.survey_schedule_object.rstart
         end = household_structure.survey_schedule_object.rend
