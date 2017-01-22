@@ -113,6 +113,17 @@ class EnrollmentChecklistModelWrapper(MemberStatusModelWrapperMixin):
         'member.enrollmentchecklist': ['household_identifier', 'survey_schedule']}
 
 
+class EnrollmentChecklistAnonymousModelWrapper(MemberStatusModelWrapperMixin):
+
+    model_name = 'member.enrollmentchecklistanonymous'
+    extra_querystring_attrs = {
+        'member.enrollmentchecklistanonymous': ['survey_schedule', 'household_member']}
+    next_url_attrs = {
+        'member.enrollmentchecklistanonymous': ['household_identifier', 'survey_schedule']}
+    next_url_name = django_apps.get_app_config(
+        'enumeration').anonymous_dashboard_url_name
+
+
 class HeadOfHouseholdEligibilityModelWrapper(MemberStatusModelWrapperMixin):
 
     model_name = 'member.householdheadeligibility'
