@@ -55,7 +55,8 @@ class EnrollmentChecklistAnonymousForm(forms.ModelForm):
 
     def get_anonymous_member(self):
         plot = get_anonymous_plot()
-        household_structure = HouseholdStructure.objects.get(household__plot=plot)
+        household_structure = HouseholdStructure.objects.get(
+            household__plot=plot)
         if self.cleaned_data.get('gender') == MALE:
             first_name = fake.first_name_male().upper()
         else:
@@ -84,7 +85,7 @@ class EnrollmentChecklistAnonymousForm(forms.ModelForm):
         if is_minor(age_in_years) and cleaned_data.get('guardian') in [NO, NOT_APPLICABLE]:
             raise forms.ValidationError(
                 {'guardian': 'Subject a minor. Got {}y'.format(age_in_years)})
-        if is_adult(age_in_years) and not cleaned_data.get('guardian') in [YES, NO]:
+        if is_adult(age_in_years) and cleaned_data.get('guardian') in [YES, NO]:
             raise forms.ValidationError(
                 {'guardian': 'Subject a not minor. Got {}y'.format(age_in_years)})
 

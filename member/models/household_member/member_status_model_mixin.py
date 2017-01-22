@@ -13,17 +13,14 @@ class MemberStatusModelMixin(models.Model):
 
     refused = models.BooleanField(
         default=False,
-        editable=False,
         help_text="updated by subject refusal save method only")
 
     undecided = models.BooleanField(
         default=False,
-        editable=False,
         help_text="updated by subject undecided save method only")
 
     absent = models.BooleanField(
         default=False,
-        editable=False,
         help_text="Updated by the subject absentee log")
 
     def save(self, *args, **kwargs):

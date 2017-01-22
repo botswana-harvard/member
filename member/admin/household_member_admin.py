@@ -15,6 +15,17 @@ class HouseholdMemberInline(TabularInlineMixin, admin.TabularInline):
     model = HouseholdMember
     extra = 3
 
+status_fields = (
+    'visit_attempts',
+    'eligible_member',
+    'eligible_subject',
+    'is_consented',
+    'enrollment_checklist_completed',
+    'enrollment_loss_completed',
+    'reported',
+    'refused',
+    'eligible_htc')
+
 
 @admin.register(HouseholdMember, site=member_admin)
 class HouseholdMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
@@ -39,25 +50,16 @@ class HouseholdMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
                 'personal_details_changed',
                 'details_change_reason')
         }),
-#         ('Status', {
-#             'fields': (
-#                 'visit_attempts',
-#                 'eligible_member',
-#                 'eligible_subject',
-#                 'is_consented',
-#                 'enrollment_checklist_completed',
-#                 'enrollment_loss_completed',
-#                 'reported',
-#                 'refused',
-#                 'eligible_htc',),
-#             'classes': ('collapse',),
-#         }),
+        ('Status', {
+            'fields': status_fields,
+            'classes': ('collapse',),
+        }),
         survey_schedule_fieldset_tuple,
         audit_fieldset_tuple,
     )
 
     def get_readonly_fields(self, request, obj=None):
-        return super().get_readonly_fields(request, obj=obj) + survey_schedule_fields
+        return super().get_readonly_fields(request, obj=obj) + survey_schedule_fields + status_fields
 
     radio_fields = {
         "gender": admin.VERTICAL,
