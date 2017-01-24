@@ -19,8 +19,10 @@ class HouseholdMemberViewMixin:
     def get(self, request, *args, **kwargs):
         """Add household member(s) to the instance."""
 
-        household_members = self.household_structure.wrapped_object.householdmember_set.all().order_by('first_name')
-        self.household_members = (self.household_member_wrapper_class(obj) for obj in household_members)
+        household_members = self.household_structure.wrapped_object.householdmember_set.all(
+        ).order_by('first_name')
+        self.household_members = [
+            self.household_member_wrapper_class(obj) for obj in household_members]
 
         kwargs['household_member'] = self.household_member
         kwargs['head_of_household'] = self.head_of_household
@@ -55,5 +57,6 @@ class HouseholdMemberViewMixin:
             except ObjectDoesNotExist:
                 head_of_household = HouseholdMember(
                     household_structure=self.household_structure._original_object)
-            self._head_of_household = self.household_member_wrapper_class(head_of_household)
+            self._head_of_household = self.household_member_wrapper_class(
+                head_of_household)
         return self._head_of_household
