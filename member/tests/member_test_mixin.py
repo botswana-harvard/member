@@ -56,7 +56,7 @@ class MemberTestMixin:
             pk=household_structure.pk)
         return household_structure
 
-    def make_household_ready_for_enumeration(self, make_hoh=None, **options):
+    def make_household_ready_for_enumeration(self, make_hoh=None, survey_schedule=survey_schedule, **options):
         """Returns household_structure after adding representative
         eligibility.
 
@@ -67,7 +67,7 @@ class MemberTestMixin:
         if 'report_datetime' not in options:
             options['report_datetime'] = (
                 site_surveys.get_survey_schedules()[0].start)
-        household_structure = self.make_household_structure(**options)
+        household_structure = self.make_household_structure(survey_schedule=survey_schedule, **options)
         return self._make_ready(
             household_structure, make_hoh=make_hoh, **options)
 
