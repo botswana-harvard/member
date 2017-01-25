@@ -4,10 +4,12 @@ from django.urls.exceptions import NoReverseMatch
 from django_revision.modeladmin_mixin import ModelAdminRevisionMixin
 
 from edc_base.modeladmin_mixins import (
-    ModelAdminNextUrlRedirectMixin, ModelAdminFormInstructionsMixin, ModelAdminFormAutoNumberMixin,
-    ModelAdminReadOnlyMixin, ModelAdminAuditFieldsMixin, ModelAdminInstitutionMixin)
+    ModelAdminNextUrlRedirectMixin, ModelAdminFormInstructionsMixin,
+    ModelAdminFormAutoNumberMixin, ModelAdminReadOnlyMixin,
+    ModelAdminAuditFieldsMixin, ModelAdminInstitutionMixin)
 
 from household.models import HouseholdStructure
+from survey.admin import survey_schedule_fields
 
 from ..models import HouseholdMember
 
@@ -23,11 +25,12 @@ class HouseholdMemberAdminMixin:
             if request.GET.get('household_member'):
                 kwargs["queryset"] = HouseholdMember.objects.filter(
                     id__exact=request.GET.get('household_member', 0))
-        return super(HouseholdMemberAdminMixin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def view_on_site(self, obj):
         try:
-            household_identifier = obj.household_member.household_structure.household.household_identifier
+            household_identifier = (
+                obj.household_member.household_structure.household.household_identifier)
         except AttributeError:
             household_identifier = obj.household_structure.household.household_identifier
         try:
@@ -43,10 +46,16 @@ class HouseholdMemberAdminMixin:
             return super().view_on_site(obj)
 
 
-class ModelAdminMixin(ModelAdminInstitutionMixin, ModelAdminFormInstructionsMixin, ModelAdminNextUrlRedirectMixin,
-                      ModelAdminFormAutoNumberMixin, ModelAdminRevisionMixin, ModelAdminAuditFieldsMixin,
-                      ModelAdminReadOnlyMixin, HouseholdMemberAdminMixin, admin.ModelAdmin):
+class ModelAdminMixin(ModelAdminInstitutionMixin, ModelAdminFormInstructionsMixin,
+                      ModelAdminNextUrlRedirectMixin, ModelAdminFormAutoNumberMixin,
+                      ModelAdminRevisionMixin, ModelAdminAuditFieldsMixin,
+                      ModelAdminReadOnlyMixin, HouseholdMemberAdminMixin,
+                      admin.ModelAdmin):
 
     list_per_page = 10
     date_hierarchy = 'modified'
     empty_value_display = '-'
+
+    def get_readonly_fields(self, request, obj=None):
+        return (super().get_readonly_fields(request, obj=obj)
+                + survey_schedule_fields)
