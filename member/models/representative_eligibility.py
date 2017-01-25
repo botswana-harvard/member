@@ -4,6 +4,7 @@ from edc_base.model.models import BaseUuidModel, HistoricalRecords
 from edc_base.utils import get_utcnow
 
 from household.models import HouseholdStructure
+from survey.model_mixins import SurveyScheduleModelMixin
 
 from .model_mixins import RepresentativeEligibilityMixin
 
@@ -18,13 +19,16 @@ class MyManager(models.Manager):
         )
 
 
-class RepresentativeEligibility(RepresentativeEligibilityMixin, BaseUuidModel):
+class RepresentativeEligibility(RepresentativeEligibilityMixin,
+                                SurveyScheduleModelMixin,
+                                BaseUuidModel):
     """A model completed by the user that checks the eligibility of household member
     to be the household representative."""
 
     report_datetime = models.DateTimeField(default=get_utcnow)
 
-    household_structure = models.OneToOneField(HouseholdStructure, on_delete=models.PROTECT)
+    household_structure = models.OneToOneField(
+        HouseholdStructure, on_delete=models.PROTECT)
 
     auto_filled = models.BooleanField(
         default=False,
@@ -45,6 +49,10 @@ class RepresentativeEligibility(RepresentativeEligibilityMixin, BaseUuidModel):
 
     def __str__(self):
         return str(self.household_structure)
+
+    def save(self, *args, **kwargs):
+        self.survey_schedule = self.household_structure.survey_schedule
+        super().save(*args, **kwargs)
 
     def natural_key(self):
         return self.household_structure.natural_key()
