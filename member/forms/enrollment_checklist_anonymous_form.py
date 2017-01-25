@@ -1,4 +1,5 @@
 from django import forms
+from django.apps import apps as django_apps
 from faker import Faker
 
 from edc_constants.constants import NOT_APPLICABLE, YES, ALIVE, MALE, NO
@@ -55,8 +56,11 @@ class EnrollmentChecklistAnonymousForm(forms.ModelForm):
 
     def get_anonymous_member(self):
         plot = get_anonymous_plot()
+        current_survey_schedule = django_apps.get_app_config(
+            'survey').current_survey_schedule
         household_structure = HouseholdStructure.objects.get(
-            household__plot=plot)
+            household__plot=plot,
+            survey_schedule=current_survey_schedule)
         if self.cleaned_data.get('gender') == MALE:
             first_name = fake.first_name_male().upper()
         else:
