@@ -1,5 +1,8 @@
 from django.contrib import admin
 
+from edc_base.modeladmin_mixins import audit_fieldset_tuple
+from survey.admin import survey_schedule_fieldset_tuple
+
 from ..admin_site import member_admin
 from ..forms import RefusedMemberForm
 from ..models import RefusedMember
@@ -10,13 +13,22 @@ from .modeladmin_mixins import ModelAdminMixin
 @admin.register(RefusedMember, site=member_admin)
 class RefusedMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
     form = RefusedMemberForm
-    fields = (
-        'household_member',
-        'report_datetime',
-        'refusal_date',
-        'reason',
-        'reason_other',
-        'comment')
+    fieldsets = (
+        (None, {
+            'fields':
+            ('household_member',
+             'report_datetime',
+             'refusal_date',
+             'reason',
+             'reason_other',
+             'comment')}),
+        survey_schedule_fieldset_tuple,
+        audit_fieldset_tuple,
+    )
+
+    def get_readonly_fields(self, request, obj=None):
+        return (super().get_readonly_fields(request, obj=obj)
+                + survey_schedule_fieldset_tuple)
 
     radio_fields = {"reason": admin.VERTICAL}
 

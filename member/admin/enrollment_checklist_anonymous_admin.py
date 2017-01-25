@@ -2,11 +2,11 @@ from django.contrib import admin
 
 from edc_base.modeladmin_mixins import audit_fieldset_tuple
 
+from survey.admin import survey_fieldset_tuple
 
 from ..admin_site import member_admin
 from ..forms import EnrollmentChecklistAnonymousForm
 from ..models import EnrollmentChecklistAnonymous, HouseholdMember
-
 from .modeladmin_mixins import ModelAdminMixin
 
 
@@ -17,9 +17,10 @@ class EnrollmentChecklistAnonymousAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     date_hierarchy = 'report_datetime'
 
-    instructions = ['This form is a tool to assist the Interviewer to confirm the '
-                    'Eligibility status of the ANONYMOUS subject. '
-                    'After entering the required items, click SAVE.']
+    instructions = [
+        'This form is a tool to assist the Interviewer to confirm the '
+        'Eligibility status of the ANONYMOUS subject. '
+        'After entering the required items, click SAVE.']
 
     fieldsets = (
         (None, {
@@ -35,10 +36,12 @@ class EnrollmentChecklistAnonymousAdmin(ModelAdminMixin, admin.ModelAdmin):
                 "part_time_resident",
                 'may_store_samples')
         }),
+        survey_fieldset_tuple,
         audit_fieldset_tuple,
     )
 
-    list_display = ('household_member', 'report_datetime', 'gender', 'age_in_years', 'may_store_samples', )
+    list_display = ('household_member', 'report_datetime',
+                    'gender', 'age_in_years', 'may_store_samples', )
 
     list_filter = (
         'report_datetime',
@@ -54,7 +57,8 @@ class EnrollmentChecklistAnonymousAdmin(ModelAdminMixin, admin.ModelAdmin):
         "may_store_samples": admin.VERTICAL,
     }
 
-    search_fields = ('household_member__subject_identifier', 'household_member__pk')
+    search_fields = (
+        'household_member__subject_identifier', 'household_member__pk')
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "household_member":

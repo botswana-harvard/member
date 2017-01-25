@@ -1,9 +1,11 @@
 from django.contrib import admin
 
+from edc_base.modeladmin_mixins import audit_fieldset_tuple
+from survey.admin import survey_schedule_fieldset_tuple
+
 from ..admin_site import member_admin
 from ..forms import DeceasedMemberForm
 from ..models import DeceasedMember
-
 from .modeladmin_mixins import ModelAdminMixin
 
 
@@ -11,6 +13,20 @@ from .modeladmin_mixins import ModelAdminMixin
 class DeceasedMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     form = DeceasedMemberForm
+
+    fieldsets = (
+        (None, {
+            'fields': (
+                'household_member',
+                'report_datetime',
+                'death_date',
+                'site_aware_date',
+                'death_cause',
+                'duration_of_illness',
+                'relationship_death_study')}),
+        survey_schedule_fieldset_tuple,
+        audit_fieldset_tuple,
+    )
 
     list_display = ('household_member', 'report_datetime')
 

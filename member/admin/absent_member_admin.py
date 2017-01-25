@@ -1,11 +1,12 @@
 from django.contrib import admin
 
+from edc_base.modeladmin_mixins import audit_fieldset_tuple
+from survey.admin import survey_schedule_fieldset_tuple
+
 from ..admin_site import member_admin
-from ..models import AbsentMember
-
-from .modeladmin_mixins import ModelAdminMixin
-
 from ..forms import AbsentMemberForm
+from ..models import AbsentMember
+from .modeladmin_mixins import ModelAdminMixin
 
 
 @admin.register(AbsentMember, site=member_admin)
@@ -13,14 +14,19 @@ class AbsentMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     form = AbsentMemberForm
 
-    fields = (
-        'household_member',
-        'report_datetime',
-        'next_appt_datetime',
-        'next_appt_datetime_source',
-        'reason',
-        'reason_other',
-        'contact_details')
+    fieldsets = (
+        (None, {
+            'fields': (
+                'household_member',
+                'report_datetime',
+                'next_appt_datetime',
+                'next_appt_datetime_source',
+                'reason',
+                'reason_other',
+                'contact_details')}),
+        survey_schedule_fieldset_tuple,
+        audit_fieldset_tuple,
+    )
 
     list_display = (
         'household_member',
