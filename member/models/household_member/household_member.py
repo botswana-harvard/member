@@ -38,7 +38,8 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
                       SurveyScheduleModelMixin, BaseUuidModel):
     """A model completed by the user to represent an enumerated household member."""
 
-    household_structure = models.ForeignKey(HouseholdStructure, on_delete=models.PROTECT)
+    household_structure = models.ForeignKey(
+        HouseholdStructure, on_delete=models.PROTECT)
 
     internal_identifier = models.CharField(
         max_length=36,
@@ -119,11 +120,11 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
 
     personal_details_changed = models.CharField(
         verbose_name=(
-            "Have your personal details (name/surname) changed since the last time we visited you?"),
+            'Have your personal details (name/surname) changed since the '
+            'last time we visited you?'),
         max_length=10,
         null=True,
-        blank=True,
-        default='-',
+        blank=False,
         choices=YES_NO,
         help_text=('personal details (name/surname)'))
 
@@ -132,9 +133,8 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
         max_length=30,
         null=True,
         blank=True,
-        default='-',
         choices=DETAILS_CHANGE_REASON,
-        help_text=('if personal detail changed choice a reason above.'))
+        help_text=('if personal detail changed indicate the reason.'))
 
     visit_attempts = models.IntegerField(
         default=0,
@@ -174,7 +174,8 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
     updated_after_auto_filled = models.BooleanField(
         default=True,
         editable=False,
-        help_text=('if True, a user updated the values or this was not autofilled')
+        help_text=(
+            'if True, a user updated the values or this was not autofilled')
     )
 
     additional_key = models.CharField(
@@ -252,21 +253,25 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
 
         with transaction.atomic():
             try:
-                self.__class__.get(
+                self.__class__.objects.get(
+                    internal_identifier=self.internal_identifier,
                     household_structure=self.household_structure,
                     survey_schedule=self.household_structure.survey_schedule_object.field_value)
             except HouseholdMember.DoesNotExist:
                 pass
             else:
                 raise CloneError(
-                    'Cannot create a clone of an existing household_member')
+                    'Cannot clone a household member into a survey '
+                    'where the member already exists')
 
         start = household_structure.survey_schedule_object.rstart
         end = household_structure.survey_schedule_object.rend
-        rdate = arrow.Arrow.fromdatetime(report_datetime, report_datetime.tzinfo)
+        rdate = arrow.Arrow.fromdatetime(
+            report_datetime, report_datetime.tzinfo)
 
-        if not (start.to('utc').date() <= rdate.to('utc').date() <=
-                end.to('utc').date()):
+        if not (start.to('utc').date()
+                <= rdate.to('utc').date()
+                <= end.to('utc').date()):
             raise CloneError(
                 'Invalid report datetime. \'{}\' does not fall within '
                 'the date range for survey schedule \'{}\'. Expected any date '
@@ -296,36 +301,14 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
     def common_clean(self):
         if self.survival_status == DEAD and self.present_today == YES:
             raise MemberValidationError(
-                'Invalid combination. Got member status == {} but present today == {}'.format(
+                'Invalid combination. Got member status == {} but '
+                'present today == {}'.format(
                     self.survival_status, self.present_today))
         super().common_clean()
 
     @property
     def common_clean_exceptions(self):
         return super().common_clean_exceptions + [MemberValidationError]
-
-#     @property
-#     def evaluate_htc_eligibility(self):
-#         # from ..models import EnrollmentChecklist
-#         eligible_htc = False
-#         if self.age_in_years > 64 and not self.is_consented:
-#             eligible_htc = True
-#         elif ((not self.eligible_member and self.inability_to_participate == NOT_APPLICABLE) and
-#               self.age_in_years >= 16):
-#             eligible_htc = True
-#         elif self.eligible_member and self.refused:
-#             eligible_htc = True
-#         elif self.enrollment_checklist_completed and not self.eligible_subject:
-#             try:
-#                 erollment_checklist = EnrollmentChecklist.objects.get(household_member=self)
-#             except EnrollmentChecklist.DoesNotExist:
-#                 pass
-#             if erollment_checklist.confirm_participation.lower() == 'block':
-#                 eligible_htc = False
-#             else:
-#                 eligible_htc = True
-#         return eligible_htc
-#
 
     class Meta:
         app_label = 'member'

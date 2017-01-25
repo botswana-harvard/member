@@ -74,7 +74,8 @@ def todays_log_entry_or_raise(household_structure=None, report_datetime=None, **
                 report_datetime__date=rdate.to('utc').date())
         except HouseholdLogEntry.DoesNotExist:
             if household_structure.household.plot == plot:
-                household_log_entry = create_log_for_anonymous(household_structure)
+                household_log_entry = create_log_for_anonymous(
+                    household_structure)
             else:
                 raise HouseholdLogRequired(
                     'A \'{}\' does not exist for {}, last log '

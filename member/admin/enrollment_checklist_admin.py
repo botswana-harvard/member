@@ -1,5 +1,7 @@
 from django.contrib import admin
 
+from edc_base.modeladmin_mixins import audit_fieldset_tuple
+from survey.admin import survey_schedule_fieldset_tuple
 
 from ..admin_site import member_admin
 from ..forms import EnrollmentChecklistForm
@@ -15,28 +17,35 @@ class EnrollmentChecklistAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     date_hierarchy = 'report_datetime'
 
-    instructions = ['This form is a tool to assist the Interviewer to confirm the '
-                    'Eligibility status of the subject. After entering the required items, click SAVE.']
+    instructions = [
+        'This form is a tool to assist the Interviewer to confirm the '
+        'Eligibility status of the subject. After entering the required '
+        'items, click SAVE.']
 
-    fields = (
-        'household_member',
-        'report_datetime',
-        'initials',
-        'dob',
-        'gender',
-        'has_identity',
-        "citizen",
-        "legal_marriage",
-        "study_participation",
-        "confirm_participation",
-        "marriage_certificate",
-        "part_time_resident",
-        "household_residency",
-        "literacy",
-        "guardian",
+    fieldsets = (
+        (None, {
+            'fields': (
+                'household_member',
+                'report_datetime',
+                'initials',
+                'dob',
+                'gender',
+                'has_identity',
+                "citizen",
+                "legal_marriage",
+                "study_participation",
+                "confirm_participation",
+                "marriage_certificate",
+                "part_time_resident",
+                "household_residency",
+                "literacy",
+                "guardian")}),
+        survey_schedule_fieldset_tuple,
+        audit_fieldset_tuple,
     )
 
-    list_display = ('household_member', 'report_datetime', 'gender', 'is_eligible', )
+    list_display = (
+        'household_member', 'report_datetime', 'gender', 'is_eligible', )
 
     list_filter = (
         'report_datetime',

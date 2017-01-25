@@ -1,10 +1,12 @@
-from django import forms
 from faker import Faker
+
+from django import forms
+from django.apps import apps as django_apps
 
 from edc_constants.constants import NOT_APPLICABLE, YES, ALIVE, MALE, NO
 
 from household.models.household_structure.household_structure import HouseholdStructure
-from member.models.household_member.household_member import HouseholdMember
+from member.models import HouseholdMember
 from member.models.household_member.utils import is_minor, is_adult, is_child
 from plot.utils import get_anonymous_plot
 
@@ -54,9 +56,12 @@ class EnrollmentChecklistAnonymousForm(forms.ModelForm):
         return cleaned_data
 
     def get_anonymous_member(self):
+        current_survey_schedule = django_apps.get_app_config(
+            'survey').current_survey_schedule
         plot = get_anonymous_plot()
         household_structure = HouseholdStructure.objects.get(
-            household__plot=plot)
+            household__plot=plot,
+            survey_schedule=current_survey_schedule)
         if self.cleaned_data.get('gender') == MALE:
             first_name = fake.first_name_male().upper()
         else:

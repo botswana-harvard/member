@@ -1,8 +1,7 @@
 from django.contrib import admin
 
 from edc_base.modeladmin_mixins import audit_fieldset_tuple
-
-from survey.admin import survey_fieldset_tuple
+from survey.admin import survey_schedule_fieldset_tuple
 
 from ..admin_site import member_admin
 from ..forms import EnrollmentChecklistAnonymousForm
@@ -36,7 +35,7 @@ class EnrollmentChecklistAnonymousAdmin(ModelAdminMixin, admin.ModelAdmin):
                 "part_time_resident",
                 'may_store_samples')
         }),
-        survey_fieldset_tuple,
+        survey_schedule_fieldset_tuple,
         audit_fieldset_tuple,
     )
 

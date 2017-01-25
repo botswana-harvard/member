@@ -1,25 +1,35 @@
 from django.contrib import admin
 
+from edc_base.modeladmin_mixins import audit_fieldset_tuple
+from survey.admin import survey_schedule_fieldset_tuple
+
 from ..admin_site import member_admin
 from ..constants import HEAD_OF_HOUSEHOLD
 from ..forms import HouseholdHeadEligibilityForm
 from ..models import HouseholdHeadEligibility, HouseholdMember
-
 from .modeladmin_mixins import ModelAdminMixin
 
 
 @admin.register(HouseholdHeadEligibility, site=member_admin)
 class HouseholdHeadEligibilityAdmin(ModelAdminMixin, admin.ModelAdmin):
 
-    instructions = ['Important: The household member must verbally consent before completing this questionnaire.']
+    instructions = [
+        'Important: The household member must verbally consent before '
+        'completing this questionnaire.']
 
     form = HouseholdHeadEligibilityForm
-    fields = (
-        "household_member",
-        "report_datetime",
-        "aged_over_18",
-        'household_residency',
-        "verbal_script")
+
+    fieldsets = (
+        (None, {
+            'fields': (
+                "household_member",
+                "report_datetime",
+                "aged_over_18",
+                'household_residency',
+                "verbal_script")}),
+        survey_schedule_fieldset_tuple,
+        audit_fieldset_tuple,
+    )
 
     radio_fields = {
         "aged_over_18": admin.VERTICAL,
@@ -37,5 +47,5 @@ class HouseholdHeadEligibilityAdmin(ModelAdminMixin, admin.ModelAdmin):
             if request.GET.get('household_member'):
                 kwargs["queryset"] = HouseholdMember.objects.filter(
                     relation=HEAD_OF_HOUSEHOLD,
-                    id__exact=request.GET.get('household_member', 0))
+                    id__exact=request.GET.get('household_member'))
         return super().formfield_for_foreignkey(db_field, request, **kwargs)

@@ -2,6 +2,8 @@ from django.contrib import admin
 
 from edc_base.modeladmin_mixins import TabularInlineMixin, audit_fieldset_tuple
 
+from bcpp.surveys import BCPP_YEAR_2, BCPP_YEAR_3
+from survey import S
 from survey.admin import survey_schedule_fields, survey_schedule_fieldset_tuple
 
 from ..admin_site import member_admin
@@ -11,7 +13,6 @@ from ..models import HouseholdMember
 from .modeladmin_mixins import ModelAdminMixin
 from edc_base.fieldsets import (
     Fieldset, FieldsetsModelAdminMixin as BaseFieldsetsModelAdminMixin)
-from pprint import pprint
 
 
 class HouseholdMemberInline(TabularInlineMixin, admin.TabularInline):
@@ -36,16 +37,27 @@ personal_details_fields = (
 
 class FieldsetsModelAdminMixin(BaseFieldsetsModelAdminMixin):
 
-    def get_previous_instance(self, request, appointment=None, **kwargs):
-        obj = None
-        pprint(request.GET)
-#         household_member = household_member or self.get_household_member(
-#             request)
-#         if household_member:
-#             obj = self.model.objects.filter(
-#                 subject_visit__appointment__subject_identifier=appointment.subject_identifier).order_by(
-#                     'report_datetime').last()
-        return obj
+    def get_instance(self, request):
+        return None
+
+    def get_key(self, request):
+        """Returns the name of the household members previous survey schedule
+        or None.
+
+        If key has value, the fieldset will be added to modeladmin.fieldsets.
+        """
+        key = None
+        try:
+            household_member = HouseholdMember.objects.get(
+                household_structure=request.GET.get('household_structure'),
+                survey_schedule=request.GET.get('survey_schedule'))
+        except HouseholdMember.DoesNotExist:
+            pass
+        else:
+            previous = household_member.previous
+            if previous:
+                key = S(previous.survey_schedule).survey_schedule_name
+        return key
 
 
 @admin.register(HouseholdMember, site=member_admin)
@@ -56,14 +68,14 @@ class HouseholdMemberAdmin(ModelAdminMixin, FieldsetsModelAdminMixin,
     list_select_related = ('household_structure', )
     list_per_page = 15
 
-#     conditional_fieldsets = {
-#         T1: Fieldset(
-#             *personal_details_fields, section='Updated Personal Details'),
-#         T2: Fieldset(
-#             *personal_details_fields, section='Updated Personal Details'),
-#         T3: Fieldset(
-#             *personal_details_fields, section='Updated Personal Details'),
-#     }
+    conditional_fieldsets = {
+        BCPP_YEAR_2: Fieldset(
+            *personal_details_fields,
+            section='Updated Personal Details'),
+        BCPP_YEAR_3: Fieldset(
+            *personal_details_fields,
+            section='Updated Personal Details'),
+    }
 
     fieldsets = (
         (None, {
@@ -77,9 +89,7 @@ class HouseholdMemberAdmin(ModelAdminMixin, FieldsetsModelAdminMixin,
                 'inability_to_participate',
                 'inability_to_participate_other',
                 'study_resident',
-                'relation',
-                'personal_details_changed',
-                'details_change_reason')
+                'relation')
         }),
         ('Status', {
             'fields': status_fields,

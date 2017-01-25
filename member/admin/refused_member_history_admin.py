@@ -25,10 +25,11 @@ class RefusedMemberHistoryAdmin(ModelAdminMixin, admin.ModelAdmin):
         'household_member__first_name',
         'household_member__household_structure__household__household_identifier']
 
-    list_filter = ('reason', 'household_member__household_structure__household__plot__map_area')
+    list_filter = (
+        'reason', 'household_member__household_structure__household__plot__map_area')
 
     instructions = []
 
     def get_readonly_fields(self, request, obj=None):
-        readonly_fields = super(RefusedMemberHistoryAdmin, self).get_readonly_fields(request, obj)
+        readonly_fields = super().get_readonly_fields(request, obj)
         return tuple(readonly_fields) + ('transaction', )
