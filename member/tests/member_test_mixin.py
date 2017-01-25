@@ -56,7 +56,7 @@ class MemberTestMixin:
             pk=household_structure.pk)
         return household_structure
 
-    def make_household_ready_for_enumeration(self, make_hoh=None, survey_schedule=survey_schedule, **options):
+    def make_household_ready_for_enumeration(self, make_hoh=None, survey_schedule=None, **options):
         """Returns household_structure after adding representative
         eligibility.
 
