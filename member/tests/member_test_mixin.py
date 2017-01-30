@@ -96,6 +96,7 @@ class MemberTestMixin:
         """
         options.update(attempts=options.get('attempts', 1))
         if household_structure.next:
+            print(household_structure.next.survey_schedule_object, 'household_structure.next.survey_schedule_object')
             survey_schedule = household_structure.next.survey_schedule_object
             if household_structure.next.householdlog.householdlogentry_set.all().count() > 0:
                 raise TestMixinError(

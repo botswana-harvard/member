@@ -30,7 +30,8 @@ from .representative_model_mixin import RepresentativeModelMixin
 from .requires_household_log_entry_mixin import RequiresHouseholdLogEntryMixin
 
 
-class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeModelMixin,
+class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
+                      RepresentativeModelMixin,
                       CloneModelMixin, ConsentModelMixin, MemberStatusModelMixin,
                       MemberEligibilityModelMixin,
                       MemberIdentifierModelMixin, RequiresHouseholdLogEntryMixin,
@@ -179,9 +180,9 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
         help_text=(
             'A uuid to be added to bypass the '
             'unique constraint for firstname, initials, household_structure. '
-            'Should remain as the default value for normal enumeration. Is needed '
-            'for Members added to the data from the clinic section where '
-            'household_structure is always the same value.'),
+            'Should remain as the default value for normal enumeration. '
+            'Is needed for Members added to the data from the clinic '
+            'section where household_structure is always the same value.'),
     )
 
     objects = HouseholdMemberManager()
@@ -194,14 +195,16 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
             self.gender, self.household_structure.survey_schedule)
 
     def save(self, *args, **kwargs):
-        self.household_identifier = self.household_structure.household.household_identifier
+        self.household_identifier = (
+            self.household_structure.household.household_identifier)
         if not self.id and not self.internal_identifier:
             self.internal_identifier = get_uuid()
         self.survey_schedule = self.household_structure.survey_schedule
         super().save(*args, **kwargs)
 
     def natural_key(self):
-        return (self.internal_identifier,) + self.household_structure.natural_key()
+        return ((self.internal_identifier,)
+                + self.household_structure.natural_key())
     natural_key.dependencies = ['household.householdstructure']
 
     @property
@@ -238,8 +241,9 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
         """
         if self.household_structure.previous:
             try:
-                previous_obj = self.household_structure.previous.householdmember_set.get(
-                    internal_identifier=self.internal_identifier)
+                previous_obj = (
+                    self.household_structure.previous.householdmember_set.get(
+                        internal_identifier=self.internal_identifier))
             except ObjectDoesNotExist:
                 previous_obj = None
         else:
