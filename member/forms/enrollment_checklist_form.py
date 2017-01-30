@@ -64,7 +64,8 @@ class EnrollmentChecklistForm(CommonCleanModelFormMixin, forms.ModelForm):
             if is_minor(age_in_years) and cleaned_data.get('guardian') == NOT_APPLICABLE:
                 raise forms.ValidationError(
                     {'guardian': 'Subject a minor. Got {}y'.format(age_in_years)})
-            if is_adult(age_in_years) and not cleaned_data.get('guardian') == NOT_APPLICABLE:
+            if (is_adult(age_in_years)
+                    and not cleaned_data.get('guardian') == NOT_APPLICABLE):
                 raise forms.ValidationError(
                     {'guardian': 'Subject a not minor. Got {}y'.format(age_in_years)})
             if is_child(age_in_years):

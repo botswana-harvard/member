@@ -23,7 +23,8 @@ class MemberStatusModelMixin(models.Model):
 
     @property
     def reported(self):
-        return True if (self.refused or self.undecided or self.absent) else False
+        return True if (
+            self.refused or self.undecided or self.absent) else False
 
     @property
     def participation_status(self):

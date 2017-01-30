@@ -13,7 +13,9 @@ class MyManager(models.Manager):
 
 class RefusedMemberHistory (HouseholdMemberModelMixin, RefusedMemberMixin, BaseUuidModel):
     """A model completed by the user that captures reasons for a
-    potentially eligible household member refusing participating in BHS."""
+    potentially eligible household member refusing participating
+    in BHS.
+    """
 
     transaction = models.UUIDField(unique=True)
 

@@ -22,7 +22,7 @@ class HouseholdMemberModelMixin(RequiresHouseholdLogEntryMixin,
                                 SurveyScheduleModelMixin,
                                 models.Model):
 
-    """Mixin for models that need a foreignkey household_member model
+    """Mixin for models that need a foreignkey household_member model.
     """
 
     household_member = models.OneToOneField(

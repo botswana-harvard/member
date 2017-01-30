@@ -9,8 +9,10 @@ from .model_mixins import MemberEntryMixin
 
 
 class UndecidedMember(MemberEntryMixin, BaseUuidModel):
-    """A model completed by the user that captures information on the undecided status
-    of a household member potentially eligible for BHS."""
+    """A model completed by the user that captures information
+    on the undecided status of a household member potentially
+    eligible for BHS.
+    """
 
     reason = models.CharField(
         verbose_name="Reason",

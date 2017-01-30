@@ -49,7 +49,8 @@ class EnrollmentChecklistAnonymousForm(forms.ModelForm):
             raise forms.ValidationError('Household member is required')
         if household_member.is_consented:
             raise forms.ValidationError(
-                'Household member has consented. Enrollment Checklist may not be modified')
+                'Household member has consented. '
+                'Enrollment Checklist may not be modified')
 
         self.cleaned_data['household_member'] = household_member
 

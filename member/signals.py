@@ -13,7 +13,8 @@ from .models import (
 @receiver(post_save, weak=False, sender=HouseholdMember,
           dispatch_uid="household_member_on_post_save")
 def household_member_on_post_save(sender, instance, raw, created, using, **kwargs):
-    """Updates enumerated, eligible_members on household structure."""
+    """Updates enumerated, eligible_members on household structure.
+    """
     if not raw:
         if created:
             if not instance.household_structure.enumerated:
@@ -28,7 +29,8 @@ def household_member_on_post_save(sender, instance, raw, created, using, **kwarg
 @receiver(post_delete, weak=False, sender=HouseholdMember,
           dispatch_uid="household_member_on_post_delete")
 def household_member_on_post_delete(sender, instance, using, **kwargs):
-    if not instance.household_structure.householdmember_set.exclude(id=instance.id).exists():
+    if not instance.household_structure.householdmember_set.exclude(
+            id=instance.id).exists():
         instance.household_structure.enumerated = False
         instance.household_structure.enumerated_datetime = None
         instance.household_structure.save()
@@ -47,7 +49,9 @@ def household_head_eligibility_on_post_save(
 @receiver(post_save, weak=False, sender=EnrollmentChecklist,
           dispatch_uid="enrollment_checklist_on_post_save")
 def enrollment_checklist_on_post_save(sender, instance, raw, created, using, **kwargs):
-    """Updates adds or removes the Loss form and updates household_member."""
+    """Updates adds or removes the Loss form and updates
+    household_member.
+    """
     if not raw:
         if not instance.is_eligible:
             try:
@@ -216,39 +220,3 @@ def moved_member_on_post_delete(sender, instance, using, **kwargs):
     if instance.household_member.absentmember_set.all().count() == 0:
         instance.household_member.moved = False
     instance.household_member.save()
-
-# @receiver(post_delete, weak=False, sender=HtcMember, dispatch_uid="htc_member_on_post_delete")
-# def htc_member_on_post_delete(sender, instance, using, **kwargs):
-#     """Delete HtcMember on change of member status from HTC but first puts a
-#        copy into the history model."""
-#     # update the history model
-#     household_member = HouseholdMember.objects.using(using).get(
-#         pk=instance.household_member.pk)
-#     options = {'household_member': household_member,
-#                'survey': instance.survey,
-#                'report_datetime': instance.report_datetime,
-#                'tracking_identifier': instance.tracking_identifier,
-#                'offered': instance.offered,
-#                'accepted': instance.accepted,
-#                'refusal_reason': instance.refusal_reason,
-#                'referred': instance.referred,
-#                'referral_clinic': instance.referral_clinic,
-#                'comment': instance.comment}
-#     HtcMemberHistory.objects.using(using).create(**options)
-#
-#
-# @receiver(post_save, weak=False, sender=HtcMember, dispatch_uid='htc_member_on_post_save')
-# def htc_member_on_post_save(sender, instance, raw, created, using, **kwargs):
-#     """Updates household member to reflect the htc status."""
-#     if not raw:
-#         if instance.accepted == 'No':
-#             instance.household_member.htc = False
-#             instance.household_member.refused_htc = True
-#         else:
-#             instance.household_member.htc = True
-#             instance.household_member.refused_htc = False
-#         instance.household_member.save(
-#             using=using,
-#             update_fields=['htc', 'refused_htc'])
-#
-#

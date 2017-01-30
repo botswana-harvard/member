@@ -15,11 +15,18 @@ class HouseholdMemberManager(models.Manager):
 
 class MemberEntryManager(models.Manager):
 
-    def get_by_natural_key(self, report_datetime, subject_identifier_as_pk, survey_schedule,
-                           household_identifier, plot_identifier):
-        return self.get(
-            report_datetime=report_datetime,
-            household_member__household_structure__survey_schedule=survey_schedule,
-            household_member__household_structure__household__household_identifier=household_identifier,
-            household_member__household_structure__household__plot__plot_identifier=plot_identifier,
-        )
+    def get_by_natural_key(self, report_datetime, subject_identifier_as_pk,
+                           survey_schedule,
+                           household_identifier,
+                           plot_identifier):
+
+        options = {
+            'report_datetime': report_datetime,
+            'household_member__household_structure__survey_schedule':
+            survey_schedule,
+            'household_member__household_structure__household__household_identifier':
+            household_identifier,
+            'household_member__household_structure__household__plot__plot_identifier':
+            plot_identifier
+        }
+        return self.get(**options)

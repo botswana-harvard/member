@@ -12,7 +12,8 @@ class HouseholdHeadEligibilityForm(forms.ModelForm):
         household_member = cleaned_data.get('household_member')
         if not household_member.age_in_years >= 18:
             raise forms.ValidationError(
-                'Member must be over 18 years of age. Got {0}.'.format(household_member.age_in_years))
+                'Member must be over 18 years of age. Got {0}.'.format(
+                    household_member.age_in_years))
         return super(HouseholdHeadEligibilityForm, self).clean()
 
     class Meta:

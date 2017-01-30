@@ -37,14 +37,16 @@ def is_age_eligible(age_in_years):
     return 16 <= age_in_years <= 64
 
 
-def todays_log_entry_or_raise(household_structure=None, report_datetime=None, **options):
+def todays_log_entry_or_raise(household_structure=None,
+                              report_datetime=None, **options):
     """Returns the current HouseholdLogEntry or raises a
     HouseholdLogRequired exception.
 
-    If report_datetime is provided, use that. This means a model can be edited
-    if its report_datetime matches a household log entry.
+    If report_datetime is provided, use that. This means a model
+    can be edited if its report_datetime matches a household log entry.
 
-    Comparison is by date not datetime"""
+    Comparison is by date not datetime
+    """
 
     def create_log_for_anonymous(household_structure):
         household_log_entry = HouseholdLogEntry.objects.create(
@@ -84,7 +86,8 @@ def todays_log_entry_or_raise(household_structure=None, report_datetime=None, **
                     'entry was on {}.'.format(
                         HouseholdLogEntry._meta.verbose_name,
                         report_datetime.strftime('%Y-%m-%d %H:%M %Z'),
-                        last_rdate.to(report_datetime.tzname()).datetime.strftime('%Y-%m-%d %H:%M %Z')))
+                        last_rdate.to(report_datetime.tzname()).datetime.strftime(
+                            '%Y-%m-%d %H:%M %Z')))
         except MultipleObjectsReturned:
             household_log_entry = household_structure.householdlog.householdlogentry_set.filter(
                 report_datetime__date=rdate.to('utc').date()).last()

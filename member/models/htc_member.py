@@ -29,8 +29,9 @@ class MyManager(models.Manager):
 
 
 class HtcMember(HouseholdMemberModelMixin, BaseUuidModel):
-    """A model completed by the user that captures HTC information for a household member
-    not participating in BHS."""
+    """A model completed by the user that captures HTC information
+    for a household member not participating in BHS.
+    """
 
     tracking_identifier = models.CharField(
         verbose_name="HTC tracking identifier",

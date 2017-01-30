@@ -11,9 +11,8 @@ app_config = django_apps.get_app_config('member')
 
 
 class HouseholdFormsModelWrapperMixin(ModelWrapper):
-
-    """For models with a FK to household_structure."""
-
+    """For models with a FK to household_structure.
+    """
     next_url_name = django_apps.get_app_config(
         'enumeration').dashboard_url_name
     url_instance_attrs = [
@@ -187,7 +186,8 @@ class HouseholdMemberModelWrapper(ModelWrapper):
 
     @property
     def community_name(self):
-        return ' '.join(self._original_object.household_structure.household.plot.map_area.split('_'))
+        return ' '.join(
+            self._original_object.household_structure.household.plot.map_area.split('_'))
 
     @property
     def absent_members(self):

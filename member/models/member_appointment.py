@@ -11,7 +11,9 @@ from .model_mixins import HouseholdMemberModelMixin
 
 class MemberAppointment(HouseholdMemberModelMixin, BaseUuidModel):
 
-    """A model created by the system and updated by the user for appointments."""
+    """A model created by the system and updated by the user
+    for appointments.
+    """
 
     appt_date = models.DateField(
         verbose_name=("Appointment date"),

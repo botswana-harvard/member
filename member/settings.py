@@ -106,13 +106,14 @@ else:
     }
 
 DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
+}
 
-if 'test' in sys.argv:  # and 'mysql' not in DATABASES.get('default').get('ENGINE'):
+# and 'mysql' not in DATABASES.get('default').get('ENGINE'):
+if 'test' in sys.argv:
     MIGRATION_MODULES = {
         "django_crypto_fields": None,
         "edc_call_manager": None,

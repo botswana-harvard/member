@@ -22,8 +22,9 @@ class MyManager(models.Manager):
 class RepresentativeEligibility(RepresentativeEligibilityMixin,
                                 SurveyScheduleModelMixin,
                                 BaseUuidModel):
-    """A model completed by the user that checks the eligibility of household member
-    to be the household representative."""
+    """A model completed by the user that checks the eligibility
+    of household member to be the household representative.
+    """
 
     report_datetime = models.DateTimeField(default=get_utcnow)
 
@@ -33,8 +34,9 @@ class RepresentativeEligibility(RepresentativeEligibilityMixin,
     auto_filled = models.BooleanField(
         default=False,
         editable=False,
-        help_text=('This form is autofilled for non-BHS surveys using information from a'
-                   'member consented in a previous survey. See HouseholdMemberHelper')
+        help_text=(
+            'This form is autofilled for non-BHS surveys using information from a'
+            'member consented in a previous survey. See HouseholdMemberHelper')
     )
 
     auto_fill_member_id = models.CharField(

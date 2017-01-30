@@ -15,11 +15,14 @@ class MyManager(models.Manager):
 
 
 class HtcMemberHistory(BaseUuidModel):
-    """A system model that tracks the history of deleted subject HTC instances."""
+    """A system model that tracks the history of deleted subject
+    HTC instances.
+    """
 
     transaction = models.UUIDField(unique=True)
 
-    household_member = models.ForeignKey(HouseholdMember, on_delete=models.PROTECT)
+    household_member = models.ForeignKey(
+        HouseholdMember, on_delete=models.PROTECT)
 
     report_datetime = models.DateTimeField(
         verbose_name="Report date",

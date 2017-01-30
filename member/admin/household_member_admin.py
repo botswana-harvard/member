@@ -1,5 +1,7 @@
 from django.contrib import admin
 
+from edc_base.fieldsets import (
+    Fieldset, FieldsetsModelAdminMixin as BaseFieldsetsModelAdminMixin)
 from edc_base.modeladmin_mixins import TabularInlineMixin, audit_fieldset_tuple
 
 from bcpp.surveys import BCPP_YEAR_2, BCPP_YEAR_3
@@ -9,16 +11,8 @@ from survey.admin import survey_schedule_fields, survey_schedule_fieldset_tuple
 from ..admin_site import member_admin
 from ..forms import HouseholdMemberForm
 from ..models import HouseholdMember
-
 from .modeladmin_mixins import ModelAdminMixin
-from edc_base.fieldsets import (
-    Fieldset, FieldsetsModelAdminMixin as BaseFieldsetsModelAdminMixin)
-from pprint import pprint
 
-
-class HouseholdMemberInline(TabularInlineMixin, admin.TabularInline):
-    model = HouseholdMember
-    extra = 3
 
 status_fields = (
     'visit_attempts',
@@ -36,16 +30,22 @@ personal_details_fields = (
     'details_change_reason')
 
 
+class HouseholdMemberInline(TabularInlineMixin, admin.TabularInline):
+    model = HouseholdMember
+    extra = 3
+
+
 class FieldsetsModelAdminMixin(BaseFieldsetsModelAdminMixin):
 
     def get_instance(self, request):
         return None
 
     def get_key(self, request):
-        """Returns the name of the household members previous survey schedule
-        or None.
+        """Returns the name of the household members previous
+        survey schedule or None.
 
-        If key has value, the fieldset will be added to modeladmin.fieldsets.
+        If key has value, the fieldset will be added to
+        modeladmin.fieldsets.
         """
         key = None
         try:
@@ -104,11 +104,6 @@ class HouseholdMemberAdmin(ModelAdminMixin, FieldsetsModelAdminMixin,
         audit_fieldset_tuple,
     )
 
-    def get_readonly_fields(self, request, obj=None):
-        return (super().get_readonly_fields(request, obj=obj)
-                + survey_schedule_fields
-                + status_fields)
-
     radio_fields = {
         "gender": admin.VERTICAL,
         "relation": admin.VERTICAL,
@@ -164,3 +159,8 @@ class HouseholdMemberAdmin(ModelAdminMixin, FieldsetsModelAdminMixin,
         'user_created',
         'visit_attempts',
         'household_structure__household__plot__map_area')
+
+    def get_readonly_fields(self, request, obj=None):
+        return (super().get_readonly_fields(request, obj=obj)
+                + survey_schedule_fields
+                + status_fields)

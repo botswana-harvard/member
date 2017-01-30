@@ -12,7 +12,9 @@ class MyManager(models.Manager):
 
 
 class UndecidedMemberHistory (HouseholdMemberModelMixin, BaseUuidModel):
-    """A system model that links "undecided" information to a household member."""
+    """A system model that links "undecided" information to a
+    household member.
+    """
 
     transaction = models.UUIDField()
 

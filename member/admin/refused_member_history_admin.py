@@ -2,7 +2,6 @@ from django.contrib import admin
 
 from ..admin_site import member_admin
 from ..models import RefusedMemberHistory
-
 from .modeladmin_mixins import ModelAdminMixin
 
 

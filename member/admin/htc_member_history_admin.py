@@ -2,7 +2,6 @@ from django.contrib import admin
 
 from ..admin_site import member_admin
 from ..models import HtcMemberHistory
-
 from .modeladmin_mixins import ModelAdminMixin
 
 
@@ -13,7 +12,8 @@ class HtcMemberHistoryAdmin(ModelAdminMixin, admin.ModelAdmin):
                     "accepted": admin.VERTICAL,
                     "referred": admin.VERTICAL}
 
-    list_display = ('household_member', 'report_datetime', 'tracking_identifier')
+    list_display = (
+        'household_member', 'report_datetime', 'tracking_identifier')
 
     search_fields = [
         'household_member__first_name',
@@ -26,5 +26,5 @@ class HtcMemberHistoryAdmin(ModelAdminMixin, admin.ModelAdmin):
     instructions = []
 
     def get_readonly_fields(self, request, obj=None):
-        readonly_fields = super(HtcMemberHistoryAdmin, self).get_readonly_fields(request, obj)
+        readonly_fields = super().get_readonly_fields(request, obj)
         return tuple(readonly_fields) + ('tracking_identifier', 'transaction')

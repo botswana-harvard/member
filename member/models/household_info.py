@@ -15,7 +15,8 @@ from survey.model_mixins import SurveyScheduleModelMixin
 
 class MyManager(models.Manager):
 
-    def get_by_natural_key(self, survey_schedule, household_identifier, plot_identifier):
+    def get_by_natural_key(self, survey_schedule, household_identifier,
+                           plot_identifier):
         return self.get(
             household_structure__survey_schedule=survey_schedule,
             household_structure__household__household_identifier=household_identifier,

@@ -5,10 +5,13 @@ from ..managers import MemberEntryManager
 from .model_mixins import RepresentativeEligibilityMixin, HouseholdMemberModelMixin
 
 
-class HouseholdHeadEligibility(RepresentativeEligibilityMixin, HouseholdMemberModelMixin, BaseUuidModel):
-    """A model completed by the user that determines if the household member is eligible to act
-    as a head of household or household representative."""
-
+class HouseholdHeadEligibility(RepresentativeEligibilityMixin,
+                               HouseholdMemberModelMixin,
+                               BaseUuidModel):
+    """A model completed by the user that determines if the household
+    member is eligible to act as a head of household or
+    household representative.
+    """
     objects = MemberEntryManager()
 
     history = HistoricalRecords()

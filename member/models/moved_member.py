@@ -11,7 +11,9 @@ from .model_mixins import HouseholdMemberModelMixin
 
 class MovedMember(HouseholdMemberModelMixin, BaseUuidModel):
 
-    """A model completed by the user to indicate a subject has moved from the household and or community."""
+    """A model completed by the user to indicate a subject has
+    moved from the household and or community.
+    """
 
     moved_household = models.CharField(
         max_length=7,

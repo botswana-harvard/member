@@ -22,4 +22,5 @@ sync_models = [
     'member.undecidedmember'
 ]
 
+
 site_sync_models.register(sync_models, SyncModel)

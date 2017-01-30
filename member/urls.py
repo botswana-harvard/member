@@ -63,4 +63,5 @@ def listboard_urls():
         ])
     return urlpatterns
 
+
 urlpatterns = [url(r'^admin/', member_admin.urls)] + listboard_urls()

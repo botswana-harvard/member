@@ -11,45 +11,52 @@ from .model_mixins import HouseholdMemberModelMixin
 
 class DeceasedMember(HouseholdMemberModelMixin, BaseUuidModel):
 
-    """A model completed by the user to report the death of a member."""
+    """A model completed by the user to report the death of a member.
+    """
 
     # TODO: was this a subject form???
 
     death_date = models.DateField(
-        verbose_name="Date of Death:",
+        verbose_name='Date of Death:',
         validators=[
             date_not_future],
-        help_text="",
+        help_text='',
     )
 
     site_aware_date = models.DateField(
-        verbose_name="Date site aware of Death:",
+        verbose_name='Date site aware of Death:',
         validators=[
             date_not_future],
-        help_text="",
+        help_text='',
     )
 
     death_cause = models.TextField(
         max_length=1000,
         blank=True,
         null=True,
-        verbose_name="Describe the major cause of death(including pertinent autopsy information if available),"
-        "starting with the first noticeable illness thought to be related to death,continuing to time of death. ",
-        help_text="Note: Cardiac and pulmonary arrest are not major reasons and should not be used to describe"
-        " major cause)"
+        verbose_name=(
+            'Describe the major cause of death(including pertinent autopsy '
+            'information if available),starting with the first noticeable '
+            'illness thought to be related to death,continuing to '
+            'time of death. '),
+        help_text=(
+            'Note: Cardiac and pulmonary arrest are not major reasons and '
+            'should not be used to describe major cause')
     )
 
     duration_of_illness = models.IntegerField(
-        verbose_name="Duration of acute illness directly causing death (in days, or choose Unknown)?",
-        help_text="in days",
+        verbose_name=(
+            'Duration of acute illness directly causing death '
+            '(in days, or choose Unknown)?'),
+        help_text='in days',
         default=0,
     )
 
     relationship_death_study = models.CharField(
-        verbose_name="What is the relationship of the death to study participation?",
+        verbose_name='What is the relationship of the death to study participation?',
         max_length=50,
         choices=DEATH_RELATIONSIP_TO_STUDY,
-        help_text="",
+        help_text='',
     )
 
     objects = MemberEntryManager()
@@ -57,4 +64,4 @@ class DeceasedMember(HouseholdMemberModelMixin, BaseUuidModel):
     history = HistoricalRecords()
 
     class Meta:
-        app_label = "member"
+        app_label = 'member'

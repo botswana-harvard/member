@@ -3,7 +3,6 @@ from django.contrib import admin
 from ..admin_site import member_admin
 from ..forms import MemberAppointmentForm
 from ..models import MemberAppointment
-
 from .modeladmin_mixins import ModelAdminMixin
 
 

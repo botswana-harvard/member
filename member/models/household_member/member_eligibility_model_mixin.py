@@ -11,8 +11,8 @@ class MemberEligibilityModelMixin(models.Model):
 
     eligible_subject = models.BooleanField(
         default=False,
-        help_text=('updated by the enrollment checklist save method only. True if subject '
-                   'passes the eligibility criteria.'))
+        help_text=('updated by the enrollment checklist save method only. '
+                   'True if subject passes the eligibility criteria.'))
 
     enrollment_checklist_completed = models.BooleanField(
         default=False,

@@ -35,7 +35,9 @@ class Clone:
 
             * create: Default: True
 
-        If created=True, returns a QuerySet, else a list of non-persisted model instances."""
+        If created=True, returns a QuerySet, else a list of non-persisted
+        model instances.
+        """
         household_members = []
         self.safe_to_clone_or_raise()
         household_structure = self.household.householdstructure_set.get(
