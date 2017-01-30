@@ -16,9 +16,11 @@ class Clone:
         """
         create = True if create is None else create
         if household and household_structure:
-            raise CloneError('Ambiguous. Either specify household or household_structure, not both')
+            raise CloneError(
+                'Ambiguous. Either specify household or household_structure, not both')
         if survey_schedule and household_structure:
-            raise CloneError('Ambiguous. Either specify survey_schedule or household_structure, not both')
+            raise CloneError(
+                'Ambiguous. Either specify survey_schedule or household_structure, not both')
         try:
             self.household = household_structure.household
             self.survey_schedule = household_structure.survey_schedule_object
@@ -53,7 +55,8 @@ class Clone:
                 for obj in previous_members:
                     new_obj = obj.clone(
                         household_structure=household_structure,
-                        report_datetime=self.report_datetime)
+                        report_datetime=self.report_datetime,
+                        user_created=household_structure.user_created)
                     if create:
                         new_obj.save()
                     else:

@@ -4,6 +4,7 @@ from ..constants import HEAD_OF_HOUSEHOLD
 from ..models import HouseholdMember
 
 from .wrappers import HouseholdMemberModelWrapper
+from household.models.household_structure.household_structure import HouseholdStructure
 
 
 class HouseholdMemberViewMixin:
@@ -14,24 +15,45 @@ class HouseholdMemberViewMixin:
         super().__init__(**kwargs)
         self._head_of_household = None
         self._household_member = None
-        self.household_members = None
+        self.household_members = []
 
     def get(self, request, *args, **kwargs):
-        """Add household member(s) to the instance."""
+        """Add household member(s) to the view.
+        """
+        household_members = []
+        for household_structure in HouseholdStructure.objects.filter(
+                household__household_identifier=self.household_identifier):
+            household_members.extend(
+                [obj for obj in household_structure.householdmember_set.all(
+                ).order_by('first_name')])
 
-        household_members = self.household_structure.wrapped_object.householdmember_set.all(
-        ).order_by('first_name')
-        self.household_members = [
-            self.household_member_wrapper_class(obj) for obj in household_members]
+        for household_member in household_members:
+            household_member.editable_in_view = self.member_editable_in_view(
+                household_member)
+            self.household_members.append(
+                self.household_member_wrapper_class(household_member))
 
         kwargs['household_member'] = self.household_member
         kwargs['head_of_household'] = self.head_of_household
         kwargs['household_members'] = self.household_members
         return super().get(request, *args, **kwargs)
 
+    def member_editable_in_view(self, household_member):
+        """Returns True if member instance and its related data
+        may be edited in the view."""
+        if (household_member.survey_schedule_object.field_value
+                == self.survey_schedule_object.field_value):
+            editable_in_view = True
+        else:
+            editable_in_view = False
+        if not self.current_household_log_entry.id:
+            editable_in_view = False
+        return editable_in_view
+
     @property
     def household_member(self):
-        """Returns a wrapped model, either saved or not."""
+        """Returns a wrapped model, either saved or not.
+        """
         if not self._household_member:
             try:
                 household_member = HouseholdMember.objects.get(
@@ -48,7 +70,8 @@ class HouseholdMemberViewMixin:
 
     @property
     def head_of_household(self):
-        """Returns a wrapped model, either saved or not."""
+        """Returns a wrapped model, either saved or not.
+        """
         if not self._head_of_household:
             try:
                 head_of_household = (

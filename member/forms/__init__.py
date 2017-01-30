@@ -9,7 +9,6 @@ from .household_member_form import HouseholdMemberForm
 from .htc_member_form import HtcMemberForm
 from .member_appointment_form import MemberAppointmentForm
 from .moved_member_form import MovedMemberForm
-from .participation_form import ParticipationForm
 from .refused_member_form import RefusedMemberForm
 from .representative_eligibility_form import RepresentativeEligibilityForm
 from .undecided_member_form import UndecidedMemberForm

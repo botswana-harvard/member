@@ -15,8 +15,10 @@ def is_eligible_member(obj):
     if obj.survival_status == DEAD:
         return False
     return (
-        obj.age_in_years >= 16 and obj.age_in_years <= 64 and obj.study_resident == YES and
-        obj.inability_to_participate == NOT_APPLICABLE)
+        obj.age_in_years >= 16
+        and obj.age_in_years <= 64
+        and obj.study_resident == YES
+        and obj.inability_to_participate == NOT_APPLICABLE)
 
 
 def is_child(age_in_years):

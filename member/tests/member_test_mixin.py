@@ -4,13 +4,14 @@ from model_mommy import mommy
 from random import choice
 
 from edc_base_test.exceptions import TestMixinError
-from edc_constants.constants import MALE, FEMALE
+from edc_constants.constants import MALE, FEMALE, NOT_APPLICABLE, YES, NO
+from edc_registration.models import RegisteredSubject
 
 from household.models import HouseholdStructure
 from survey.site_surveys import site_surveys
 
 from ..constants import HEAD_OF_HOUSEHOLD
-from ..models import HouseholdMember
+from ..models import HouseholdMember, EnrollmentChecklist
 
 
 fake = Faker()
@@ -23,9 +24,11 @@ class MemberTestMixin:
         self.study_site = '40'
 
     def _make_ready(self, household_structure, make_hoh=None, **options):
-        """Returns household_structure after adding representative eligibility.
+        """Returns household_structure after adding representative
+        eligibility.
 
-        For internal use."""
+        For internal use.
+        """
         make_hoh = True if make_hoh is None else make_hoh
 
         household_log_entry = (
@@ -56,18 +59,25 @@ class MemberTestMixin:
             pk=household_structure.pk)
         return household_structure
 
-    def make_household_ready_for_enumeration(self, make_hoh=None, survey_schedule=None, **options):
+    def make_household_ready_for_enumeration(self, make_hoh=None,
+                                             survey_schedule=None, **options):
         """Returns household_structure after adding representative
         eligibility.
 
-        By default the household_structure is that of the first
-        survey_schedule."""
+        By default returns the household_structure of the first
+        survey_schedule.
+
+        * survey_schedule: a survey schedule object. Default: first
+          survey_schedule from `site_surveys.get_survey_schedules`.
+        """
 
         options.update(attempts=options.get('attempts', 1))
         if 'report_datetime' not in options:
             options['report_datetime'] = (
                 site_surveys.get_survey_schedules()[0].start)
-        household_structure = self.make_household_structure(survey_schedule=survey_schedule, **options)
+        household_structure = self.make_household_structure(
+            survey_schedule=survey_schedule,
+            **options)
         return self._make_ready(
             household_structure, make_hoh=make_hoh, **options)
 
@@ -119,9 +129,11 @@ class MemberTestMixin:
         return household_structure
 
     def add_household_member(self, household_structure, **options):
-        """Returns a household member that is by default eligible.
+        """Returns a household member that is by default is
+        an eligible household member.
 
-        Survey schedule is always that of the household structure."""
+        Survey schedule is always that of the household structure.
+        """
 
         first_name = fake.first_name()
         last_name = fake.last_name()
@@ -151,8 +163,24 @@ class MemberTestMixin:
                 'someone mess with the mommy recipe?')
         return household_member
 
+    def update_household_member_clone(self, household_member):
+        """Returns a household_member after updating values not
+        carried forward when cloned.
+
+        household_member.eligible_member is True after save().
+        """
+        household_member.present_today = YES
+        household_member.inability_to_participate = NOT_APPLICABLE
+        household_member.study_resident = YES
+        household_member.personal_details_changed = NO
+        household_member.user_created = 'erikvw'
+        household_member.save()
+        return HouseholdMember.objects.get(pk=household_member.pk)
+
     def add_enrollment_checklist(self, household_member, **options):
-        """Returns a new enrollment_checklist."""
+        """Returns a household_member after adding an
+        enrollment_checklist.
+        """
 #         report_datetime = options.get(
 #             'report_datetime',
 #             household_member.survey_schedule_object.start)
@@ -161,20 +189,35 @@ class MemberTestMixin:
             household_member.report_datetime)
         if 'age_in_years' in options:
             raise TestMixinError('Invalid option. Got \'age_in_years\'')
+
+        try:
+            registered_subject = RegisteredSubject.objects.get(
+                registration_identifier=household_member.internal_identifier)
+        except RegisteredSubject.DoesNotExist:
+            options.update(
+                dob=options.get('dob', (report_datetime - relativedelta(
+                    years=household_member.age_in_years)).date()))
+        else:
+            options.update(
+                dob=options.get('dob', registered_subject.dob))
         options.update(
             report_datetime=report_datetime,
             initials=options.get('initials', household_member.initials),
-            gender=options.get('gender', household_member.gender),
-            dob=options.get('dob', (report_datetime - relativedelta(
-                years=household_member.age_in_years)).date()))
+            gender=options.get('gender', household_member.gender))
+
+        mommy_options = {k: v for k, v in options.items() if k in [
+            f.name for f in EnrollmentChecklist._meta.get_fields()]}
+
         mommy.make_recipe(
             'member.enrollmentchecklist',
             household_member=household_member,
-            **options)
+            **mommy_options)
         return HouseholdMember.objects.get(pk=household_member.pk)
 
     def make_absent_member(self, household_member, **options):
-        """Returns a household member after adding a absent member report."""
+        """Returns a household member after adding a absent member
+        report.
+        """
         options.update(report_datetime=options.get(
             'report_datetime',
             household_member.report_datetime))
@@ -184,7 +227,9 @@ class MemberTestMixin:
         return HouseholdMember.objects.get(pk=household_member.pk)
 
     def make_refused_member(self, household_member, **options):
-        """Returns a household member after adding a refused member report."""
+        """Returns a household member after adding a refused member
+        report.
+        """
         options.update(report_datetime=options.get(
             'report_datetime',
             household_member.report_datetime))
@@ -194,7 +239,9 @@ class MemberTestMixin:
         return HouseholdMember.objects.get(pk=household_member.pk)
 
     def make_undecided_member(self, household_member, **options):
-        """Returns a household member after adding a undecided member report."""
+        """Returns a household member after adding a undecided
+        member report.
+        """
         options.update(report_datetime=options.get(
             'report_datetime',
             household_member.report_datetime))
@@ -204,7 +251,9 @@ class MemberTestMixin:
         return HouseholdMember.objects.get(pk=household_member.pk)
 
     def make_moved_member(self, household_member, **options):
-        """Returns a household member after adding a undecided member report."""
+        """Returns a household member after adding a undecided
+        member report.
+        """
         options.update(report_datetime=options.get(
             'report_datetime',
             household_member.report_datetime))
@@ -214,7 +263,9 @@ class MemberTestMixin:
         return HouseholdMember.objects.get(pk=household_member.pk)
 
     def make_deceased_member(self, household_member, **options):
-        """Returns a household member after adding a deceased member report."""
+        """Returns a household member after adding a deceased member
+        report.
+        """
         options.update(report_datetime=options.get(
             'report_datetime',
             household_member.report_datetime))
@@ -224,7 +275,9 @@ class MemberTestMixin:
         return HouseholdMember.objects.get(pk=household_member.pk)
 
     def make_htc_member(self, household_member, **options):
-        """Returns a household member after adding a HTC member report."""
+        """Returns a household member after adding a HTC member
+        report.
+        """
         options.update(report_datetime=options.get(
             'report_datetime',
             household_member.report_datetime))

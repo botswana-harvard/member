@@ -156,11 +156,18 @@ class HouseholdMemberModelWrapper(ModelWrapper):
     model_name = 'member.householdmember'
     next_url_name = app_config.listboard_url_name
     extra_querystring_attrs = {
-        'member.householdmember': ['survey_schedule', 'household_structure']}
+        'member.householdmember': [
+            'household_structure',
+            'internal_identifier']}
     next_url_attrs = {
-        'member.householdmember': ['household_identifier', 'survey_schedule']}
+        'member.householdmember': [
+            'household_identifier',
+            'survey_schedule']}
     url_instance_attrs = [
-        'household_identifier', 'survey_schedule', 'household_structure']
+        'household_identifier',
+        'survey_schedule',
+        'household_structure',
+        'internal_identifier']
 
     @property
     def household_identifier(self):

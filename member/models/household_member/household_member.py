@@ -1,23 +1,19 @@
-import arrow
-
-from dateutil.relativedelta import relativedelta
-
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import (
-    MinLengthValidator, MaxLengthValidator, MinValueValidator, MaxValueValidator, RegexValidator)
+    MinLengthValidator, MaxLengthValidator, MinValueValidator,
+    MaxValueValidator, RegexValidator)
 from django_crypto_fields.fields import FirstnameField
-from django.db import models, transaction
+from django.db import models
 
 from edc_base.model.fields import OtherCharField
 from edc_base.model.models import BaseUuidModel, HistoricalRecords
 from edc_base.model.validators.date import datetime_not_future
-from edc_base.utils import get_utcnow, get_uuid, age
+from edc_base.utils import get_utcnow, get_uuid
 from edc_constants.choices import YES_NO, GENDER, YES_NO_DWTA, ALIVE_DEAD_UNKNOWN
 from edc_constants.constants import ALIVE, DEAD, YES
 from edc_registration.model_mixins import UpdatesOrCreatesRegistrationModelMixin
 
 from household.models import HouseholdStructure
-from member.exceptions import CloneError
 from plot.utils import get_anonymous_plot
 from survey.model_mixins import SurveyScheduleModelMixin
 
@@ -25,6 +21,8 @@ from ...choices import DETAILS_CHANGE_REASON, INABILITY_TO_PARTICIPATE_REASON
 from ...exceptions import MemberValidationError
 from ...managers import HouseholdMemberManager
 
+from .clone_model_mixin import CloneModelMixin
+from .consent_model_mixin import ConsentModelMixin
 from .member_eligibility_model_mixin import MemberEligibilityModelMixin
 from .member_identifier_model_mixin import MemberIdentifierModelMixin
 from .member_status_model_mixin import MemberStatusModelMixin
@@ -33,13 +31,20 @@ from .requires_household_log_entry_mixin import RequiresHouseholdLogEntryMixin
 
 
 class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeModelMixin,
-                      MemberStatusModelMixin, MemberEligibilityModelMixin,
+                      CloneModelMixin, ConsentModelMixin, MemberStatusModelMixin,
+                      MemberEligibilityModelMixin,
                       MemberIdentifierModelMixin, RequiresHouseholdLogEntryMixin,
                       SurveyScheduleModelMixin, BaseUuidModel):
-    """A model completed by the user to represent an enumerated household member."""
+    """A model completed by the user to represent an enumerated
+    household member.
+    """
 
     household_structure = models.ForeignKey(
         HouseholdStructure, on_delete=models.PROTECT)
+
+    household_identifier = models.CharField(
+        max_length=25,
+        help_text='updated on save from household')
 
     internal_identifier = models.CharField(
         max_length=36,
@@ -49,14 +54,16 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
                   'is the id of the member\'s first appearance in the table.')
 
     report_datetime = models.DateTimeField(
-        verbose_name="Report date",
+        verbose_name='Report date',
         default=get_utcnow,
         validators=[datetime_not_future])
 
     first_name = FirstnameField(
         verbose_name='First name',
         validators=[RegexValidator(
-            "^[A-Z]{1,250}$", ("Ensure first name is only CAPS and does not contain any spaces or numbers"))])
+            '^[A-Z]{1,250}$', (
+                'Ensure first name is only CAPS and does not '
+                'contain any spaces or numbers'))])
 
     initials = models.CharField(
         verbose_name='Initials',
@@ -65,7 +72,9 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
             MinLengthValidator(2),
             MaxLengthValidator(3),
             RegexValidator(
-                "^[A-Z]{1,3}$", ("Must be Only CAPS and 2 or 3 letters. No spaces or numbers allowed."))])
+                '^[A-Z]{1,3}$', (
+                    'Must be Only CAPS and 2 or 3 letters. '
+                    'No spaces or numbers allowed.'))])
 
     gender = models.CharField(
         verbose_name='Gender',
@@ -76,7 +85,8 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
         verbose_name='Age in years',
         validators=[MinValueValidator(0), MaxValueValidator(120)],
         help_text=(
-            "If age is unknown, enter 0. If member is less than one year old, enter 1"))
+            'If age is unknown, enter 0. If member is '
+            'less than one year old, enter 1'))
 
     survival_status = models.CharField(
         verbose_name='Survival status',
@@ -94,29 +104,29 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
         blank=False)
 
     inability_to_participate = models.CharField(
-        verbose_name="Do any of the following reasons apply to the participant?",
+        verbose_name='Do any of the following reasons apply to the participant?',
         max_length=17,
         null=True,
         blank=False,
         choices=INABILITY_TO_PARTICIPATE_REASON,
-        help_text=("Participant can only participate if ABLE is selected. "
-                   "(Any other reason make the participant unable to take "
-                   "part in the informed consent process)"))
+        help_text=('Participant can only participate if ABLE is selected. '
+                   '(Any other reason make the participant unable to take '
+                   'part in the informed consent process)'))
 
     inability_to_participate_other = OtherCharField(
         null=True)
 
     study_resident = models.CharField(
-        verbose_name="In the past 12 months, have you typically spent 3 or "
-                     "more nights per month in this community? ",
+        verbose_name='In the past 12 months, have you typically spent 3 or '
+                     'more nights per month in this community? ',
         max_length=17,
         choices=YES_NO_DWTA,
         null=True,
         blank=False,
-        help_text=("If participant has moved into the "
-                   "community in the past 12 months, then "
-                   "since moving in has the participant typically "
-                   "spent 3 or more nights per month in this community."))
+        help_text=('If participant has moved into the '
+                   'community in the past 12 months, then '
+                   'since moving in has the participant typically '
+                   'spent 3 or more nights per month in this community.'))
 
     personal_details_changed = models.CharField(
         verbose_name=(
@@ -129,7 +139,7 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
         help_text=('personal details (name/surname)'))
 
     details_change_reason = models.CharField(
-        verbose_name=("If YES, please specify the reason"),
+        verbose_name=('If YES, please specify the reason'),
         max_length=30,
         null=True,
         blank=True,
@@ -138,44 +148,26 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
 
     visit_attempts = models.IntegerField(
         default=0,
-        help_text="")
+        help_text='')
 
     eligible_htc = models.BooleanField(
         default=False,
         editable=False,
-        help_text="")
+        help_text='')
 
     refused_htc = models.BooleanField(
         default=False,
         editable=False,
-        help_text="updated by subject HTC save method only")
+        help_text='updated by subject HTC save method only')
 
     htc = models.BooleanField(
         default=False,
         editable=False,
-        help_text="updated by the subject HTC save method only")
+        help_text='updated by the subject HTC save method only')
 
     target = models.IntegerField(
         default=0,
         editable=False,
-    )
-
-    auto_filled = models.BooleanField(
-        default=False,
-        editable=False,
-        help_text=('Was autofilled for follow-up surveys using information from '
-                   'previous survey. See EnumerationHelper')
-    )
-
-    auto_filled_datetime = models.DateTimeField(
-        editable=False,
-        null=True)
-
-    updated_after_auto_filled = models.BooleanField(
-        default=True,
-        editable=False,
-        help_text=(
-            'if True, a user updated the values or this was not autofilled')
     )
 
     additional_key = models.CharField(
@@ -202,6 +194,7 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
             self.gender, self.household_structure.survey_schedule)
 
     def save(self, *args, **kwargs):
+        self.household_identifier = self.household_structure.household.household_identifier
         if not self.id and not self.internal_identifier:
             self.internal_identifier = get_uuid()
         self.survey_schedule = self.household_structure.survey_schedule
@@ -213,7 +206,8 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
 
     @property
     def anonymous(self):
-        """Returns True if this member resides on the anonymous plot."""
+        """Returns True if this member resides on the anonymous plot.
+        """
         plot = get_anonymous_plot()
         if self.household_structure.household.plot == plot:
             return True
@@ -222,81 +216,35 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
     @property
     def next(self):
         """Returns a household_member instance or None that is the
-        cloned household_member instance in the next household_structure."""
-        try:
-            return self.household_structure.next.householdmember_set.get(
-                internal_identifier=self.internal_identifier,
-                survey_schedule=self.survey_schedule_object.next.field_value)
-        except ObjectDoesNotExist:
-            return None
+        cloned household_member instance in the next
+        household_structure.
+        """
+        if self.household_structure.next:
+            try:
+                next_obj = self.household_structure.next.householdmember_set.get(
+                    internal_identifier=self.internal_identifier,
+                    survey_schedule=self.survey_schedule_object.next.field_value)
+            except ObjectDoesNotExist:
+                next_obj = None
+        else:
+            next_obj = None
+        return next_obj
 
     @property
     def previous(self):
         """Returns a household_member instance or None that is the
-        cloned household_member instance in the previous household_structure."""
-        try:
-            return self.household_structure.next.householdmember_set.get(
-                internal_identifier=self.internal_identifier,
-                survey_schedule=self.survey_schedule_object.previous.field_value)
-        except ObjectDoesNotExist:
-            return None
-
-    def clone(self, household_structure, report_datetime):
-        """Returns a new unsaved household member instance.
-
-            * household_structure: the "next" household_structure to
-              which the new members will be related."""
-
-        def new_age(report_datetime):
-            born = report_datetime - relativedelta(years=self.age_in_years)
-            return age(born, report_datetime).years
-
-        with transaction.atomic():
+        cloned household_member instance in the previous
+        household_structure.
+        """
+        if self.household_structure.previous:
             try:
-                self.__class__.objects.get(
-                    internal_identifier=self.internal_identifier,
-                    household_structure=self.household_structure,
-                    survey_schedule=self.household_structure.survey_schedule_object.field_value)
-            except HouseholdMember.DoesNotExist:
-                pass
-            else:
-                raise CloneError(
-                    'Cannot clone a household member into a survey '
-                    'where the member already exists')
-
-        start = household_structure.survey_schedule_object.rstart
-        end = household_structure.survey_schedule_object.rend
-        rdate = arrow.Arrow.fromdatetime(
-            report_datetime, report_datetime.tzinfo)
-
-        if not (start.to('utc').date()
-                <= rdate.to('utc').date()
-                <= end.to('utc').date()):
-            raise CloneError(
-                'Invalid report datetime. \'{}\' does not fall within '
-                'the date range for survey schedule \'{}\'. Expected any date '
-                'from \'{}\' to \'{}\'.'.format(
-                    report_datetime.strftime('%Y-%m-%d %Z'),
-                    household_structure.survey_schedule_object.field_value,
-                    start.to('utc').strftime('%Y-%m-%d %Z'),
-                    end.to('utc').strftime('%Y-%m-%d %Z')))
-
-        return self.__class__(
-            household_structure=household_structure,
-            report_datetime=report_datetime,
-            first_name=self.first_name,
-            initials=self.initials,
-            gender=self.gender,
-            age_in_years=new_age(report_datetime),
-            internal_identifier=self.internal_identifier,
-            subject_identifier=self.subject_identifier,
-            subject_identifier_as_pk=self.subject_identifier_as_pk,
-            auto_filled=True,
-            auto_filled_datetime=get_utcnow(),
-            updated_after_auto_filled=False,
-            enrollment_checklist_completed=self.enrollment_checklist_completed,
-            survey_schedule=household_structure.survey_schedule,
-        )
+                previous_obj = self.household_structure.previous.householdmember_set.get(
+                    internal_identifier=self.internal_identifier)
+            except ObjectDoesNotExist:
+                previous_obj = None
+        else:
+            previous_obj = None
+        return previous_obj
 
     def common_clean(self):
         if self.survival_status == DEAD and self.present_today == YES:
@@ -315,5 +263,5 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
         ordering = ['-created']
         unique_together = (
             ('internal_identifier', 'household_structure'),
-            ('first_name', 'initials', 'age_in_years', 'household_structure'))
+            ('first_name', 'initials', 'household_structure'))
         index_together = [['id', 'subject_identifier', 'created'], ]

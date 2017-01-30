@@ -5,7 +5,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.timezone import get_default_timezone
 
 from edc_base.modelform_mixins import CommonCleanModelFormMixin
-from edc_consent.site_consents import site_consents
 
 from household.exceptions import HouseholdLogRequired
 
@@ -18,13 +17,15 @@ class MemberFormMixin(CommonCleanModelFormMixin, forms.ModelForm):
         cleaned_data = super(MemberFormMixin, self).clean()
         try:
             todays_log_entry_or_raise(
-                household_structure=cleaned_data.get('household_member').household_structure,
+                household_structure=cleaned_data.get(
+                    'household_member').household_structure,
                 report_datetime=cleaned_data.get('report_datetime'))
         except HouseholdLogRequired as e:
             raise forms.ValidationError(str(e))
 
         rdate = arrow.Arrow.fromdatetime(
-            cleaned_data.get('report_datetime'), tzinfo=cleaned_data.get('report_datetime').tzinfo)
+            cleaned_data.get('report_datetime'),
+            tzinfo=cleaned_data.get('report_datetime').tzinfo)
         try:
             obj = self._meta.model.objects.get(
                 household_member=cleaned_data.get('household_member'),
@@ -34,21 +35,17 @@ class MemberFormMixin(CommonCleanModelFormMixin, forms.ModelForm):
         else:
             if obj.id != self.instance.id:
                 raise forms.ValidationError(
-                    {'report_datetime': 'A report already exists for {}.'.format(
-                        rdate.to(str(get_default_timezone())).date().strftime('%Y-%m-%d'))})
+                    {'report_datetime':
+                     'A report already exists for {}.'.format(
+                         rdate.to(str(get_default_timezone())).date().strftime(
+                             '%Y-%m-%d'))})
 
-        consent = site_consents.get_consent(
-            report_datetime=cleaned_data.get('report_datetime'))
         household_member = cleaned_data.get('household_member')
-        try:
-            subject_consent = consent.model.objects.get(
-                household_member=household_member,
-                version=consent.version)
-            if cleaned_data.get('report_datetime') > subject_consent.consent_datetime:
+        if household_member.consent:
+            if (cleaned_data.get('report_datetime')
+                    > household_member.consent.consent_datetime):
                 raise forms.ValidationError(
-                    'Report may not be submitted for survey {}. '
+                    'Report may not be submitted for survey \'{}\'. '
                     'Subject is already consented for this survey.'.format(
-                        subject_consent.survey_object.short_name,))
-        except consent.model.DoesNotExist:
-            pass
+                        household_member.consent.survey_schedule_object.name))
         return cleaned_data

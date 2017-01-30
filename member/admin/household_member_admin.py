@@ -13,6 +13,7 @@ from ..models import HouseholdMember
 from .modeladmin_mixins import ModelAdminMixin
 from edc_base.fieldsets import (
     Fieldset, FieldsetsModelAdminMixin as BaseFieldsetsModelAdminMixin)
+from pprint import pprint
 
 
 class HouseholdMemberInline(TabularInlineMixin, admin.TabularInline):
@@ -23,12 +24,12 @@ status_fields = (
     'visit_attempts',
     'eligible_member',
     'eligible_subject',
-    'is_consented',
     'enrollment_checklist_completed',
     'enrollment_loss_completed',
     'reported',
     'refused',
-    'eligible_htc')
+    'eligible_htc',
+    'non_citizen')
 
 personal_details_fields = (
     'personal_details_changed',
@@ -49,11 +50,15 @@ class FieldsetsModelAdminMixin(BaseFieldsetsModelAdminMixin):
         key = None
         try:
             household_member = HouseholdMember.objects.get(
+                internal_identifier=request.GET.get('internal_identifier'),
                 household_structure=request.GET.get('household_structure'),
-                survey_schedule=request.GET.get('survey_schedule'))
+                survey_schedule=request.GET.get('survey_schedule'),
+            )
         except HouseholdMember.DoesNotExist:
             pass
         else:
+            print('now', household_member)
+            print('previous', household_member.previous)
             previous = household_member.previous
             if previous:
                 key = S(previous.survey_schedule).survey_schedule_name
@@ -126,7 +131,6 @@ class HouseholdMemberAdmin(ModelAdminMixin, FieldsetsModelAdminMixin,
         'enrollment_loss_completed',
         'reported',
         'refused',
-        'is_consented',
         'eligible_htc',
         'created',
         'hostname_created')
@@ -153,13 +157,10 @@ class HouseholdMemberAdmin(ModelAdminMixin, FieldsetsModelAdminMixin,
         'enrollment_checklist_completed',
         'enrollment_loss_completed',
         'refused',
-        'is_consented',
         'eligible_htc',
         'target',
         'modified',
         'hostname_created',
         'user_created',
         'visit_attempts',
-        'auto_filled',
-        'updated_after_auto_filled',
         'household_structure__household__plot__map_area')

@@ -1,15 +1,9 @@
 from django.db import models
 
-from edc_constants.constants import CONSENTED
-
-from ...constants import NOT_ELIGIBLE, ELIGIBLE_FOR_SCREENING, ELIGIBLE_FOR_CONSENT
+from member.participation_status import ParticipationStatus
 
 
 class MemberStatusModelMixin(models.Model):
-
-    is_consented = models.BooleanField(
-        default=False,
-        help_text='updated by the consent model')
 
     refused = models.BooleanField(
         default=False,
@@ -23,26 +17,17 @@ class MemberStatusModelMixin(models.Model):
         default=False,
         help_text="Updated by the subject absentee log")
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
+    non_citizen = models.BooleanField(
+        default=False,
+        help_text="Updated by the enrollment checklist")
 
     @property
     def reported(self):
         return True if (self.refused or self.undecided or self.absent) else False
 
     @property
-    def member_status(self):
-        if self.is_consented:
-            member_status = CONSENTED
-        else:
-            member_status = None
-            if not self.eligible_member:
-                member_status = NOT_ELIGIBLE
-            if self.eligible_member:
-                member_status = ELIGIBLE_FOR_SCREENING
-            if self.eligible_subject:
-                member_status = ELIGIBLE_FOR_CONSENT
-        return member_status
+    def participation_status(self):
+        return ParticipationStatus(household_member=self)
 
     class Meta:
         abstract = True

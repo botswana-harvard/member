@@ -27,10 +27,7 @@ class EnrollmentChecklistAdmin(ModelAdminMixin, admin.ModelAdmin):
             'fields': (
                 'household_member',
                 'report_datetime',
-                'initials',
-                'dob',
                 'gender',
-                'has_identity',
                 "citizen",
                 "legal_marriage",
                 "study_participation",
@@ -39,7 +36,13 @@ class EnrollmentChecklistAdmin(ModelAdminMixin, admin.ModelAdmin):
                 "part_time_resident",
                 "household_residency",
                 "literacy",
-                "guardian")}),
+                "guardian",
+            )}),
+        ('Citizen or legally married to citizen', {
+            'fields': (
+                'initials',
+                'dob',
+                'has_identity')}),
         survey_schedule_fieldset_tuple,
         audit_fieldset_tuple,
     )
