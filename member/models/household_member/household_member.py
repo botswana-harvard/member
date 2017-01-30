@@ -255,8 +255,8 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin, RepresentativeMode
             try:
                 self.__class__.objects.get(
                     internal_identifier=self.internal_identifier,
-                    household_structure=self.household_structure,
-                    survey_schedule=self.household_structure.survey_schedule_object.field_value)
+                    household_structure=household_structure,
+                    survey_schedule=household_structure.survey_schedule_object.field_value)
             except HouseholdMember.DoesNotExist:
                 pass
             else:
