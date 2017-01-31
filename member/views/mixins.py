@@ -41,8 +41,8 @@ class HouseholdMemberViewMixin:
     def member_editable_in_view(self, household_member):
         """Returns True if member instance and its related data
         may be edited in the view."""
-        if (household_member.survey_schedule_object.field_value
-                == self.survey_schedule_object.field_value):
+        if (household_member.survey_schedule_object.field_value ==
+                self.survey_schedule_object.field_value):
             editable_in_view = True
         else:
             editable_in_view = False
