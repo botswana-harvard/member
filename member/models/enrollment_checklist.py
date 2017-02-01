@@ -85,9 +85,9 @@ class EnrollmentModelMixin(models.Model):
         loss_reason = []
         if self.has_identity == NO:
             loss_reason.append('No valid identity.')
-        if self.household_residency == NO:
+        if self.household_residency == NO and not self.household_member.cloned:
             loss_reason.append('Failed household residency requirement')
-        if self.part_time_resident == NO:
+        if self.part_time_resident == NO and not self.household_member.cloned:
             loss_reason.append(
                 'Does not spend 3 or more nights per month in the community.')
         if self.citizen == NO and self.legal_marriage == NO:
