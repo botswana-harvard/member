@@ -40,8 +40,6 @@ class EnrollmentModelMixin(models.Model):
         if not self.household_member.eligible_member:
             raise MemberEnrollmentError(
                 'Member is not eligible for screening.')
-        if self.household_member.is_consented:
-            raise MemberEnrollmentError('Member is already consented')
         # compare values to member, raise where they dont match
         if self.dob:
             try:

@@ -17,10 +17,8 @@ class EnrollmentChecklistForm(CommonCleanModelFormMixin, forms.ModelForm):
         if not cleaned_data.get('household_member'):
             raise forms.ValidationError(
                 {'household_member': 'Field is required'})
-        if cleaned_data.get('household_member').is_consented:
-            raise forms.ValidationError(
-                'Household member has consented. '
-                'Enrollment Checklist may not be modified')
+
+        self.validate_may_modify()
 
         self.validate_citizen()
 
@@ -51,6 +49,16 @@ class EnrollmentChecklistForm(CommonCleanModelFormMixin, forms.ModelForm):
         self.validate_study_participation()
 
         return cleaned_data
+
+    def validate_may_modify(self):
+        cleaned_data = self.cleaned_data
+        household_member = cleaned_data.get('household_member')
+        if household_member.is_consented:
+            if (household_member.consent.survey_schedule_object.field_value
+                    == household_member.survey_schedule_object.field_value):
+                raise forms.ValidationError(
+                    'Household member has consented. '
+                    'Enrollment Checklist may not be modified')
 
     def validate_age(self):
         cleaned_data = self.cleaned_data
