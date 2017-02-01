@@ -3,7 +3,7 @@ import arrow
 from django.core.exceptions import MultipleObjectsReturned
 
 from edc_base.utils import get_utcnow
-from edc_constants.constants import DEAD, NOT_APPLICABLE, YES
+from edc_constants.constants import DEAD, NOT_APPLICABLE, YES, NO
 
 from household.constants import ELIGIBLE_REPRESENTATIVE_PRESENT
 from household.models import HouseholdLogEntry
@@ -12,12 +12,23 @@ from plot.utils import get_anonymous_plot
 
 
 def is_eligible_member(obj):
+    """Returns True if member is eligible to complete the enrollment
+    checklist.
+
+    Note: once a member is enrolled to the study their residency
+    is no longer a factor to determine eligibility for subsequent
+    enrollments.
+    """
     if obj.survival_status == DEAD:
         return False
+    is_study_resident = (
+        (not obj.cloned and obj.study_resident == YES)
+        or (obj.cloned and obj.study_resident in [YES, NO])
+    )
     return (
         obj.age_in_years >= 16
         and obj.age_in_years <= 64
-        and obj.study_resident == YES
+        and is_study_resident
         and obj.inability_to_participate == NOT_APPLICABLE)
 
 
