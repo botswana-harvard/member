@@ -1,4 +1,3 @@
-from django.apps import apps as django_apps
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
@@ -44,64 +43,6 @@ def household_head_eligibility_on_post_save(
         if instance.household_member.relation == HEAD_OF_HOUSEHOLD:
             instance.household_member.eligible_hoh = True
             instance.household_member.save()
-
-
-@receiver(post_save, weak=False, sender=EnrollmentChecklist,
-          dispatch_uid="enrollment_checklist_on_post_save")
-def enrollment_checklist_on_post_save(sender, instance, raw, created, using, **kwargs):
-    """Updates adds or removes the Loss form and updates
-    household_member.
-    """
-    if not raw:
-        if not instance.is_eligible:
-            try:
-                enrollment_loss = EnrollmentLoss.objects.using(using).get(
-                    household_member=instance.household_member)
-                enrollment_loss.report_datetime = instance.report_datetime
-                enrollment_loss.reason = instance.loss_reason
-                enrollment_loss.save()
-            except EnrollmentLoss.DoesNotExist:
-                enrollment_loss = EnrollmentLoss(
-                    household_member=instance.household_member,
-                    report_datetime=instance.report_datetime,
-                    reason=instance.loss_reason)
-                enrollment_loss.save()
-            instance.household_member.eligible_subject = False
-        else:
-            enrollment_loss = EnrollmentLoss.objects.filter(
-                household_member=instance.household_member).delete()
-            instance.household_member.eligible_subject = True
-        instance.household_member.enrollment_checklist_completed = True
-
-        if created:
-            instance.household_member.visit_attempts += 1
-        instance.household_member.non_citizen = instance.non_citizen
-        instance.household_member.save()
-
-        if created:
-            household_member = HouseholdMember.objects.get(
-                pk=instance.household_member.pk)
-            if household_member.consent:
-                Enrollment = django_apps.get_model('bcpp_subject.enrollment')
-                Enrollment.objects.enroll_to_next_survey(
-                    subject_identifier=household_member.subject_identifier,
-                    household_member=household_member,
-                    consent_identifier=household_member.consent.consent_identifier,
-                    report_datetime=instance.report_datetime)
-
-
-@receiver(post_delete, weak=False, sender=EnrollmentChecklist,
-          dispatch_uid="enrollment_checklist_on_post_delete")
-def enrollment_checklist_on_post_delete(sender, instance, using, **kwargs):
-    EnrollmentLoss.objects.filter(
-        household_member=instance.household_member).delete()
-    instance.household_member.enrollment_checklist_completed = False
-    instance.household_member.eligible_subject = False
-    instance.household_member.visit_attempts -= 1
-    if instance.household_member.visit_attempts < 0:
-        instance.household_member.visit_attempts = 0
-    instance.household_member.appointment_set.all().delete()
-    instance.household_member.save()
 
 
 @receiver(post_save, weak=False, sender=EnrollmentLoss,

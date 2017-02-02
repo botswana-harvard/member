@@ -16,8 +16,6 @@ class AppConfig(DjangoApponfig):
             absent_member_on_post_save,
             deceased_member_on_post_delete,
             deceased_member_on_post_save,
-            enrollment_checklist_on_post_delete,
-            enrollment_checklist_on_post_save,
             enrollment_loss_on_post_delete,
             enrollment_loss_on_post_save,
             household_head_eligibility_on_post_save,
