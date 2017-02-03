@@ -33,8 +33,7 @@ class EnrollmentChecklistAnonymousAdmin(ModelAdminMixin, admin.ModelAdmin):
                 "literacy",
                 "study_participation",
                 "part_time_resident",
-                'may_store_samples',
-                )
+                'may_store_samples',)
         }),
         ('Review', {
             'fields': (
@@ -42,9 +41,8 @@ class EnrollmentChecklistAnonymousAdmin(ModelAdminMixin, admin.ModelAdmin):
                 'study_questions',
                 'assessment_score',
                 'consent_signature',
-                'consent_copy'
-                )
-            }),
+                'consent_copy')
+        }),
         survey_schedule_fieldset_tuple,
         audit_fieldset_tuple,
     )
