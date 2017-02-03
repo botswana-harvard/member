@@ -33,8 +33,18 @@ class EnrollmentChecklistAnonymousAdmin(ModelAdminMixin, admin.ModelAdmin):
                 "literacy",
                 "study_participation",
                 "part_time_resident",
-                'may_store_samples')
+                'may_store_samples',
+                )
         }),
+        ('Review', {
+            'fields': (
+                'consent_reviewed',
+                'study_questions',
+                'assessment_score',
+                'consent_signature',
+                'consent_copy'
+                )
+            }),
         survey_schedule_fieldset_tuple,
         audit_fieldset_tuple,
     )
@@ -54,6 +64,11 @@ class EnrollmentChecklistAnonymousAdmin(ModelAdminMixin, admin.ModelAdmin):
         "guardian": admin.VERTICAL,
         "study_participation": admin.VERTICAL,
         "may_store_samples": admin.VERTICAL,
+        "consent_reviewed": admin.VERTICAL,
+        "study_questions": admin.VERTICAL,
+        "assessment_score": admin.VERTICAL,
+        "consent_signature": admin.VERTICAL,
+        "consent_copy": admin.VERTICAL,
     }
 
     search_fields = (

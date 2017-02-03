@@ -2,7 +2,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from edc_base.model.models import HistoricalRecords, BaseUuidModel
-from edc_consent.field_mixins import SampleCollectionFieldsMixin
+from edc_consent.field_mixins import SampleCollectionFieldsMixin, ReviewFieldsMixin
 from edc_constants.choices import GENDER, YES_NO, YES_NO_NA
 from edc_constants.constants import NOT_APPLICABLE
 
@@ -11,6 +11,7 @@ from .model_mixins import AnonymousHouseholdMemberModelMixin
 
 
 class EnrollmentChecklistAnonymous(AnonymousHouseholdMemberModelMixin,
+                                   ReviewFieldsMixin,
                                    SampleCollectionFieldsMixin,
                                    BaseUuidModel):
     """A model completed by the user that captures and confirms
