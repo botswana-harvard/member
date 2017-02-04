@@ -21,6 +21,14 @@ class MemberStatusModelMixin(models.Model):
         default=False,
         help_text="Updated by the enrollment checklist")
 
+    citizen = models.BooleanField(
+        default=False,
+        help_text="Updated by the enrollment checklist")
+
+    spouse_of_citizen = models.BooleanField(
+        default=False,
+        help_text="Updated by the enrollment checklist")
+
     @property
     def reported(self):
         return True if (
