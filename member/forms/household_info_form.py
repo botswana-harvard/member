@@ -1,11 +1,11 @@
 from django import forms
 
-from edc_constants.constants import OTHER
+from edc_base.modelform_mixins import OtherSpecifyValidationMixin
 
 from ..models import HouseholdInfo, RepresentativeEligibility
 
 
-class HouseholdInfoForm (forms.ModelForm):
+class HouseholdInfoForm (OtherSpecifyValidationMixin, forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
@@ -16,20 +16,10 @@ class HouseholdInfoForm (forms.ModelForm):
             raise forms.ValidationError(
                 'Please complete the {} form first.'.format(
                     RepresentativeEligibility._meta.verbose_name))
-
-        if (cleaned_data.get('flooring_type') == OTHER
-                and not cleaned_data.get('flooring_type_other')):
-            raise forms.ValidationError(
-                'If participant has a different flooring type from what '
-                'is on the list, provide the flooring type')
-        if (cleaned_data.get('water_source') == OTHER
-                and not cleaned_data.get('water_source_other')):
-            raise forms.ValidationError(
-                'If participant uses a different water source, specify it')
-        if (cleaned_data.get('energy_source') == OTHER
-                and not cleaned_data.get('energy_source_other')):
-            raise forms.ValidationError(
-                'If a different energy source is used, specify it')
+        self.validate_other_specify('flooring_type')
+        self.validate_other_specify('water_source')
+        self.validate_other_specify('energy_source')
+        self.validate_other_specify('toilet_facility')
         cleaned_data = super(HouseholdInfoForm, self).clean()
         return cleaned_data
 

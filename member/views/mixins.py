@@ -1,10 +1,12 @@
 from django.core.exceptions import ObjectDoesNotExist
 
+from edc_constants.constants import MALE, FEMALE
+
+from household.models import HouseholdStructure
+
 from ..constants import HEAD_OF_HOUSEHOLD
 from ..models import HouseholdMember
-
 from .wrappers import HouseholdMemberModelWrapper
-from household.models.household_structure.household_structure import HouseholdStructure
 
 
 class HouseholdMemberViewMixin:
@@ -37,6 +39,13 @@ class HouseholdMemberViewMixin:
         kwargs['head_of_household'] = self.head_of_household
         kwargs['household_members'] = self.household_members
         return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            MALE=MALE,
+            FEMALE=FEMALE)
+        return context
 
     def member_editable_in_view(self, household_member):
         """Returns True if member instance and its related data
