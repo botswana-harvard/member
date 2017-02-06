@@ -40,8 +40,8 @@ class MemberTestMixin:
             report_datetime=household_log_entry.report_datetime,
             household_structure=household_structure)
         if make_hoh:
-            first_name = fake.first_name()
-            last_name = fake.last_name()
+            first_name = fake.first_name().upper()
+            last_name = fake.last_name().upper()
             gender = options.get('gender', choice([MALE, FEMALE]))
             household_member = mommy.make_recipe(
                 'member.householdmember',
@@ -135,8 +135,8 @@ class MemberTestMixin:
         Survey schedule is always that of the household structure.
         """
 
-        first_name = fake.first_name()
-        last_name = fake.last_name()
+        first_name = fake.first_name().upper()
+        last_name = fake.last_name().upper()
         options.update(first_name=options.get('first_name', first_name))
         options.update(
             initials=options.get('initials', first_name[0] + last_name[0]))

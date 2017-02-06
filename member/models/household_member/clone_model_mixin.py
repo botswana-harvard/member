@@ -39,8 +39,8 @@ class CloneModelMixin(models.Model):
         """
 
         def new_age(report_datetime):
-            born = self.report_datetime - \
-                relativedelta(years=self.age_in_years)
+            born = (self.report_datetime
+                    - relativedelta(years=self.age_in_years))
             return age(born, report_datetime).years
 
         with transaction.atomic():
@@ -83,7 +83,6 @@ class CloneModelMixin(models.Model):
                     household_structure.survey_schedule_object.field_value,
                     start.to('utc').strftime('%Y-%m-%d %Z'),
                     end.to('utc').strftime('%Y-%m-%d %Z')))
-
         return self.__class__(
             household_structure=household_structure,
             report_datetime=report_datetime,
