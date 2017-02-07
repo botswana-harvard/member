@@ -8,6 +8,8 @@ from edc_base.utils import age, get_utcnow
 
 from ...exceptions import CloneError
 from edc_registration.models import RegisteredSubject
+from member.choices import DETAILS_CHANGE_REASON
+from edc_constants.choices import YES_NO
 
 
 class CloneModelMixin(models.Model):
@@ -23,6 +25,24 @@ class CloneModelMixin(models.Model):
     cloned_datetime = models.DateTimeField(
         editable=False,
         null=True)
+
+    personal_details_changed = models.CharField(
+        verbose_name=(
+            'Have your personal details (name/surname) changed since the '
+            'last time we visited you?'),
+        max_length=10,
+        null=True,
+        blank=False,
+        choices=YES_NO,
+        help_text=('personal details (name/surname)'))
+
+    details_change_reason = models.CharField(
+        verbose_name=('If YES, please specify the reason'),
+        max_length=30,
+        null=True,
+        blank=True,
+        choices=DETAILS_CHANGE_REASON,
+        help_text=('if personal detail changed indicate the reason.'))
 
     @property
     def clone_updated(self):

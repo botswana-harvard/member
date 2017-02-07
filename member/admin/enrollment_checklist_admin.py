@@ -8,6 +8,7 @@ from ..forms import EnrollmentChecklistForm
 from ..models import EnrollmentChecklist
 
 from .modeladmin_mixins import ModelAdminMixin
+from django.utils.safestring import mark_safe
 
 
 @admin.register(EnrollmentChecklist, site=member_admin)
@@ -17,10 +18,9 @@ class EnrollmentChecklistAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     date_hierarchy = 'report_datetime'
 
-    instructions = [
+    additional_instructions = mark_safe(
         'This form is a tool to assist the Interviewer to confirm the '
-        'Eligibility status of the subject. After entering the required '
-        'items, click SAVE.']
+        'Eligibility status of the subject.')
 
     fieldsets = (
         (None, {

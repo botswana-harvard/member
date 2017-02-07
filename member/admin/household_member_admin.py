@@ -57,11 +57,11 @@ class FieldsetsModelAdminMixin(BaseFieldsetsModelAdminMixin):
         except HouseholdMember.DoesNotExist:
             pass
         else:
-            print('now', household_member)
-            print('previous', household_member.previous)
             previous = household_member.previous
             if previous:
-                key = S(previous.survey_schedule).survey_schedule_name
+                key = S(
+                    request.GET.get('survey_schedule')).survey_schedule_name
+        print(key)
         return key
 
 

@@ -129,24 +129,6 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
                    'since moving in has the participant typically '
                    'spent 3 or more nights per month in this community.'))
 
-    personal_details_changed = models.CharField(
-        verbose_name=(
-            'Have your personal details (name/surname) changed since the '
-            'last time we visited you?'),
-        max_length=10,
-        null=True,
-        blank=False,
-        choices=YES_NO,
-        help_text=('personal details (name/surname)'))
-
-    details_change_reason = models.CharField(
-        verbose_name=('If YES, please specify the reason'),
-        max_length=30,
-        null=True,
-        blank=True,
-        choices=DETAILS_CHANGE_REASON,
-        help_text=('if personal detail changed indicate the reason.'))
-
     visit_attempts = models.IntegerField(
         default=0,
         help_text='')
@@ -222,15 +204,19 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
         cloned household_member instance in the next
         household_structure.
         """
-        if self.household_structure.next:
-            try:
-                next_obj = self.household_structure.next.householdmember_set.get(
-                    internal_identifier=self.internal_identifier,
-                    survey_schedule=self.survey_schedule_object.next.field_value)
-            except ObjectDoesNotExist:
+        household_structure = self.household_structure.next
+        while household_structure:
+            if household_structure.next:
+                try:
+                    next_obj = household_structure.next.householdmember_set.get(
+                        internal_identifier=self.internal_identifier,
+                        survey_schedule=self.survey_schedule_object.next.field_value)
+                    break
+                except ObjectDoesNotExist:
+                    next_obj = None
+            else:
                 next_obj = None
-        else:
-            next_obj = None
+            household_structure = self.household_structure.next
         return next_obj
 
     @property
@@ -239,15 +225,19 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
         cloned household_member instance in the previous
         household_structure.
         """
-        if self.household_structure.previous:
-            try:
-                previous_obj = (
-                    self.household_structure.previous.householdmember_set.get(
-                        internal_identifier=self.internal_identifier))
-            except ObjectDoesNotExist:
+        household_structure = self.household_structure.previous
+        while household_structure:
+            if household_structure.previous:
+                try:
+                    previous_obj = (
+                        household_structure.previous.householdmember_set.get(
+                            internal_identifier=self.internal_identifier))
+                    break
+                except ObjectDoesNotExist:
+                    previous_obj = None
+            else:
                 previous_obj = None
-        else:
-            previous_obj = None
+            household_structure = household_structure.previous
         return previous_obj
 
     def common_clean(self):
