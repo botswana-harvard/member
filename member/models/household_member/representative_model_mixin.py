@@ -26,9 +26,6 @@ class RepresentativeModelMixin(models.Model):
         help_text="updated by the head of household.")
 
     def common_clean(self):
-        # TODO: the validations here may cause problems if importing the
-        # previous surveys members
-
         # confirm RepresentativeEligibility exists ...
         plot = get_anonymous_plot()
         if self.household_structure.household.plot != plot:
@@ -46,7 +43,7 @@ class RepresentativeModelMixin(models.Model):
             try:
                 household_member = self.__class__.objects.get(
                     household_structure=self.household_structure,
-                    relation=HEAD_OF_HOUSEHOLD, eligible_member=True)
+                    relation=HEAD_OF_HOUSEHOLD)
                 if (self.relation == HEAD_OF_HOUSEHOLD
                         and self.id != household_member.id):
                     raise EnumerationRepresentativeError(

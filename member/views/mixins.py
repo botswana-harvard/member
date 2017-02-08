@@ -1,4 +1,4 @@
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
 from edc_constants.constants import MALE, FEMALE
 
@@ -89,6 +89,10 @@ class HouseholdMemberViewMixin:
             except ObjectDoesNotExist:
                 head_of_household = HouseholdMember(
                     household_structure=self.household_structure._original_object)
+            except MultipleObjectsReturned:
+                head_of_household = (
+                    self.household_structure.wrapped_object.householdmember_set.filter(
+                        relation=HEAD_OF_HOUSEHOLD).first())
             self._head_of_household = self.household_member_wrapper_class(
                 head_of_household)
         return self._head_of_household

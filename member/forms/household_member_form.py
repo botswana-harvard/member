@@ -12,7 +12,7 @@ from ..models import HouseholdMember, EnrollmentChecklist
 class HouseholdMemberForm(CommonCleanModelFormMixin, forms.ModelForm):
 
     def clean(self):
-        cleaned_data = super(HouseholdMemberForm, self).clean()
+        cleaned_data = super().clean()
         try:
             EnrollmentChecklist.objects.get(
                 household_member_id=self.instance.id)
@@ -27,7 +27,7 @@ class HouseholdMemberForm(CommonCleanModelFormMixin, forms.ModelForm):
                 and not cleaned_data.get('age_in_years', 0) >= 18):
             raise forms.ValidationError(
                 'Head of Household must be 18 years or older.')
-        if (cleaned_data.get('eligible_hoh')
+        elif (cleaned_data.get('eligible_hoh')
                 and cleaned_data.get('age_in_years', 0) < 18):
             raise forms.ValidationError({
                 'age_in_years': (
