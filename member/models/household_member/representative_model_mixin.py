@@ -6,6 +6,7 @@ from plot.utils import get_anonymous_plot
 from ...choices import RELATIONS
 from ...constants import HEAD_OF_HOUSEHOLD
 from ...exceptions import EnumerationRepresentativeError
+from django.core.exceptions import MultipleObjectsReturned
 
 
 class RepresentativeModelMixin(models.Model):
@@ -38,8 +39,6 @@ class RepresentativeModelMixin(models.Model):
                 raise EnumerationRepresentativeError(
                     'Enumeration blocked. Please complete \'{}\' form first.'.format(
                         RepresentativeEligibility._meta.verbose_name))
-            # then expect the first added member to be the HEAD_OF_HOUSEHOLD
-            # ...
             try:
                 household_member = self.__class__.objects.get(
                     household_structure=self.household_structure,
@@ -50,6 +49,9 @@ class RepresentativeModelMixin(models.Model):
                         '{} is already head of household.'.format(
                             household_member.first_name), 'relation')
             except self.__class__.DoesNotExist:
+                household_member = None
+            except MultipleObjectsReturned:
+                # this condition should not occur!
                 household_member = None
             # then expect HouseholdHeadEligibility to be added against
             # the member who has relation=HEAD_OF_HOUSEHOLD...
