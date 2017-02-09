@@ -204,20 +204,21 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
         cloned household_member instance in the next
         household_structure.
         """
+        next_member = None
         household_structure = self.household_structure.next
         while household_structure:
             if household_structure.next:
                 try:
-                    next_obj = household_structure.next.householdmember_set.get(
+                    next_member = household_structure.next.householdmember_set.get(
                         internal_identifier=self.internal_identifier,
                         survey_schedule=self.survey_schedule_object.next.field_value)
                     break
                 except ObjectDoesNotExist:
-                    next_obj = None
+                    next_member = None
             else:
-                next_obj = None
+                next_member = None
             household_structure = self.household_structure.next
-        return next_obj
+        return next_member
 
     @property
     def previous(self):
@@ -225,20 +226,21 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
         cloned household_member instance in the previous
         household_structure.
         """
+        previous_member = None
         household_structure = self.household_structure.previous
         while household_structure:
             if household_structure.previous:
                 try:
-                    previous_obj = (
+                    previous_member = (
                         household_structure.previous.householdmember_set.get(
                             internal_identifier=self.internal_identifier))
                     break
                 except ObjectDoesNotExist:
-                    previous_obj = None
+                    previous_member = None
             else:
-                previous_obj = None
+                previous_member = None
             household_structure = household_structure.previous
-        return previous_obj
+        return previous_member
 
     def common_clean(self):
         if self.survival_status == DEAD and self.present_today == YES:

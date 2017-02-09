@@ -8,10 +8,15 @@ from edc_base.modeladmin_mixins import (
     ModelAdminFormAutoNumberMixin, ModelAdminReadOnlyMixin,
     ModelAdminAuditFieldsMixin, ModelAdminInstitutionMixin)
 
+from edc_base.fieldsets import (
+    FieldsetsModelAdminMixin as BaseFieldsetsModelAdminMixin)
+
 from household.models import HouseholdStructure
+from survey import S
 from survey.admin import survey_schedule_fields
 
 from ..models import HouseholdMember
+from pprint import pprint
 
 
 class HouseholdMemberAdminMixin:
@@ -59,3 +64,33 @@ class ModelAdminMixin(ModelAdminInstitutionMixin, ModelAdminFormInstructionsMixi
     def get_readonly_fields(self, request, obj=None):
         return (super().get_readonly_fields(request, obj=obj)
                 + survey_schedule_fields)
+
+
+class FieldsetsModelAdminMixin(BaseFieldsetsModelAdminMixin):
+
+    def get_instance(self, request):
+        return None
+
+    def get_key(self, request, obj=None):
+        """Returns the name of the household members previous
+        survey schedule or None.
+
+        If key has value, the fieldset will be added to
+        modeladmin.fieldsets.
+        """
+        key = None
+        household_member = None
+        if request.GET.get('household_member'):
+            try:
+                household_member = HouseholdMember.objects.get(
+                    pk=request.GET.get('household_member'))
+            except HouseholdMember.DoesNotExist:
+                pass
+        else:
+            household_member = obj
+        if hasattr(household_member, 'previous'):
+            previous = household_member.previous
+            if previous:
+                key = S(
+                    request.GET.get('survey_schedule')).survey_schedule_name
+        return key

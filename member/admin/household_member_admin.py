@@ -1,17 +1,15 @@
 from django.contrib import admin
 
-from edc_base.fieldsets import (
-    Fieldset, FieldsetsModelAdminMixin as BaseFieldsetsModelAdminMixin)
+from edc_base.fieldsets import Fieldset
 from edc_base.modeladmin_mixins import TabularInlineMixin, audit_fieldset_tuple
 
 from bcpp.surveys import BCPP_YEAR_2, BCPP_YEAR_3
-from survey import S
 from survey.admin import survey_schedule_fields, survey_schedule_fieldset_tuple
 
 from ..admin_site import member_admin
 from ..forms import HouseholdMemberForm
 from ..models import HouseholdMember
-from .modeladmin_mixins import ModelAdminMixin
+from .modeladmin_mixins import ModelAdminMixin, FieldsetsModelAdminMixin
 
 
 status_fields = (
@@ -33,36 +31,6 @@ personal_details_fields = (
 class HouseholdMemberInline(TabularInlineMixin, admin.TabularInline):
     model = HouseholdMember
     extra = 3
-
-
-class FieldsetsModelAdminMixin(BaseFieldsetsModelAdminMixin):
-
-    def get_instance(self, request):
-        return None
-
-    def get_key(self, request):
-        """Returns the name of the household members previous
-        survey schedule or None.
-
-        If key has value, the fieldset will be added to
-        modeladmin.fieldsets.
-        """
-        key = None
-        try:
-            household_member = HouseholdMember.objects.get(
-                internal_identifier=request.GET.get('internal_identifier'),
-                household_structure=request.GET.get('household_structure'),
-                survey_schedule=request.GET.get('survey_schedule'),
-            )
-        except HouseholdMember.DoesNotExist:
-            pass
-        else:
-            previous = household_member.previous
-            if previous:
-                key = S(
-                    request.GET.get('survey_schedule')).survey_schedule_name
-        print(key)
-        return key
 
 
 @admin.register(HouseholdMember, site=member_admin)
