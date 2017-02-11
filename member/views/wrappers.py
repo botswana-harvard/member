@@ -169,6 +169,10 @@ class HouseholdMemberModelWrapper(ModelWrapper):
         'internal_identifier']
 
     @property
+    def is_consented(self):
+        return self._original_object.is_consented
+
+    @property
     def household_identifier(self):
         return self._original_object.household_structure.household.household_identifier
 

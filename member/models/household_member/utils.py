@@ -70,9 +70,9 @@ def todays_log_entry_or_raise(household_structure=None,
     rdate = arrow.Arrow.fromdatetime(
         report_datetime, report_datetime.tzinfo)
     # any log entries?
-    plot = get_anonymous_plot()
+    anonymous_plot = get_anonymous_plot()
     if household_structure.householdlog.householdlogentry_set.all().count() == 0:
-        if household_structure.household.plot == plot:
+        if household_structure.household.plot == anonymous_plot:
             household_log_entry = create_log_for_anonymous(household_structure)
         else:
             raise HouseholdLogRequired(
@@ -88,7 +88,7 @@ def todays_log_entry_or_raise(household_structure=None,
             household_log_entry = household_structure.householdlog.householdlogentry_set.get(
                 report_datetime__date=rdate.to('utc').date())
         except HouseholdLogEntry.DoesNotExist:
-            if household_structure.household.plot == plot:
+            if household_structure.household.plot == anonymous_plot:
                 household_log_entry = create_log_for_anonymous(
                     household_structure)
             else:

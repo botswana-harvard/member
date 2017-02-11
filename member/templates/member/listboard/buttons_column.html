@@ -9,10 +9,17 @@
         href="{% url household_listboard_url_name household_identifier=result.household_identifier %}">
             <i class="fa fa-home fa-lg"></i> {{ result.household_identifier }}
       </a>
-      <a role="button" title="enumeration" class="btn btn-sm btn-success"
+      <a role="button" title="back to enumeration" class="btn btn-sm btn-default"
         href="{% url enumeration_listboard_url_name household_identifier=result.household_identifier survey_schedule=result.survey_schedule_object.field_value %}">
-            <i class="fa fa-sitemap fa-sm"></i>
+            <i class="fa fa-sitemap fa-fw"></i>
       </a>
+
+      {% if result.is_consented %}
+      <a role="button" title="subject" class="btn btn-sm btn-default"
+        href="{% url bcpp_subject_listboard_url_name subject_identifier=result.subject_identifier survey_schedule=result.survey_schedule_object.field_value %}">
+            <i class="fa fa-user-circle-o fa-fw"></i>
+      </a>
+      {% endif %}
 
     </td>
 

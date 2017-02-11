@@ -17,7 +17,7 @@ from household.models import HouseholdStructure
 from plot.utils import get_anonymous_plot
 from survey.model_mixins import SurveyScheduleModelMixin
 
-from ...choices import DETAILS_CHANGE_REASON, INABILITY_TO_PARTICIPATE_REASON
+from ...choices import INABILITY_TO_PARTICIPATE_REASON
 from ...exceptions import MemberValidationError
 from ...managers import HouseholdMemberManager
 
@@ -28,6 +28,7 @@ from .member_identifier_model_mixin import MemberIdentifierModelMixin
 from .member_status_model_mixin import MemberStatusModelMixin
 from .representative_model_mixin import RepresentativeModelMixin
 from .requires_household_log_entry_mixin import RequiresHouseholdLogEntryMixin
+from .search_slug_model_mixin import SearchSlugModelMixin
 
 
 class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
@@ -35,7 +36,7 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
                       CloneModelMixin, ConsentModelMixin, MemberStatusModelMixin,
                       MemberEligibilityModelMixin,
                       MemberIdentifierModelMixin, RequiresHouseholdLogEntryMixin,
-                      SurveyScheduleModelMixin, BaseUuidModel):
+                      SurveyScheduleModelMixin, SearchSlugModelMixin, BaseUuidModel):
     """A model completed by the user to represent an enumerated
     household member.
     """
