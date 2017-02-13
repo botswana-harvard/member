@@ -20,6 +20,7 @@ class HouseholdMemberViewMixin:
             household_member=self.household_member_wrapped,
             head_of_household=self.head_of_household_wrapped,
             household_members=self.household_members_wrapped,
+            new_household_member=self.new_household_member,
             MALE=MALE,
             FEMALE=FEMALE)
         return context
@@ -43,14 +44,17 @@ class HouseholdMemberViewMixin:
         if self.household_member:
             return self.household_member_model_wrapper_class(self.household_member)
         return None
-#         obj = (
-#             self.household_member
-#             or HouseholdMember(
-#                 household_structure=self.household_structure,
-#                 survey_schedule=(
-#                     self.household_structure
-#                     .survey_schedule_object.field_value)))
-#         return self.household_member_model_wrapper_class(obj)
+
+    @property
+    def new_household_member(self):
+        """Returns a model wrapper for an unsaved household member.
+        """
+        new_household_member = HouseholdMember(
+            household_structure=self.household_structure,
+            survey_schedule=(
+                self.household_structure
+                .survey_schedule_object.field_value))
+        return self.household_member_model_wrapper_class(new_household_member)
 
     @property
     def head_of_household(self):
