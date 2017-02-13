@@ -15,7 +15,6 @@ class HouseholdMemberViewMixin:
         """Add household member(s) to the context.
         """
         context = super().get_context_data(**kwargs)
-        print('HouseholdMemberViewMixin')
         context.update(
             household_member=self.household_member_wrapped,
             head_of_household=self.head_of_household_wrapped,
