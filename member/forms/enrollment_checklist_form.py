@@ -7,6 +7,7 @@ from edc_constants.constants import NOT_APPLICABLE, NO, YES
 
 from ..models import EnrollmentChecklist
 from member.models.household_member.utils import is_minor, is_adult, is_child
+from edc_registration.models import RegisteredSubject
 
 
 class EnrollmentChecklistForm(CommonCleanModelFormMixin, forms.ModelForm):
@@ -48,7 +49,36 @@ class EnrollmentChecklistForm(CommonCleanModelFormMixin, forms.ModelForm):
 
         self.validate_study_participation()
 
+        self.validate_with_registered_subject()
         return cleaned_data
+
+    def validate_with_registered_subject(self):
+        cleaned_data = self.cleaned_data
+        household_member = cleaned_data.get('household_member')
+        dob = cleaned_data.get('dob')
+        initials = cleaned_data.get('initials')
+        gender = cleaned_data.get('gender')
+        try:
+            registered_subject = RegisteredSubject.objects.get(
+                subject_identifier=household_member.subject_identifier)
+        except RegisteredSubject.DoesNotExist:
+            pass
+        else:
+            if registered_subject.dob != dob:
+                raise forms.ValidationError({
+                    'dob': 'Incorrect date of birth. Based on a previous '
+                    'registration expected {}.'.format(
+                        registered_subject.dob)})
+            elif registered_subject.initials != initials:
+                raise forms.ValidationError({
+                    'initials': 'Incorrect initials. Based on a previous '
+                    'registration expected {}.'.format(
+                        registered_subject.initials)})
+            elif registered_subject.gender != gender:
+                raise forms.ValidationError({
+                    'initials': 'Incorrect gender. Based on a previous '
+                    'registration expected {}.'.format(
+                        registered_subject.gender)})
 
     def validate_may_modify(self):
         cleaned_data = self.cleaned_data
