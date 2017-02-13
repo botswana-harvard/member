@@ -64,17 +64,17 @@ class EnrollmentChecklistForm(CommonCleanModelFormMixin, forms.ModelForm):
         except RegisteredSubject.DoesNotExist:
             pass
         else:
-            if registered_subject.dob != dob:
+            if registered_subject.dob and registered_subject.dob != dob:
                 raise forms.ValidationError({
                     'dob': 'Incorrect date of birth. Based on a previous '
                     'registration expected {}.'.format(
                         registered_subject.dob)})
-            elif registered_subject.initials != initials:
+            elif registered_subject.initials and registered_subject.initials != initials:
                 raise forms.ValidationError({
                     'initials': 'Incorrect initials. Based on a previous '
                     'registration expected {}.'.format(
                         registered_subject.initials)})
-            elif registered_subject.gender != gender:
+            elif registered_subject.gender and registered_subject.gender != gender:
                 raise forms.ValidationError({
                     'initials': 'Incorrect gender. Based on a previous '
                     'registration expected {}.'.format(
