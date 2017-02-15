@@ -1,6 +1,7 @@
 import arrow
 
 from django.core.exceptions import MultipleObjectsReturned
+from django.conf import settings
 
 from edc_base.utils import get_utcnow
 from edc_constants.constants import DEAD, NOT_APPLICABLE, YES, NO
@@ -86,7 +87,7 @@ def todays_log_entry_or_raise(household_structure=None,
             obj.report_datetime, obj.report_datetime.tzinfo)
         try:
             household_log_entry = household_structure.householdlog.householdlogentry_set.get(
-                report_datetime__date=rdate.to('utc').date())
+                report_datetime__date=rdate.to(settings.TIME_ZONE).date())
         except HouseholdLogEntry.DoesNotExist:
             if household_structure.household.plot == anonymous_plot:
                 household_log_entry = create_log_for_anonymous(
@@ -101,5 +102,5 @@ def todays_log_entry_or_raise(household_structure=None,
                             '%Y-%m-%d %H:%M %Z')))
         except MultipleObjectsReturned:
             household_log_entry = household_structure.householdlog.householdlogentry_set.filter(
-                report_datetime__date=rdate.to('utc').date()).last()
+                report_datetime__date=rdate.to(settings.TIME_ZONE).date()).last()
     return household_log_entry
