@@ -39,9 +39,7 @@ class EnrollmentChecklistAnonymousAdmin(ModelAdminMixin, admin.ModelAdmin):
             'fields': (
                 'consent_reviewed',
                 'study_questions',
-                'assessment_score',
-                'consent_signature',
-                'consent_copy')
+                'assessment_score')
         }),
         survey_schedule_fieldset_tuple,
         audit_fieldset_tuple,
@@ -65,8 +63,6 @@ class EnrollmentChecklistAnonymousAdmin(ModelAdminMixin, admin.ModelAdmin):
         "consent_reviewed": admin.VERTICAL,
         "study_questions": admin.VERTICAL,
         "assessment_score": admin.VERTICAL,
-        "consent_signature": admin.VERTICAL,
-        "consent_copy": admin.VERTICAL,
     }
 
     search_fields = (
