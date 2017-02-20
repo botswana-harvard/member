@@ -8,8 +8,8 @@ class HouseholdMemberManager(models.Manager):
         return self.get(
             subject_identifier_as_pk=subject_identifier_as_pk,
             household_structure__survey_schedule=survey_schedule,
-            household_structure__household__household_identifier=household_identifier,
-            household_structure__household__plot__plot_identifier=household_identifier
+            household_identifier=household_identifier,
+            household_structure__household__plot__plot_identifier=plot_identifier
         )
 
 
