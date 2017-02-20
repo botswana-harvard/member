@@ -26,13 +26,11 @@ class EnrollmentChecklistAnonymousAdmin(ModelAdminMixin, admin.ModelAdmin):
             'fields': (
                 'household_member',
                 'report_datetime',
-                'citizen',
                 'gender',
                 'age_in_years',
-                "guardian",
-                "literacy",
-                "study_participation",
-                "part_time_resident",
+                'guardian',
+                'literacy',
+                'part_time_resident',
                 'may_store_samples',)
         }),
         ('Review', {

@@ -18,13 +18,6 @@ class EnrollmentChecklistAnonymous(AnonymousHouseholdMemberModelMixin,
     enrollment eligibility criteria.
     """
 
-    citizen = models.CharField(
-        verbose_name='Are you a Botswana citizen? ',
-        max_length=3,
-        choices=YES_NO,
-        help_text='',
-    )
-
     gender = models.CharField(
         choices=GENDER,
         max_length=1,
@@ -42,17 +35,6 @@ class EnrollmentChecklistAnonymous(AnonymousHouseholdMemberModelMixin,
         default=NOT_APPLICABLE,
         help_text=('If a minor age 16 and 17, ensure a guardian is '
                    'available otherwise participant will not be enrolled.'))
-
-    study_participation = models.CharField(
-        verbose_name=(
-            'Have you participated in a Ya Tsie Study with '
-            'Botswana Harvard Partnership?'),
-        max_length=3,
-        choices=YES_NO,
-        null=True,
-        blank=False,
-        default=NOT_APPLICABLE,
-        help_text='If \'Yes\' then not eligible')
 
     part_time_resident = models.CharField(
         verbose_name=('In the past 12 months, have you typically spent 3 or '
