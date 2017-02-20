@@ -51,16 +51,14 @@ class EnrollmentChecklistAnonymousAdmin(ModelAdminMixin, admin.ModelAdmin):
         'gender', 'is_eligible', 'may_store_samples')
 
     radio_fields = {
-        "citizen": admin.VERTICAL,
-        "gender": admin.VERTICAL,
-        "part_time_resident": admin.VERTICAL,
-        "literacy": admin.VERTICAL,
-        "guardian": admin.VERTICAL,
-        "study_participation": admin.VERTICAL,
-        "may_store_samples": admin.VERTICAL,
-        "consent_reviewed": admin.VERTICAL,
-        "study_questions": admin.VERTICAL,
-        "assessment_score": admin.VERTICAL,
+        'gender': admin.VERTICAL,
+        'part_time_resident': admin.VERTICAL,
+        'literacy': admin.VERTICAL,
+        'guardian': admin.VERTICAL,
+        'may_store_samples': admin.VERTICAL,
+        'consent_reviewed': admin.VERTICAL,
+        'study_questions': admin.VERTICAL,
+        'assessment_score': admin.VERTICAL,
     }
 
     search_fields = (
