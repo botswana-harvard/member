@@ -11,6 +11,7 @@ from edc_base.model.validators.date import datetime_not_future
 from edc_base.utils import get_utcnow, get_uuid
 from edc_constants.choices import YES_NO, GENDER, YES_NO_DWTA, ALIVE_DEAD_UNKNOWN
 from edc_constants.constants import ALIVE, DEAD, YES
+from edc_dashboard.model_mixins import SearchSlugManager
 from edc_registration.model_mixins import UpdatesOrCreatesRegistrationModelMixin
 
 from household.models import HouseholdStructure
@@ -29,6 +30,10 @@ from .member_status_model_mixin import MemberStatusModelMixin
 from .representative_model_mixin import RepresentativeModelMixin
 from .requires_household_log_entry_mixin import RequiresHouseholdLogEntryMixin
 from .search_slug_model_mixin import SearchSlugModelMixin
+
+
+class Manager(HouseholdMemberManager, SearchSlugManager):
+    pass
 
 
 class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
@@ -168,7 +173,7 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
             'section where household_structure is always the same value.'),
     )
 
-    objects = HouseholdMemberManager()
+    objects = Manager()
 
     history = HistoricalRecords()
 
