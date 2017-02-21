@@ -20,6 +20,10 @@ class EnrollmentLoss(HouseholdMemberModelMixin, BaseUuidModel):
 
     history = HistoricalRecords()
 
+    def natural_key(self):
+        return (self.report_datetime, ) + self.household_member.natural_key()
+    natural_key.dependencies = ['member.householdmember', ]
+
     class Meta(HouseholdMemberModelMixin.Meta):
         app_label = 'member'
         verbose_name = 'Enrollment loss'
