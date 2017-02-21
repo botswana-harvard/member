@@ -58,27 +58,31 @@ class EnrollmentChecklistForm(CommonCleanModelFormMixin, forms.ModelForm):
         dob = cleaned_data.get('dob')
         initials = cleaned_data.get('initials')
         gender = cleaned_data.get('gender')
+        non_citizen = (
+            cleaned_data.get('citizen') == NO and
+            cleaned_data.get('legal_marriage') == NO)
         try:
             registered_subject = RegisteredSubject.objects.get(
                 subject_identifier=household_member.subject_identifier)
         except RegisteredSubject.DoesNotExist:
             pass
         else:
-            if registered_subject.dob and registered_subject.dob != dob:
-                raise forms.ValidationError({
-                    'dob': 'Incorrect date of birth. Based on a previous '
-                    'registration expected {}.'.format(
-                        registered_subject.dob)})
-            elif registered_subject.initials and registered_subject.initials != initials:
-                raise forms.ValidationError({
-                    'initials': 'Incorrect initials. Based on a previous '
-                    'registration expected {}.'.format(
-                        registered_subject.initials)})
-            elif registered_subject.gender and registered_subject.gender != gender:
-                raise forms.ValidationError({
-                    'initials': 'Incorrect gender. Based on a previous '
-                    'registration expected {}.'.format(
-                        registered_subject.gender)})
+            if not non_citizen:
+                if registered_subject.dob and registered_subject.dob != dob:
+                    raise forms.ValidationError({
+                        'dob': 'Incorrect date of birth. Based on a previous '
+                        'registration expected {}.'.format(
+                            registered_subject.dob)})
+                elif registered_subject.initials and registered_subject.initials != initials:
+                    raise forms.ValidationError({
+                        'initials': 'Incorrect initials. Based on a previous '
+                        'registration expected {}.'.format(
+                            registered_subject.initials)})
+                elif registered_subject.gender and registered_subject.gender != gender:
+                    raise forms.ValidationError({
+                        'initials': 'Incorrect gender. Based on a previous '
+                        'registration expected {}.'.format(
+                            registered_subject.gender)})
 
     def validate_may_modify(self):
         cleaned_data = self.cleaned_data

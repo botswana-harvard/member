@@ -22,19 +22,10 @@ class EnrollmentChecklistAnonymousForm(forms.ModelForm):
 
         if cleaned_data.get('age_in_years'):
             self.validate_age()
-
-        if cleaned_data.get('citizen'):
-            if cleaned_data.get('citizen') == YES:
-                raise forms.ValidationError({
-                    'citizen': 'Subject is not eligible for anonymous participation.'})
         if cleaned_data.get('literacy'):
             if cleaned_data.get('literacy') == NO:
                 raise forms.ValidationError({
                     'literacy': 'Subject is not eligible.'})
-        if cleaned_data.get('study_participation'):
-            if cleaned_data.get('study_participation') == YES:
-                raise forms.ValidationError({
-                    'study_participation': 'Subject is not eligible.'})
         if cleaned_data.get('part_time_resident'):
             if cleaned_data.get('part_time_resident') == NO:
                 raise forms.ValidationError({

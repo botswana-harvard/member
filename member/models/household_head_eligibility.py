@@ -20,7 +20,7 @@ class HouseholdHeadEligibility(RepresentativeEligibilityMixin,
         return str(self.household_member)
 
     def natural_key(self):
-        return self.household_member.natural_key()
+        return (self.report_datetime) + self.household_member.natural_key()
     natural_key.dependencies = ['member.householdmember']
 
     class Meta:

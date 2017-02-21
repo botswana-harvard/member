@@ -255,6 +255,10 @@ class EnrollmentChecklist(EnrollmentModelMixin, HouseholdMemberModelMixin,
 
     history = HistoricalRecords()
 
+    def natural_key(self):
+        return (self.report_datetime, ) + self.household_member.natural_key()
+    natural_key.dependencies = ['member.householdmember', ]
+
     class Meta:
         app_label = 'member'
         unique_together = (('household_member', 'report_datetime'), )

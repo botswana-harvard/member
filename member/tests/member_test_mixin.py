@@ -10,8 +10,8 @@ from edc_registration.models import RegisteredSubject
 from household.models import HouseholdStructure
 from survey.site_surveys import site_surveys
 
-from ..constants import HEAD_OF_HOUSEHOLD
-from ..models import HouseholdMember, EnrollmentChecklist
+from member.constants import HEAD_OF_HOUSEHOLD
+from member.models import HouseholdMember, EnrollmentChecklist
 
 
 fake = Faker()
