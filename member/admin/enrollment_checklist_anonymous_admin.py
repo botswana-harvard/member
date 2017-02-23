@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.safestring import mark_safe
 
 from edc_base.modeladmin_mixins import audit_fieldset_tuple
 from survey.admin import survey_schedule_fieldset_tuple
@@ -16,10 +17,9 @@ class EnrollmentChecklistAnonymousAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     date_hierarchy = 'report_datetime'
 
-    instructions = [
-        'This form is a tool to assist the Interviewer to confirm the '
-        'Eligibility status of the ANONYMOUS subject. '
-        'After entering the required items, click SAVE.']
+    additional_instructions = mark_safe(
+        '<i class="fa fa-user-secret"></i> This form is a tool to assist the Interviewer to confirm the '
+        'Eligibility status of the ANONYMOUS subject.')
 
     fieldsets = (
         (None, {

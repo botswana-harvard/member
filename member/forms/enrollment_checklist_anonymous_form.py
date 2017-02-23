@@ -3,7 +3,8 @@ from faker import Faker
 from django import forms
 from django.apps import apps as django_apps
 
-from edc_constants.constants import NOT_APPLICABLE, YES, ALIVE, MALE, NO
+from edc_constants.constants import NOT_APPLICABLE, YES, ALIVE, MALE, NO,\
+    UNKNOWN
 
 from household.models.household_structure.household_structure import HouseholdStructure
 from member.models import HouseholdMember
@@ -20,30 +21,26 @@ class EnrollmentChecklistAnonymousForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
 
-        if cleaned_data.get('age_in_years'):
-            self.validate_age()
-        if cleaned_data.get('literacy'):
-            if cleaned_data.get('literacy') == NO:
-                raise forms.ValidationError({
-                    'literacy': 'Subject is not eligible.'})
-        if cleaned_data.get('part_time_resident'):
-            if cleaned_data.get('part_time_resident') == NO:
-                raise forms.ValidationError({
-                    'part_time_resident': 'Subject is not eligible.'})
-
-        # insert Household Member a new household member into
-        # cleaned_data
-        household_member = cleaned_data.get('household_member')
-        if not household_member and not self.instance.id:
-            household_member = self.get_anonymous_member()
+        self.validate_age()
+        if cleaned_data.get('part_time_resident') == NO:
+            raise forms.ValidationError({
+                'part_time_resident': 'Subject is not eligible.'})
+        elif cleaned_data.get('literacy') == NO:
+            raise forms.ValidationError({
+                'literacy': 'Subject is not eligible.'})
         else:
-            raise forms.ValidationError('Household member is required')
-        if household_member.is_consented:
-            raise forms.ValidationError(
-                'Household member has consented. '
-                'Enrollment Checklist may not be modified')
-
-        self.cleaned_data['household_member'] = household_member
+            # insert Household Member a new household member into
+            # cleaned_data
+            household_member = cleaned_data.get('household_member')
+            if not household_member and not self.instance.id:
+                household_member = self.get_anonymous_member()
+            else:
+                raise forms.ValidationError('Household member is required')
+            if household_member.is_consented:
+                raise forms.ValidationError(
+                    'Household member has consented. '
+                    'Enrollment Checklist may not be modified')
+            self.cleaned_data['household_member'] = household_member
 
         return cleaned_data
 
@@ -68,21 +65,25 @@ class EnrollmentChecklistAnonymousForm(forms.ModelForm):
             survival_status=ALIVE,
             study_resident=YES,
             inability_to_participate=NOT_APPLICABLE,
+            relation='UNKNOWN',
             first_name=first_name,
             initials=initials,
+            non_citizen=True,
         )
         return household_member
 
     def validate_age(self):
         cleaned_data = self.cleaned_data
         age_in_years = cleaned_data.get('age_in_years')
-        if is_child(age_in_years):
+        if not age_in_years:
+            raise forms.ValidationError({'age_in_years': ''})
+        elif is_child(age_in_years):
             raise forms.ValidationError(
                 {'age_in_years': 'Subject is a child. Got {}y.'.format(age_in_years)})
-        if is_minor(age_in_years) and cleaned_data.get('guardian') in [NO, NOT_APPLICABLE]:
+        elif is_minor(age_in_years) and cleaned_data.get('guardian') in [NO, NOT_APPLICABLE]:
             raise forms.ValidationError(
                 {'guardian': 'Subject a minor. Got {}y'.format(age_in_years)})
-        if is_adult(age_in_years) and cleaned_data.get('guardian') in [YES, NO]:
+        elif is_adult(age_in_years) and cleaned_data.get('guardian') in [YES, NO]:
             raise forms.ValidationError(
                 {'guardian': 'Subject a not minor. Got {}y'.format(age_in_years)})
 

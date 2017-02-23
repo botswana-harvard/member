@@ -112,6 +112,7 @@ class HouseholdMemberAdmin(ModelAdminMixin, FieldsetsModelAdminMixin,
     list_filter = (
         'household_structure__survey_schedule',
         'present_today',
+        'non_citizen',
         'study_resident',
         'inability_to_participate',
         'survival_status',
