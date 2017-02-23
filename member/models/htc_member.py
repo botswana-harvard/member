@@ -7,7 +7,6 @@ from edc_constants.constants import NOT_APPLICABLE
 from edc_identifier.short_identifier import ShortIdentifier
 
 from ..choices import HIV_RESULT
-
 from .model_mixins import HouseholdMemberModelMixin
 
 HIV_RESULT = list(HIV_RESULT)
@@ -79,7 +78,7 @@ class HtcMember(HouseholdMemberModelMixin, BaseUuidModel):
     def save(self, *args, **kwargs):
         if not self.id:
             self.tracking_identifier = self.prepare_tracking_identifier()
-        super(HtcMember, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def prepare_tracking_identifier(self):
         app_config = django_apps.get_app_config('edc_device')

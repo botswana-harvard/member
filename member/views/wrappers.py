@@ -5,7 +5,7 @@ from edc_dashboard.wrappers import ModelWrapper
 
 from ..models import (
     AbsentMember, UndecidedMember, RefusedMember,
-    DeceasedMember, EnrollmentChecklist)
+    DeceasedMember, EnrollmentChecklist, HtcMember)
 
 app_config = django_apps.get_app_config('member')
 
@@ -101,6 +101,15 @@ class DeceasedMemberModelWrapper(MemberStatusModelWrapperMixin):
         'member.deceasedmember': ['survey_schedule', 'household_member']}
     next_url_attrs = {
         'member.deceasedmember': ['household_identifier', 'survey_schedule']}
+
+
+class HtcMemberModelWrapper(MemberStatusModelWrapperMixin):
+
+    model_name = 'member.htcmember'
+    extra_querystring_attrs = {
+        'member.htcmember': ['survey_schedule', 'household_member']}
+    next_url_attrs = {
+        'member.htcmember': ['household_identifier', 'survey_schedule']}
 
 
 class EnrollmentChecklistModelWrapper(MemberStatusModelWrapperMixin):
@@ -228,6 +237,14 @@ class HouseholdMemberModelWrapper(ModelWrapper):
         except ObjectDoesNotExist:
             return DeceasedMemberModelWrapper(
                 DeceasedMember(household_member=self._original_object))
+
+    @property
+    def htc_member(self):
+        try:
+            return HtcMemberModelWrapper(self.wrapped_object.htcmember)
+        except ObjectDoesNotExist:
+            return HtcMemberModelWrapper(
+                HtcMember(household_member=self._original_object))
 
     @property
     def enrollment_checklist(self):
