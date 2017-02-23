@@ -36,6 +36,7 @@ class HouseholdMemberForm(CommonCleanModelFormMixin, forms.ModelForm):
                     'Got {0}.'.format(cleaned_data.get('age_in_years')))})
 
         self.validate_on_gender()
+        self.validate_initials_on_first_name()
 
         if cleaned_data.get('survival_status') == DEAD:
             if not cleaned_data.get('present_today') == NO:
@@ -94,6 +95,16 @@ class HouseholdMemberForm(CommonCleanModelFormMixin, forms.ModelForm):
                 if cleaned_data.get('relation') not in relations:
                     raise forms.ValidationError({
                         'relation': 'Invalid relation for female.'})
+
+    def validate_initials_on_first_name(self):
+        cleaned_data = self.cleaned_data
+        if cleaned_data.get('initials') and cleaned_data.get('first_name'):
+            name_first_char = cleaned_data.get('first_name')[0]
+            initials_first_char = cleaned_data.get('initials')[0]
+            if name_first_char != initials_first_char:
+                    raise forms.ValidationError({
+                        'initials': 'Invalid initials, first letter of first '
+                                    'name should be first letter of initials'})
 
     class Meta:
         model = HouseholdMember
