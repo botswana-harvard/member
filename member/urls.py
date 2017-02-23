@@ -24,6 +24,8 @@ from survey.patterns import survey_schedule
 from .admin_site import member_admin
 from .views import ListboardView, AnonymousListboardView
 
+app_name = 'member'
+
 
 def listboard_urls():
     urlpatterns = []
