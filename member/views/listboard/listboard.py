@@ -5,15 +5,9 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.utils.decorators import method_decorator
 
-from edc_dashboard.forms import SearchForm as BaseSearchForm
 from edc_map.models import InnerContainer
 
 from .base_listboard import BaseListboardView
-
-
-class SearchForm(BaseSearchForm):
-    action_url_name = django_apps.get_app_config(
-        'member').listboard_url_name
 
 
 class ListboardView(BaseListboardView):

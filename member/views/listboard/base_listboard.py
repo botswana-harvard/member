@@ -5,16 +5,11 @@ from django.utils.decorators import method_decorator
 from edc_base.view_mixins import EdcBaseViewMixin
 from edc_dashboard.view_mixins import AppConfigViewMixin
 from edc_dashboard.views import ListboardView
-from edc_dashboard.forms import SearchForm as BaseSearchForm
 
 from survey.view_mixins import SurveyViewMixin
 
 from ...models import HouseholdMember
 from ..wrappers import HouseholdMemberModelWrapper
-
-
-class SearchForm(BaseSearchForm):
-    action_url_name = django_apps.get_app_config('member').listboard_url_name
 
 
 class BaseListboardView(SurveyViewMixin, AppConfigViewMixin,
@@ -25,7 +20,6 @@ class BaseListboardView(SurveyViewMixin, AppConfigViewMixin,
     navbar_name = 'default'
     model = HouseholdMember
     model_wrapper_class = HouseholdMemberModelWrapper
-    search_form_class = SearchForm
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
