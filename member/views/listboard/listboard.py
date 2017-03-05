@@ -1,4 +1,5 @@
 import re
+import socket
 
 from django.apps import apps as django_apps
 from django.contrib.auth.decorators import login_required
@@ -28,10 +29,11 @@ class ListboardView(BaseListboardView):
 
     def get_queryset_filter_options(self, request, *args, **kwargs):
         options = super().get_queryset_filter_options(request, *args, **kwargs)
+        device_name = socket.gethostname()
         plot_identifier_list = []
         try:
             plot_identifier_list = InnerContainer.objects.get(
-                username=request.user.username).identifier_labels
+                device_name=device_name).identifier_labels
         except InnerContainer.DoesNotExist:
             plot_identifier_list = []
         if plot_identifier_list:
