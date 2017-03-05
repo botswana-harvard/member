@@ -1,4 +1,4 @@
-from edc_base.model.models import ListModelMixin, BaseUuidModel
+from edc_base.model_mixins import BaseUuidModel, ListModelMixin
 
 
 class TransportMode (ListModelMixin, BaseUuidModel):

@@ -1,7 +1,7 @@
-from edc_base.model.models import HistoricalRecords, BaseUuidModel
+from edc_base.model_managers import HistoricalRecords
+from edc_base.model_mixins import BaseUuidModel
 
 from ..managers import MemberEntryManager
-
 from .model_mixins import RepresentativeEligibilityMixin, HouseholdMemberModelMixin
 
 

@@ -1,7 +1,8 @@
 from django.db import models
 
-from edc_base.model.models import BaseUuidModel, HistoricalRecords
-from edc_base.model.validators.date import datetime_not_future
+from edc_base.model_managers import HistoricalRecords
+from edc_base.model_mixins import BaseUuidModel
+from edc_base.model_validators import datetime_not_future
 from edc_base.utils import get_utcnow
 from edc_constants.choices import YES_NO
 

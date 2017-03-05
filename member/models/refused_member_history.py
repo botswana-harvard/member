@@ -1,6 +1,7 @@
 from django.db import models
 
-from edc_base.model.models import BaseUuidModel, HistoricalRecords
+from edc_base.model_managers import HistoricalRecords
+from edc_base.model_mixins import BaseUuidModel
 
 from .model_mixins import HouseholdMemberModelMixin, RefusedMemberMixin
 

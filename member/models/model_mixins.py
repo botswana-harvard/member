@@ -4,8 +4,8 @@ from django.db import models
 
 from django_crypto_fields.fields import EncryptedCharField, EncryptedTextField
 
-from edc_base.model.fields import OtherCharField
-from edc_base.model.validators import (
+from edc_base.model_fields import OtherCharField
+from edc_base.model_validators import (
     datetime_not_future, date_not_future, eligible_if_yes)
 from edc_base.utils import get_utcnow
 from edc_constants.choices import YES_NO

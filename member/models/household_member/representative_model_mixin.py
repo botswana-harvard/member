@@ -1,4 +1,5 @@
 from django.apps import apps as django_apps
+from django.core.exceptions import MultipleObjectsReturned
 from django.db import models
 
 from plot.utils import get_anonymous_plot
@@ -6,7 +7,6 @@ from plot.utils import get_anonymous_plot
 from ...choices import RELATIONS
 from ...constants import HEAD_OF_HOUSEHOLD
 from ...exceptions import EnumerationRepresentativeError
-from django.core.exceptions import MultipleObjectsReturned
 
 
 class RepresentativeModelMixin(models.Model):

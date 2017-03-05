@@ -1,10 +1,10 @@
 from django.db import models
 
-from edc_base.model.models import HistoricalRecords, BaseUuidModel
+from edc_base.model_managers import HistoricalRecords
+from edc_base.model_mixins import BaseUuidModel
 
 from ..choices import REASONS_UNDECIDED
 from ..managers import MemberEntryManager
-
 from .model_mixins import MemberEntryMixin
 
 

@@ -5,9 +5,10 @@ from django.core.validators import (
 from django_crypto_fields.fields import FirstnameField
 from django.db import models
 
-from edc_base.model.fields import OtherCharField
-from edc_base.model.models import BaseUuidModel, HistoricalRecords
-from edc_base.model.validators.date import datetime_not_future
+from edc_base.model_fields import OtherCharField
+from edc_base.model_managers import HistoricalRecords
+from edc_base.model_mixins import BaseUuidModel
+from edc_base.model_validators import datetime_not_future
 from edc_base.utils import get_utcnow, get_uuid
 from edc_constants.choices import YES_NO, GENDER, YES_NO_DWTA, ALIVE_DEAD_UNKNOWN
 from edc_constants.constants import ALIVE, DEAD, YES

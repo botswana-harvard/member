@@ -1,7 +1,8 @@
 from django.db import models
 
 from edc_appointment.choices import APPT_STATUS
-from edc_base.model.models import BaseUuidModel, HistoricalRecords
+from edc_base.model_managers import HistoricalRecords
+from edc_base.model_mixins import BaseUuidModel
 from edc_constants.choices import TIME_OF_DAY, TIME_OF_WEEK
 
 from ..managers import MemberEntryManager

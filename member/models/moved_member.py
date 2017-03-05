@@ -1,7 +1,8 @@
 from django.db import models
 from django_crypto_fields.fields import EncryptedTextField
 
-from edc_base.model.models import HistoricalRecords, BaseUuidModel
+from edc_base.model_managers import HistoricalRecords
+from edc_base.model_mixins import BaseUuidModel
 from edc_constants.choices import YES_NO_UNKNOWN
 
 from ..managers import MemberEntryManager

@@ -1,7 +1,8 @@
 from django.db import models
 
-from edc_base.model.models import HistoricalRecords, BaseUuidModel
-from edc_base.model.validators import date_not_future
+from edc_base.model_managers import HistoricalRecords
+from edc_base.model_mixins import BaseUuidModel
+from edc_base.model_validators import date_not_future
 from edc_constants.choices import DEATH_RELATIONSIP_TO_STUDY
 
 from ..managers import MemberEntryManager

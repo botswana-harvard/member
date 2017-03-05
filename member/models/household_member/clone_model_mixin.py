@@ -5,11 +5,11 @@ from dateutil.relativedelta import relativedelta
 from django.db import models, transaction
 
 from edc_base.utils import age, get_utcnow
-
-from ...exceptions import CloneError
-from edc_registration.models import RegisteredSubject
-from member.choices import DETAILS_CHANGE_REASON
 from edc_constants.choices import YES_NO
+from edc_registration.models import RegisteredSubject
+
+from ...choices import DETAILS_CHANGE_REASON
+from ...exceptions import CloneError
 
 
 class CloneModelMixin(models.Model):

@@ -3,7 +3,8 @@ from django.core.validators import (
 from django.db import models
 
 from edc_base.exceptions import AgeValueError
-from edc_base.model.models import HistoricalRecords, BaseUuidModel
+from edc_base.model_managers import HistoricalRecords
+from edc_base.model_mixins import BaseUuidModel
 from edc_base.utils import age
 from edc_constants.choices import GENDER, YES_NO, YES_NO_NA
 from edc_constants.constants import NOT_APPLICABLE, NO, YES

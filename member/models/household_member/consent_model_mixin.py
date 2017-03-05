@@ -1,9 +1,8 @@
 from django.apps import apps as django_apps
 from django.db import models
 
-from edc_consent.site_consents import site_consents
-
 from edc_consent.exceptions import ConsentDoesNotExist
+from edc_consent.site_consents import site_consents
 
 
 class ConsentModelMixin(models.Model):
