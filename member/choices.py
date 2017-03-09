@@ -1,4 +1,5 @@
-from edc_constants.constants import OTHER, DWTA, NOT_APPLICABLE, POS, NEG, IND
+from edc_constants.constants import OTHER, DWTA, NOT_APPLICABLE, POS, NEG, IND,\
+    UNKNOWN
 
 from .constants import HEAD_OF_HOUSEHOLD, MENTAL_INCAPACITY, BLOCK_PARTICIPATION
 
@@ -9,8 +10,8 @@ FEMALE_RELATIONS = [
     ('sister', 'Sister'),
     ('grandmother', 'Grandmother'),
     ('granddaughter', 'Granddaughter'),
-    ('great-Grandmother', 'Great-Grandmother'),
-    ('great-Granddaughter', 'Great-Granddaughter'),
+    ('great-grandmother', 'Great-Grandmother'),
+    ('great-granddaughter', 'Great-Granddaughter'),
     ('aunt', 'Aunt'),
     ('niece', 'Niece'),
     ('mother-in-law', 'Mother-in-law'),
@@ -35,8 +36,8 @@ MALE_RELATIONS = [
     ('brother', 'Brother'),
     ('grandfather', 'Grandfather'),
     ('grandson', 'Grandson'),
-    ('great-Grandfather', 'Great-Grandfather'),
-    ('great-Grandson', 'Great-Grandson'),
+    ('great-grandfather', 'Great-Grandfather'),
+    ('great-grandson', 'Great-Grandson'),
     ('uncle', 'Uncle'),
     ('nephew', 'Nephew'),
     ('father-in-law', 'Father-in-law'),
@@ -48,7 +49,7 @@ MALE_RELATIONS = [
 relations = FEMALE_RELATIONS + MALE_RELATIONS + ANY_RELATIONS
 relations.sort()
 RELATIONS = [(HEAD_OF_HOUSEHOLD, 'HEAD of HOUSEHOLD')] + \
-    relations + [('UNKNOWN', 'UNKNOWN')]
+    relations + [(UNKNOWN, 'UNKNOWN')]
 
 DETAILS_CHANGE_REASON = (
     ('married', 'Married'),
