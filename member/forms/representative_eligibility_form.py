@@ -2,10 +2,13 @@ from django import forms
 from django.db.models import Max
 from django.forms import ValidationError
 
+from edc_base.utils import get_utcnow
 from household.models import HouseholdLogEntry
+from household.constants import REFUSED_ENUMERATION
 
 from ..constants import ELIGIBLE_REPRESENTATIVE_ABSENT
 from ..models import RepresentativeEligibility
+from ..models.household_member.utils import todays_log_entry_or_raise
 from ..exceptions import EnumerationRepresentativeError
 
 
@@ -14,6 +17,9 @@ class RepresentativeEligibilityForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(RepresentativeEligibilityForm, self).clean()
         household_structure = cleaned_data.get('household_structure')
+
+        self.validate_refused_enumeration()
+
         try:
             report_datetime = HouseholdLogEntry.objects.filter(
                 household_log__household_structure=household_structure).aggregate(
@@ -40,6 +46,18 @@ class RepresentativeEligibilityForm(forms.ModelForm):
             instance.common_clean()
         except EnumerationRepresentativeError as e:
             raise forms.ValidationError(str(e))
+        return cleaned_data
+
+    def validate_refused_enumeration(self):
+        cleaned_data = self.cleaned_data
+        household_structure = cleaned_data.get('household_structure')
+        household_log_entry = todays_log_entry_or_raise(
+            household_structure=household_structure,
+            report_datetime=get_utcnow())
+        if(household_log_entry.household_status == REFUSED_ENUMERATION):
+            raise forms.ValidationError('Household log entry for today shows '
+                                        'household status as refused '
+                                        'therefore you cannot add a member')
         return cleaned_data
 
     class Meta:

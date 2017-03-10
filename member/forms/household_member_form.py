@@ -1,12 +1,16 @@
 from django import forms
+from django.core.exceptions import MultipleObjectsReturned
 from django.forms.utils import ErrorList
 
 from edc_base.modelform_mixins import CommonCleanModelFormMixin
+from edc_base.utils import get_utcnow
 from edc_constants.constants import DEAD, NO, YES, FEMALE, MALE
+from household.constants import REFUSED_ENUMERATION
 
 from ..choices import RELATIONS, FEMALE_RELATIONS, MALE_RELATIONS
 from ..constants import HEAD_OF_HOUSEHOLD
 from ..models import HouseholdMember, EnrollmentChecklist
+from ..models.household_member.utils import todays_log_entry_or_raise
 
 
 class HouseholdMemberForm(CommonCleanModelFormMixin, forms.ModelForm):
@@ -21,6 +25,7 @@ class HouseholdMemberForm(CommonCleanModelFormMixin, forms.ModelForm):
         except EnrollmentChecklist.DoesNotExist:
             pass
 
+        self.validate_refused_enumeration()
         self.validate_integrity_with_previous()
 
         if (cleaned_data.get('relation') == HEAD_OF_HOUSEHOLD
@@ -105,6 +110,17 @@ class HouseholdMemberForm(CommonCleanModelFormMixin, forms.ModelForm):
                     raise forms.ValidationError({
                         'initials': 'Invalid initials, first letter of first '
                                     'name should be first letter of initials'})
+
+    def validate_refused_enumeration(self):
+        cleaned_data = self.cleaned_data
+        household_structure = cleaned_data.get('household_structure')
+        household_log_entry = todays_log_entry_or_raise(
+            household_structure=household_structure,
+            report_datetime=get_utcnow())
+        if(household_log_entry.household_status == REFUSED_ENUMERATION):
+            raise forms.ValidationError('Household log entry for today shows '
+                                        'household status as refused '
+                                        'therefore you cannot add a member')
 
     class Meta:
         model = HouseholdMember

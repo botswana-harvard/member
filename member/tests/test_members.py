@@ -4,11 +4,12 @@ from model_mommy import mommy
 from django.db.utils import IntegrityError
 from django.test import TestCase, tag
 
+from edc_base.utils import get_utcnow
 from edc_constants.constants import NO, DEAD, YES
 
-from household.constants import ELIGIBLE_REPRESENTATIVE_PRESENT
+from household.constants import ELIGIBLE_REPRESENTATIVE_PRESENT, REFUSED_ENUMERATION
 from household.exceptions import HouseholdLogRequired
-from household.models import HouseholdStructure, Household
+from household.models import HouseholdStructure, Household, HouseholdLog, HouseholdLogEntry
 from survey.site_surveys import site_surveys
 
 from ..clone import Clone
@@ -16,6 +17,7 @@ from ..constants import MENTAL_INCAPACITY, HEAD_OF_HOUSEHOLD
 from ..exceptions import (
     EnumerationRepresentativeError,
     MemberValidationError, CloneError)
+from ..forms import RepresentativeEligibilityForm
 from ..models import HouseholdMember
 
 from .mixins import MemberMixin
@@ -475,3 +477,14 @@ class TestCloneMembers(MemberMixin, TestCase):
             survey_schedule=survey_schedule.field_value)
         household_member = household_structure.householdmember_set.all().first()
         self.assertIsNotNone(household_member.internal_identifier)
+
+    def test_representative_eligibility_with_refused_enumeration(self):
+        household_structure = self.make_household_structure()
+        self.add_enumeration_attempt(
+            household_structure,
+            report_datetime=get_utcnow(),
+            household_status=REFUSED_ENUMERATION)
+        options = {
+            'household_structure': household_structure.id}
+        form = RepresentativeEligibilityForm(data=options)
+        self.assertFalse(form.is_valid())
