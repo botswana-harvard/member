@@ -54,7 +54,7 @@ class RepresentativeEligibilityForm(forms.ModelForm):
         household_log_entry = todays_log_entry_or_raise(
             household_structure=household_structure,
             report_datetime=get_utcnow())
-        if(household_log_entry.household_status == REFUSED_ENUMERATION):
+        if household_log_entry.household_status == REFUSED_ENUMERATION:
             raise forms.ValidationError('Household log entry for today shows '
                                         'household status as refused '
                                         'therefore you cannot add a member')
