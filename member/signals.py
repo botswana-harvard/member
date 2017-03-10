@@ -138,7 +138,7 @@ def deceased_member_on_post_save(sender, instance, raw, created, using, **kwargs
     if not raw:
         if created:
             instance.household_member.visit_attempts += 1
-        instance.household_member.refused = True
+        instance.household_member.deceased = True
         instance.household_member.save()
 
 

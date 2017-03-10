@@ -17,6 +17,14 @@ class MemberStatusModelMixin(models.Model):
         default=False,
         help_text="Updated by the subject absentee log")
 
+    deceased = models.BooleanField(
+        default=False,
+        help_text="Updated by the subject deceased log")
+
+    moved = models.BooleanField(
+        default=False,
+        help_text="Updated by the subject moved log")
+
     non_citizen = models.BooleanField(
         default=False,
         help_text="Updated by the enrollment checklist")
