@@ -128,7 +128,6 @@ def deceased_member_on_post_delete(sender, instance, using, **kwargs):
     instance.household_member.visit_attempts -= 1
     if instance.household_member.visit_attempts < 0:
         instance.household_member.visit_attempts = 0
-    instance.household_member.deceased = False
     instance.household_member.save()
 
 
@@ -138,7 +137,6 @@ def deceased_member_on_post_save(sender, instance, raw, created, using, **kwargs
     if not raw:
         if created:
             instance.household_member.visit_attempts += 1
-        instance.household_member.deceased = True
         instance.household_member.save()
 
 
@@ -148,7 +146,6 @@ def moved_member_on_post_save(sender, instance, raw, created, using, **kwargs):
     if not raw:
         if created:
             instance.household_member.visit_attempts += 1
-        instance.household_member.moved = True
         instance.household_member.save()
 
 
@@ -158,6 +155,4 @@ def moved_member_on_post_delete(sender, instance, using, **kwargs):
     instance.household_member.visit_attempts -= 1
     if instance.household_member.visit_attempts < 0:
         instance.household_member.visit_attempts = 0
-    if instance.household_member.absentmember_set.all().count() == 0:
-        instance.household_member.moved = False
     instance.household_member.save()
