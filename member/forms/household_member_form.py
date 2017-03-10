@@ -1,5 +1,4 @@
 from django import forms
-from django.core.exceptions import MultipleObjectsReturned
 from django.forms.utils import ErrorList
 
 from edc_base.modelform_mixins import CommonCleanModelFormMixin
