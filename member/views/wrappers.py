@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.apps import apps as django_apps
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -206,6 +208,16 @@ class HouseholdMemberModelWrapper(ModelWrapper):
     def absent_members(self):
         return (AbsentMemberModelWrapper(obj)
                 for obj in self.wrapped_object.absentmember_set.all())
+
+    @property
+    def today_absent_member(self):
+        try:
+            absentee_member = AbsentMember.objects.get(
+                household_member=self._original_object,
+                report_datetime__date=date.today())
+            return AbsentMemberModelWrapper(absentee_member)
+        except AbsentMember.DoesNotExist:
+            return None
 
     @property
     def new_absent_member(self):
