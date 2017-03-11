@@ -16,7 +16,6 @@ from survey import S
 from survey.admin import survey_schedule_fields
 
 from ..models import HouseholdMember
-from pprint import pprint
 
 
 class HouseholdMemberAdminMixin:
@@ -26,10 +25,14 @@ class HouseholdMemberAdminMixin:
             if request.GET.get('household_structure'):
                 kwargs["queryset"] = HouseholdStructure.objects.filter(
                     id__exact=request.GET.get('household_structure', 0))
+            else:
+                kwargs["queryset"] = HouseholdStructure.objects.none()
         if db_field.name == "household_member":
             if request.GET.get('household_member'):
                 kwargs["queryset"] = HouseholdMember.objects.filter(
                     id__exact=request.GET.get('household_member', 0))
+            else:
+                kwargs["queryset"] = HouseholdMember.objects.none()
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def view_on_site(self, obj):
