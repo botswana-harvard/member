@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import (
     MinLengthValidator, MaxLengthValidator, MinValueValidator,
@@ -54,9 +56,8 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
         max_length=25,
         help_text='updated on save from household')
 
-    internal_identifier = models.CharField(
-        max_length=36,
-        default=get_uuid,
+    internal_identifier = models.UUIDField(
+        default=uuid4,
         editable=False,
         help_text='Identifier to track member between surveys, '
                   'is the id of the member\'s first appearance in the table.')
