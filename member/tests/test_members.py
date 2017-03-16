@@ -7,7 +7,8 @@ from django.test import TestCase, tag
 from edc_base.utils import get_utcnow
 from edc_constants.constants import NO, DEAD, YES
 
-from household.constants import ELIGIBLE_REPRESENTATIVE_PRESENT, REFUSED_ENUMERATION
+from household.constants import ELIGIBLE_REPRESENTATIVE_PRESENT, REFUSED_ENUMERATION, ELIGIBLE_REPRESENTATIVE_ABSENT,\
+    NO_HOUSEHOLD_INFORMANT
 from household.exceptions import HouseholdLogRequired
 from household.models import HouseholdStructure, Household, HouseholdLog, HouseholdLogEntry
 from survey.site_surveys import site_surveys
@@ -477,6 +478,28 @@ class TestCloneMembers(MemberMixin, TestCase):
             survey_schedule=survey_schedule.field_value)
         household_member = household_structure.householdmember_set.all().first()
         self.assertIsNotNone(household_member.internal_identifier)
+
+    def test_representative_eligibility_with_representative_absent(self):
+        household_structure = self.make_household_structure()
+        self.add_enumeration_attempt(
+            household_structure,
+            report_datetime=get_utcnow(),
+            household_status=ELIGIBLE_REPRESENTATIVE_ABSENT)
+        options = {
+            'household_structure': household_structure.id}
+        form = RepresentativeEligibilityForm(data=options)
+        self.assertFalse(form.is_valid())
+
+    def test_representative_eligibility_with_no_household_informant(self):
+        household_structure = self.make_household_structure()
+        self.add_enumeration_attempt(
+            household_structure,
+            report_datetime=get_utcnow(),
+            household_status=NO_HOUSEHOLD_INFORMANT)
+        options = {
+            'household_structure': household_structure.id}
+        form = RepresentativeEligibilityForm(data=options)
+        self.assertFalse(form.is_valid())
 
     def test_representative_eligibility_with_refused_enumeration(self):
         household_structure = self.make_household_structure()
