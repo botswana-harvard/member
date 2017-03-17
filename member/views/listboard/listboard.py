@@ -5,6 +5,7 @@ from django.apps import apps as django_apps
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.utils.decorators import method_decorator
+from django.conf import settings
 
 from edc_map.models import InnerContainer
 
@@ -29,6 +30,9 @@ class ListboardView(BaseListboardView):
 
     def get_queryset_filter_options(self, request, *args, **kwargs):
         options = super().get_queryset_filter_options(request, *args, **kwargs)
+        map_area = settings.CURRENT_MAP_AREA
+        options.update(
+            {'household_structure__household__plot__map_area': map_area})
         device_name = socket.gethostname()
         plot_identifier_list = []
         try:
