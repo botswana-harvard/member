@@ -1,7 +1,9 @@
-from edc_constants.constants import OTHER, DWTA, NOT_APPLICABLE, POS, NEG, IND,\
-    UNKNOWN
+from edc_constants.constants import (
+    OTHER, DWTA, NOT_APPLICABLE, POS, NEG, IND, UNKNOWN)
 
-from .constants import HEAD_OF_HOUSEHOLD, MENTAL_INCAPACITY, BLOCK_PARTICIPATION
+from .constants import (
+    HEAD_OF_HOUSEHOLD, MENTAL_INCAPACITY, BLOCK_PARTICIPATION,
+    CONTINUE_PARTICIPATION)
 
 FEMALE_RELATIONS = [
     ('wife', 'Wife'),
@@ -70,7 +72,7 @@ REASONS_UNDECIDED = (
     ('afraid_to_test', ('afraid_to_test')),
     ('not ready to test', ('not ready to test')),
     ('wishes to test with partner', ('wishes to test with partner')),
-    ('OTHER', ('Other...')),
+    (OTHER, ('Other...')),
 )
 
 REASONS_REFUSED = (
@@ -85,6 +87,7 @@ REASONS_REFUSED = (
     ('Illiterate does not want a witness',
      ('Illiterate does not want a witness')),
     ('I already know I am HIV-positive', ('I already know I am HIV-positive')),
+    ('I already know my status', ('I already know my status')),
     ('I am afraid of testing', ('I am afraid of testing')),
     ('I don\'t want to take part', ('I don\'t want to take part')),
     ('I haven\'t had a chance to think about it',
@@ -133,7 +136,7 @@ REASONS_ABSENT = (
 
 BLOCK_CONTINUE = (
     (BLOCK_PARTICIPATION, 'Yes (Do not allow further participation)'),
-    ('Continue', 'No (May continue and participate)'),
+    (CONTINUE_PARTICIPATION, 'No (May continue and participate)'),
     (NOT_APPLICABLE, 'Not applicable'),
 )
 

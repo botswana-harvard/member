@@ -4,7 +4,8 @@ from django.forms.utils import ErrorList
 from edc_base.modelform_mixins import CommonCleanModelFormMixin
 from edc_base.utils import get_utcnow
 from edc_constants.constants import DEAD, NO, YES, FEMALE, MALE
-from household.constants import REFUSED_ENUMERATION
+from household.constants import REFUSED_ENUMERATION, ELIGIBLE_REPRESENTATIVE_ABSENT,\
+    NO_HOUSEHOLD_INFORMANT
 
 from ..choices import RELATIONS, FEMALE_RELATIONS, MALE_RELATIONS
 from ..constants import HEAD_OF_HOUSEHOLD
@@ -120,6 +121,30 @@ class HouseholdMemberForm(CommonCleanModelFormMixin, forms.ModelForm):
             raise forms.ValidationError('Household log entry for today shows '
                                         'household status as refused '
                                         'therefore you cannot add a member')
+
+    def validate_absent_during_enumeration(self):
+        cleaned_data = self.cleaned_data
+        household_structure = cleaned_data.get('household_structure')
+        household_log_entry = todays_log_entry_or_raise(
+            household_structure=household_structure,
+            report_datetime=get_utcnow())
+        if household_log_entry.household_status == ELIGIBLE_REPRESENTATIVE_ABSENT:
+            raise forms.ValidationError('Household log entry for today shows '
+                                        'household status as absent '
+                                        'therefore you cannot add a '
+                                        'representative eligibility')
+
+    def validate_no_household_informent_enumeration(self):
+        cleaned_data = self.cleaned_data
+        household_structure = cleaned_data.get('household_structure')
+        household_log_entry = todays_log_entry_or_raise(
+            household_structure=household_structure,
+            report_datetime=get_utcnow())
+        if household_log_entry.household_status == NO_HOUSEHOLD_INFORMANT:
+            raise forms.ValidationError('Household log entry for today shows '
+                                        'household status as no household informant '
+                                        'therefore you cannot add a '
+                                        'representative eligibility')
 
     class Meta:
         model = HouseholdMember
