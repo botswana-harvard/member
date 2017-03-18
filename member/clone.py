@@ -3,7 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from edc_base.utils import get_utcnow
 
 from .exceptions import CloneError
-from member.models.household_member.household_member import HouseholdMember
+from .models import HouseholdMember
 
 
 class Clone:
