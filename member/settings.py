@@ -183,3 +183,5 @@ STATIC_URL = '/static/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'member', 'media')
 CURRENT_MAP_AREA = 'test_community'
 DEVICE_ID = '99'
+KEY_PATH = '/Users/imosweu/source/member/crypto_fields'
+SURVEY_GROUP_NAME = 'test_survey'
