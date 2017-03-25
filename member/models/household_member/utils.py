@@ -82,24 +82,29 @@ def todays_log_entry_or_raise(household_structure=None,
                     household_structure))
     else:
         # any log entries for given report_datetime.date?
-        obj = household_structure.householdlog.householdlogentry_set.all().last()
+        obj = household_structure.householdlog.householdlogentry_set.all().order_by(
+            'report_datetime').last()
         last_rdate = arrow.Arrow.fromdatetime(
             obj.report_datetime, obj.report_datetime.tzinfo)
         try:
             household_log_entry = household_structure.householdlog.householdlogentry_set.get(
-                report_datetime__date=rdate.to(settings.TIME_ZONE).date())
+                report_datetime__date=rdate.to('UTC').date())
         except HouseholdLogEntry.DoesNotExist:
             if household_structure.household.plot == anonymous_plot:
                 household_log_entry = create_log_for_anonymous(
                     household_structure)
             else:
-                raise HouseholdLogRequired(
-                    'A \'{}\' does not exist for {}, last log '
-                    'entry was on {}.'.format(
-                        HouseholdLogEntry._meta.verbose_name,
-                        report_datetime.strftime('%Y-%m-%d %H:%M %Z'),
-                        last_rdate.to(report_datetime.tzname()).datetime.strftime(
-                            '%Y-%m-%d %H:%M %Z')))
+                try:
+                    household_log_entry = household_structure.householdlog.householdlogentry_set.get(
+                        report_datetime__date=get_utcnow().date())
+                except HouseholdLogEntry.DoesNotExist:
+                    raise HouseholdLogRequired(
+                        'A \'{}\' does not exist for {}, last log '
+                        'entry was on {}.'.format(
+                            HouseholdLogEntry._meta.verbose_name,
+                            report_datetime.strftime('%Y-%m-%d %H:%M %Z'),
+                            last_rdate.to(report_datetime.tzname()).datetime.strftime(
+                                '%Y-%m-%d %H:%M %Z')))
         except MultipleObjectsReturned:
             household_log_entry = household_structure.householdlog.householdlogentry_set.filter(
                 report_datetime__date=rdate.to(settings.TIME_ZONE).date()).last()

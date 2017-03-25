@@ -10,6 +10,7 @@ from edc_registration.models import RegisteredSubject
 
 from ...choices import DETAILS_CHANGE_REASON
 from ...exceptions import CloneError
+from member.constants import HEAD_OF_HOUSEHOLD
 
 
 class CloneModelMixin(models.Model):
@@ -110,7 +111,7 @@ class CloneModelMixin(models.Model):
             initials=self.initials,
             gender=self.gender,
             age_in_years=age_in_years,
-            relation=self.relation,
+            relation=None if self.relation == HEAD_OF_HOUSEHOLD else self.relation,
             internal_identifier=self.internal_identifier,
             subject_identifier=self.subject_identifier,
             subject_identifier_as_pk=self.subject_identifier_as_pk,
