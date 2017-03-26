@@ -11,7 +11,7 @@ from edc_base.model_fields import OtherCharField
 from edc_base.model_managers import HistoricalRecords
 from edc_base.model_mixins import BaseUuidModel
 from edc_base.model_validators import datetime_not_future
-from edc_base.utils import get_utcnow, get_uuid
+from edc_base.utils import get_utcnow
 from edc_constants.choices import YES_NO, GENDER, YES_NO_DWTA, ALIVE_DEAD_UNKNOWN
 from edc_constants.constants import ALIVE, DEAD, YES
 from edc_dashboard.model_mixins import SearchSlugManager
@@ -188,7 +188,7 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
         self.household_identifier = (
             self.household_structure.household.household_identifier)
         if not self.id and not self.internal_identifier:
-            self.internal_identifier = get_uuid()
+            self.internal_identifier = uuid4()
         self.survey_schedule = self.household_structure.survey_schedule
         super().save(*args, **kwargs)
 
