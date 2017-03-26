@@ -79,14 +79,20 @@ class CloneModelMixin(models.Model):
         with transaction.atomic():
             try:
                 registered_subject = RegisteredSubject.objects.get(
-                    registration_identifier=self.internal_identifier)
+                    registration_identifier=self.internal_identifier.hex)
             except RegisteredSubject.DoesNotExist:
-                born = (self.report_datetime
-                        - relativedelta(years=self.age_in_years))
-                age_in_years = age(born, report_datetime).years
+                raise CloneError(
+                    'RegisteredSubject instance unexpectedly missing when '
+                    'cloning member! Got internal identifier = {}.'.format(
+                        self.internal_identifier))
             else:
-                age_in_years = age(
-                    registered_subject.dob, report_datetime).years
+                if not registered_subject.dob:
+                    born = (self.report_datetime
+                            - relativedelta(years=self.age_in_years))
+                    age_in_years = age(born, report_datetime).years
+                else:
+                    age_in_years = age(
+                        registered_subject.dob, report_datetime).years
 
         start = household_structure.survey_schedule_object.rstart
         end = household_structure.survey_schedule_object.rend
