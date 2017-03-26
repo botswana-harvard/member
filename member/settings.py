@@ -3,6 +3,8 @@
 import sys
 import os
 
+from pathlib import PurePath
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -183,5 +185,8 @@ STATIC_URL = '/static/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'member', 'media')
 CURRENT_MAP_AREA = 'test_community'
 DEVICE_ID = '99'
-KEY_PATH = '/Users/imosweu/source/member/crypto_fields'
-SURVEY_GROUP_NAME = 'test_survey'
+
+KEY_PATH = str(PurePath(BASE_DIR).joinpath('crypto_fields'))
+
+if 'test' in sys.argv:
+    SURVEY_GROUP_NAME = 'test_survey'
