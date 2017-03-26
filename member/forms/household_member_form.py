@@ -3,17 +3,20 @@ from django.forms.utils import ErrorList
 
 from edc_base.modelform_mixins import CommonCleanModelFormMixin
 from edc_base.utils import get_utcnow
-from edc_constants.constants import DEAD, NO, YES, FEMALE, MALE
-from household.constants import REFUSED_ENUMERATION, ELIGIBLE_REPRESENTATIVE_ABSENT,\
-    NO_HOUSEHOLD_INFORMANT
+from edc_constants.constants import DEAD, NO, YES, FEMALE, MALE, ALIVE, UNKNOWN
+from household.constants import (
+    REFUSED_ENUMERATION, ELIGIBLE_REPRESENTATIVE_ABSENT, NO_HOUSEHOLD_INFORMANT)
 
 from ..choices import RELATIONS, FEMALE_RELATIONS, MALE_RELATIONS
 from ..constants import HEAD_OF_HOUSEHOLD
 from ..models import HouseholdMember, EnrollmentChecklist
 from ..models.household_member.utils import todays_log_entry_or_raise
+from edc_base.modelform_mixins import ApplicableValidationMixin, RequiredFieldValidationMixin
+from member.models.deceased_member import DeceasedMember
 
 
-class HouseholdMemberForm(CommonCleanModelFormMixin, forms.ModelForm):
+class HouseholdMemberForm(CommonCleanModelFormMixin, ApplicableValidationMixin,
+                          RequiredFieldValidationMixin, forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
@@ -43,21 +46,31 @@ class HouseholdMemberForm(CommonCleanModelFormMixin, forms.ModelForm):
         self.validate_on_gender()
         self.validate_initials_on_first_name()
 
-        if cleaned_data.get('survival_status') == DEAD:
-            if not cleaned_data.get('present_today') == NO:
+        if cleaned_data.get('survival_status') in [ALIVE, UNKNOWN]:
+            try:
+                obj = DeceasedMember.objects.get(
+                    household_member=self.instance)
+            except DeceasedMember.DoesNotExist:
+                pass
+            else:
                 raise forms.ValidationError({
-                    'present_today':
-                    'Based on the response to survival status, please select NO.'})
-            if (cleaned_data.get('study_resident') == NO
-                    or cleaned_data.get('study_resident') == YES):
-                self._errors['study_resident'] = ErrorList(
-                    ['Please, select don\'t want to answer'])
+                    'survival_status': 'Member was reported as deceased '
+                    'on {}'.format(obj.site_aware_date.strftime('%Y-%m-%d'))})
+        self.applicable_if(
+            ALIVE, field='survival_status', field_applicable='present_today')
+        self.applicable_if(
+            ALIVE, field='survival_status', field_applicable='inability_to_participate')
+        self.applicable_if(
+            ALIVE, field='survival_status', field_applicable='study_resident')
+        self.applicable_if(
+            ALIVE, field='survival_status', field_applicable='relation')
 
-        if cleaned_data.get('personal_details_changed') == YES:
-            if not cleaned_data.get('details_change_reason'):
-                raise forms.ValidationError({
-                    'details_change_reason':
-                    'Provide why personal details have changed.'})
+        if 'personal_details_changed' in cleaned_data:
+            self.applicable_if(
+                ALIVE, field='survival_status', field_applicable='personal_details_changed')
+
+            self.required_if(
+                YES, field='personal_details_changed', field_required='details_change_reason')
         return cleaned_data
 
     def validate_integrity_with_previous(self):
@@ -107,9 +120,9 @@ class HouseholdMemberForm(CommonCleanModelFormMixin, forms.ModelForm):
             name_first_char = cleaned_data.get('first_name')[0]
             initials_first_char = cleaned_data.get('initials')[0]
             if name_first_char != initials_first_char:
-                    raise forms.ValidationError({
-                        'initials': 'Invalid initials, first letter of first '
-                                    'name should be first letter of initials'})
+                raise forms.ValidationError({
+                    'initials': 'Invalid initials, first letter of first '
+                                'name should be first letter of initials'})
 
     def validate_refused_enumeration(self):
         cleaned_data = self.cleaned_data

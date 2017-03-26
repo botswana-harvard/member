@@ -5,7 +5,7 @@ from dateutil.relativedelta import relativedelta
 from django.db import models, transaction
 
 from edc_base.utils import age, get_utcnow
-from edc_constants.choices import YES_NO
+from edc_constants.choices import YES_NO_NA
 from edc_registration.models import RegisteredSubject
 
 from ...choices import DETAILS_CHANGE_REASON
@@ -34,7 +34,7 @@ class CloneModelMixin(models.Model):
         max_length=10,
         null=True,
         blank=False,
-        choices=YES_NO,
+        choices=YES_NO_NA,
         help_text=('personal details (name/surname)'))
 
     details_change_reason = models.CharField(
