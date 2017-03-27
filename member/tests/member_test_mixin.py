@@ -10,7 +10,7 @@ from edc_registration.models import RegisteredSubject
 from household.models import HouseholdStructure
 from survey.site_surveys import site_surveys
 
-from member.constants import HEAD_OF_HOUSEHOLD
+from member.constants import HEAD_OF_HOUSEHOLD, ABLE_TO_PARTICIPATE
 from member.models import HouseholdMember, EnrollmentChecklist
 
 
@@ -170,7 +170,7 @@ class MemberTestMixin:
         household_member.eligible_member is True after save().
         """
         household_member.present_today = YES
-        household_member.inability_to_participate = NOT_APPLICABLE
+        household_member.inability_to_participate = ABLE_TO_PARTICIPATE
         household_member.study_resident = YES
         household_member.personal_details_changed = NO
         household_member.user_created = 'erikvw'

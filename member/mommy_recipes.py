@@ -11,6 +11,7 @@ from .models import (
     HouseholdMember, RepresentativeEligibility, HouseholdHeadEligibility,
     EnrollmentChecklist, AbsentMember, RefusedMember, UndecidedMember,
     DeceasedMember, HtcMember, MovedMember)
+from member.constants import ABLE_TO_PARTICIPATE
 
 
 fake = Faker()
@@ -21,7 +22,7 @@ householdmember = Recipe(
     report_datetime=get_utcnow,
     first_name=fake.first_name,
     initials='XX',
-    inability_to_participate=NOT_APPLICABLE,
+    inability_to_participate=ABLE_TO_PARTICIPATE,
     survival_status=ALIVE,
     age_in_years=25,
     study_resident=YES,

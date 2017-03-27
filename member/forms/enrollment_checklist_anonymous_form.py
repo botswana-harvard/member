@@ -2,9 +2,9 @@ from faker import Faker
 
 from django import forms
 from django.apps import apps as django_apps
+from django.conf import settings
 
-from edc_constants.constants import NOT_APPLICABLE, YES, ALIVE, MALE, NO,\
-    UNKNOWN
+from edc_constants.constants import NOT_APPLICABLE, YES, ALIVE, MALE, NO
 
 from household.models.household_structure.household_structure import HouseholdStructure
 from member.models import HouseholdMember
@@ -12,6 +12,7 @@ from member.models.household_member.utils import is_minor, is_adult, is_child
 from plot.utils import get_anonymous_plot
 
 from ..models import EnrollmentChecklistAnonymous
+from ..constants import ABLE_TO_PARTICIPATE
 
 fake = Faker()
 
@@ -20,6 +21,10 @@ class EnrollmentChecklistAnonymousForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+
+        if not settings.ANONYMOUS_ENABLED:
+            raise forms.ValidationError(
+                'Non-citizens may not be enrolled at this time')
 
         self.validate_age()
         if cleaned_data.get('part_time_resident') == NO:
@@ -64,7 +69,7 @@ class EnrollmentChecklistAnonymousForm(forms.ModelForm):
             present_today=YES,
             survival_status=ALIVE,
             study_resident=YES,
-            inability_to_participate=NOT_APPLICABLE,
+            inability_to_participate=ABLE_TO_PARTICIPATE,
             relation='UNKNOWN',
             first_name=first_name,
             initials=initials,

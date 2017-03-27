@@ -5,12 +5,12 @@ from dateutil.relativedelta import relativedelta
 from django.db import models, transaction
 
 from edc_base.utils import age, get_utcnow
-from edc_constants.choices import YES_NO_NA
+from edc_constants.choices import YES_NO_NA, ALIVE
 from edc_registration.models import RegisteredSubject
 
 from ...choices import DETAILS_CHANGE_REASON
+from ...constants import HEAD_OF_HOUSEHOLD
 from ...exceptions import CloneError
-from member.constants import HEAD_OF_HOUSEHOLD
 
 
 class CloneModelMixin(models.Model):
@@ -47,6 +47,10 @@ class CloneModelMixin(models.Model):
 
     @property
     def clone_updated(self):
+        """Returns True if the cloned member instance has been updated.
+
+        Uses `personal_details_changed` as a surrogate value.
+        """
         if self.cloned:
             if not self.personal_details_changed:
                 return False
@@ -116,6 +120,7 @@ class CloneModelMixin(models.Model):
             first_name=self.first_name,
             initials=self.initials,
             gender=self.gender,
+            survival_status=ALIVE if not self.survival_status else self.survival_status,
             age_in_years=age_in_years,
             relation=None if self.relation == HEAD_OF_HOUSEHOLD else self.relation,
             internal_identifier=self.internal_identifier,

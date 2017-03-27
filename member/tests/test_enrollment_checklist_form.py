@@ -3,12 +3,15 @@ from django.test import TestCase
 #from .test_mixins import SubjectMixin
 from edc_constants.constants import MALE, ALIVE, YES, NO, NOT_APPLICABLE
 from member.forms.household_member_form import HouseholdMemberForm
+from member.constants import ABLE_TO_PARTICIPATE
 
 
 class TestHouseholdMemberForm(TestCase):
+
     def setUp(self):
         super().setUp()
-        self.subject_visit = self.make_subject_visit_for_consented_subject('T0')
+        self.subject_visit = self.make_subject_visit_for_consented_subject(
+            'T0')
         #self.family_planning = FamilyPlanning.objects.create(name='Condoms, consistent use (male or female)', short_name='Condoms, consistent use (male or female)')
         self.options = {
             'internal_identifier': '343216789',
@@ -18,7 +21,7 @@ class TestHouseholdMemberForm(TestCase):
             'age_in_years': 22,
             'survival_status': ALIVE,
             'present_today': YES,
-            'inability_to_participate': NOT_APPLICABLE,
+            'inability_to_participate': ABLE_TO_PARTICIPATE,
             'inability_to_participate_other': None,
             'study_resident': NO,
             'personal_details_changed': NO,

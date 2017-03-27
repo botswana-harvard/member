@@ -4,12 +4,14 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.conf import settings
 
 from edc_base.utils import get_utcnow
-from edc_constants.constants import DEAD, NOT_APPLICABLE, YES, NO
+from edc_constants.constants import YES, NO, ALIVE
 
 from household.constants import ELIGIBLE_REPRESENTATIVE_PRESENT
 from household.models import HouseholdLogEntry
 from household.exceptions import HouseholdLogRequired
 from plot.utils import get_anonymous_plot
+
+from ...constants import ABLE_TO_PARTICIPATE
 
 
 def is_eligible_member(obj):
@@ -20,7 +22,7 @@ def is_eligible_member(obj):
     is no longer a factor to determine eligibility for subsequent
     enrollments.
     """
-    if obj.survival_status == DEAD:
+    if obj.survival_status != ALIVE:
         return False
     is_study_resident = (
         (not obj.cloned and obj.study_resident == YES)
@@ -30,7 +32,7 @@ def is_eligible_member(obj):
         obj.age_in_years >= 16
         and obj.age_in_years <= 64
         and is_study_resident
-        and obj.inability_to_participate == NOT_APPLICABLE)
+        and obj.inability_to_participate == ABLE_TO_PARTICIPATE)
 
 
 def is_child(age_in_years):

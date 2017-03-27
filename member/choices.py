@@ -3,7 +3,7 @@ from edc_constants.constants import (
 
 from .constants import (
     HEAD_OF_HOUSEHOLD, MENTAL_INCAPACITY, BLOCK_PARTICIPATION,
-    CONTINUE_PARTICIPATION)
+    CONTINUE_PARTICIPATION, ABLE_TO_PARTICIPATE)
 
 FEMALE_RELATIONS = [
     ('wife', 'Wife'),
@@ -60,7 +60,7 @@ DETAILS_CHANGE_REASON = (
 )
 
 INABILITY_TO_PARTICIPATE_REASON = (
-    ('able', ('ABLE to participate')),
+    (ABLE_TO_PARTICIPATE, ('ABLE to participate')),
     (MENTAL_INCAPACITY, ('Mental Incapacity')),
     ('Deaf/Mute', ('Deaf/Mute')),
     ('Too sick', ('Too sick')),

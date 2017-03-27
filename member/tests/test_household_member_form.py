@@ -2,9 +2,11 @@ from django.test import TestCase
 
 from edc_constants.constants import MALE, ALIVE, YES, NO, NOT_APPLICABLE
 from member.forms.household_member_form import HouseholdMemberForm
+from member.constants import ABLE_TO_PARTICIPATE
 
 
 class TestHouseholdMemberForm(TestCase):
+
     def setUp(self):
         super().setUp()
         self.consent_data = {
@@ -22,7 +24,7 @@ class TestHouseholdMemberForm(TestCase):
             'age_in_years': 22,
             'survival_status': ALIVE,
             'present_today': NO,
-            'inability_to_participate': NOT_APPLICABLE,
+            'inability_to_participate': ABLE_TO_PARTICIPATE,
             'inability_to_participate_other': None,
             'study_resident': NO,
             'personal_details_changed': NO,
