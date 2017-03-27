@@ -1,13 +1,14 @@
 from django import forms
+from django.conf import settings
 
 from edc_base.exceptions import AgeValueError
 from edc_base.modelform_mixins import CommonCleanModelFormMixin
 from edc_base.utils import age
 from edc_constants.constants import NOT_APPLICABLE, NO, YES
+from edc_registration.models import RegisteredSubject
 
 from ..models import EnrollmentChecklist
-from member.models.household_member.utils import is_minor, is_adult, is_child
-from edc_registration.models import RegisteredSubject
+from ..models.household_member.utils import is_minor, is_adult, is_child
 
 
 class EnrollmentChecklistForm(CommonCleanModelFormMixin, forms.ModelForm):
@@ -26,6 +27,9 @@ class EnrollmentChecklistForm(CommonCleanModelFormMixin, forms.ModelForm):
         non_citizen = (cleaned_data.get('citizen') == NO
                        and cleaned_data.get('legal_marriage') == NO)
         if non_citizen:
+            if not settings.ANONYMOUS_ENABLED:
+                raise forms.ValidationError(
+                    'Non-citizens may not be enrolled at this time')
             if cleaned_data.get('dob'):
                 raise forms.ValidationError({
                     'dob': 'This field is not required for non-citizens'})

@@ -2,6 +2,7 @@ from faker import Faker
 
 from django import forms
 from django.apps import apps as django_apps
+from django.conf import settings
 
 from edc_constants.constants import NOT_APPLICABLE, YES, ALIVE, MALE, NO
 
@@ -20,6 +21,10 @@ class EnrollmentChecklistAnonymousForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+
+        if not settings.ANONYMOUS_ENABLED:
+            raise forms.ValidationError(
+                'Non-citizens may not be enrolled at this time')
 
         self.validate_age()
         if cleaned_data.get('part_time_resident') == NO:
