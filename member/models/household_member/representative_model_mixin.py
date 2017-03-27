@@ -36,9 +36,10 @@ class RepresentativeModelMixin(models.Model):
                 RepresentativeEligibility.objects.get(
                     household_structure=self.household_structure)
             except RepresentativeEligibility.DoesNotExist:
-                raise EnumerationRepresentativeError(
-                    'Enumeration blocked. Please complete \'{}\' form first.'.format(
-                        RepresentativeEligibility._meta.verbose_name))
+                if not self.cloned:
+                    raise EnumerationRepresentativeError(
+                        'Enumeration blocked. Please complete \'{}\' form first.'.format(
+                            RepresentativeEligibility._meta.verbose_name))
             try:
                 household_member = self.__class__.objects.get(
                     household_structure=self.household_structure,

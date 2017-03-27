@@ -51,7 +51,7 @@ MALE_RELATIONS = [
 relations = FEMALE_RELATIONS + MALE_RELATIONS + ANY_RELATIONS
 relations.sort()
 RELATIONS = [(HEAD_OF_HOUSEHOLD, 'HEAD of HOUSEHOLD')] + \
-    relations + [(UNKNOWN, 'UNKNOWN')]
+    relations + [(UNKNOWN, 'UNKNOWN')] + [(NOT_APPLICABLE, 'Not Applicable')]
 
 DETAILS_CHANGE_REASON = (
     ('married', 'Married'),
@@ -60,12 +60,13 @@ DETAILS_CHANGE_REASON = (
 )
 
 INABILITY_TO_PARTICIPATE_REASON = (
-    (NOT_APPLICABLE, ('ABLE to participate')),
+    ('able', ('ABLE to participate')),
     (MENTAL_INCAPACITY, ('Mental Incapacity')),
     ('Deaf/Mute', ('Deaf/Mute')),
     ('Too sick', ('Too sick')),
     ('Incarcerated', ('Incarcerated')),
     (OTHER, ('Other, specify.')),
+    (NOT_APPLICABLE, ('Not applicable')),
 )
 
 REASONS_UNDECIDED = (

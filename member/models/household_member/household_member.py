@@ -11,8 +11,9 @@ from edc_base.model_fields import OtherCharField
 from edc_base.model_managers import HistoricalRecords
 from edc_base.model_mixins import BaseUuidModel
 from edc_base.model_validators import datetime_not_future
-from edc_base.utils import get_utcnow, get_uuid
-from edc_constants.choices import YES_NO, GENDER, YES_NO_DWTA, ALIVE_DEAD_UNKNOWN
+from edc_base.utils import get_utcnow
+from edc_constants.choices import (
+    GENDER, ALIVE_DEAD_UNKNOWN, YES_NO_NA, YES_NO_NA_DWTA)
 from edc_constants.constants import ALIVE, DEAD, YES
 from edc_dashboard.model_mixins import SearchSlugManager
 from edc_registration.model_mixins import UpdatesOrCreatesRegistrationModelMixin
@@ -108,7 +109,7 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
     present_today = models.CharField(
         verbose_name='Is the member present today?',
         max_length=3,
-        choices=YES_NO,
+        choices=YES_NO_NA,
         null=True,
         blank=False)
 
@@ -129,7 +130,7 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
         verbose_name='In the past 12 months, have you typically spent 3 or '
                      'more nights per month in this community? ',
         max_length=17,
-        choices=YES_NO_DWTA,
+        choices=YES_NO_NA_DWTA,
         null=True,
         blank=False,
         help_text=('If participant has moved into the '
@@ -188,7 +189,7 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
         self.household_identifier = (
             self.household_structure.household.household_identifier)
         if not self.id and not self.internal_identifier:
-            self.internal_identifier = get_uuid()
+            self.internal_identifier = uuid4()
         self.survey_schedule = self.household_structure.survey_schedule
         super().save(*args, **kwargs)
 

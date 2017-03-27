@@ -7,7 +7,7 @@ from edc_dashboard.views import ListboardView
 
 from household.view_mixins import HouseholdQuerysetViewMixin
 from plot.view_mixins import PlotQuerysetViewMixin
-from survey.view_mixins import SurveyViewMixin
+from survey import SurveyViewMixin, SurveyQuerysetViewMixin
 
 from ...models import HouseholdMember
 from ..wrappers import HouseholdMemberModelWrapper
@@ -15,7 +15,8 @@ from ..wrappers import HouseholdMemberModelWrapper
 
 class BaseListboardView(SurveyViewMixin, AppConfigViewMixin,
                         EdcBaseViewMixin, HouseholdQuerysetViewMixin,
-                        PlotQuerysetViewMixin, ListboardView):
+                        PlotQuerysetViewMixin, SurveyQuerysetViewMixin,
+                        ListboardView):
 
     app_config_name = 'member'
     navbar_item_selected = 'member'

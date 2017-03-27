@@ -5,11 +5,12 @@ from dateutil.relativedelta import relativedelta
 from django.db import models, transaction
 
 from edc_base.utils import age, get_utcnow
-from edc_constants.choices import YES_NO
+from edc_constants.choices import YES_NO_NA
 from edc_registration.models import RegisteredSubject
 
 from ...choices import DETAILS_CHANGE_REASON
 from ...exceptions import CloneError
+from member.constants import HEAD_OF_HOUSEHOLD
 
 
 class CloneModelMixin(models.Model):
@@ -33,7 +34,7 @@ class CloneModelMixin(models.Model):
         max_length=10,
         null=True,
         blank=False,
-        choices=YES_NO,
+        choices=YES_NO_NA,
         help_text=('personal details (name/surname)'))
 
     details_change_reason = models.CharField(
@@ -78,14 +79,20 @@ class CloneModelMixin(models.Model):
         with transaction.atomic():
             try:
                 registered_subject = RegisteredSubject.objects.get(
-                    registration_identifier=self.internal_identifier)
+                    registration_identifier=self.internal_identifier.hex)
             except RegisteredSubject.DoesNotExist:
-                born = (self.report_datetime
-                        - relativedelta(years=self.age_in_years))
-                age_in_years = age(born, report_datetime).years
+                raise CloneError(
+                    'RegisteredSubject instance unexpectedly missing when '
+                    'cloning member! Got internal identifier = {}.'.format(
+                        self.internal_identifier))
             else:
-                age_in_years = age(
-                    registered_subject.dob, report_datetime).years
+                if not registered_subject.dob:
+                    born = (self.report_datetime
+                            - relativedelta(years=self.age_in_years))
+                    age_in_years = age(born, report_datetime).years
+                else:
+                    age_in_years = age(
+                        registered_subject.dob, report_datetime).years
 
         start = household_structure.survey_schedule_object.rstart
         end = household_structure.survey_schedule_object.rend
@@ -110,7 +117,7 @@ class CloneModelMixin(models.Model):
             initials=self.initials,
             gender=self.gender,
             age_in_years=age_in_years,
-            relation=self.relation,
+            relation=None if self.relation == HEAD_OF_HOUSEHOLD else self.relation,
             internal_identifier=self.internal_identifier,
             subject_identifier=self.subject_identifier,
             subject_identifier_as_pk=self.subject_identifier_as_pk,
