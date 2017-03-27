@@ -47,6 +47,10 @@ class CloneModelMixin(models.Model):
 
     @property
     def clone_updated(self):
+        """Returns True if the cloned member instance has been updated.
+
+        Uses `personal_details_changed` as a surrogate value.
+        """
         if self.cloned:
             if not self.personal_details_changed:
                 return False

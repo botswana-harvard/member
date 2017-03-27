@@ -1,18 +1,17 @@
 from django import forms
-from django.forms.utils import ErrorList
 
-from edc_base.modelform_mixins import CommonCleanModelFormMixin
+from edc_base.modelform_mixins import (
+    CommonCleanModelFormMixin, ApplicableValidationMixin,
+    RequiredFieldValidationMixin)
 from edc_base.utils import get_utcnow
-from edc_constants.constants import DEAD, NO, YES, FEMALE, MALE, ALIVE, UNKNOWN
+from edc_constants.constants import YES, FEMALE, MALE, ALIVE, UNKNOWN
 from household.constants import (
     REFUSED_ENUMERATION, ELIGIBLE_REPRESENTATIVE_ABSENT, NO_HOUSEHOLD_INFORMANT)
 
 from ..choices import RELATIONS, FEMALE_RELATIONS, MALE_RELATIONS
 from ..constants import HEAD_OF_HOUSEHOLD
-from ..models import HouseholdMember, EnrollmentChecklist
+from ..models import HouseholdMember, EnrollmentChecklist, DeceasedMember
 from ..models.household_member.utils import todays_log_entry_or_raise
-from edc_base.modelform_mixins import ApplicableValidationMixin, RequiredFieldValidationMixin
-from member.models.deceased_member import DeceasedMember
 
 
 class HouseholdMemberForm(CommonCleanModelFormMixin, ApplicableValidationMixin,
