@@ -245,7 +245,13 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
                             internal_identifier=self.internal_identifier))
                     break
                 except ObjectDoesNotExist:
-                    previous_member = None
+                    try:
+                        previous_member = (
+                            household_structure.householdmember_set.get(
+                                internal_identifier=self.internal_identifier))
+                        break
+                    except ObjectDoesNotExist:
+                        previous_member = None
             else:
                 previous_member = None
             household_structure = household_structure.previous
