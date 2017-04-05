@@ -26,8 +26,8 @@ def is_eligible_member(obj):
     if obj.survival_status != ALIVE:
         return False
     is_study_resident = (
-        (not obj.cloned and obj.study_resident == YES) or
-        (obj.cloned and obj.study_resident in [YES, NO])
+        (not obj.cloned and obj.study_resident == YES)
+        or (obj.cloned and obj.study_resident in [YES, NO])
     )
 
     consent_model = django_apps.get_model('bcpp_subject', 'subjectconsent')
@@ -36,10 +36,10 @@ def is_eligible_member(obj):
         previously_consented = True
 
     return (
-        obj.age_in_years >= 16 and
-        (obj.age_in_years <= 64 or previously_consented) and
-        is_study_resident and
-        obj.inability_to_participate == ABLE_TO_PARTICIPATE)
+        obj.age_in_years >= 16
+        and (obj.age_in_years <= 64 or previously_consented)
+        and is_study_resident
+        and obj.inability_to_participate == ABLE_TO_PARTICIPATE)
 
 
 def is_child(age_in_years):
