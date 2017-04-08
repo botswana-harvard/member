@@ -1,14 +1,15 @@
 import arrow
 
-from django.core.exceptions import MultipleObjectsReturned
+from django.apps import apps as django_apps
 from django.conf import settings
+from django.core.exceptions import MultipleObjectsReturned
 
 from edc_base.utils import get_utcnow
 from edc_constants.constants import YES, NO, ALIVE
 
 from household.constants import ELIGIBLE_REPRESENTATIVE_PRESENT
-from household.models import HouseholdLogEntry
 from household.exceptions import HouseholdLogRequired
+from household.models import HouseholdLogEntry
 from plot.utils import get_anonymous_plot
 
 from ...constants import ABLE_TO_PARTICIPATE
@@ -28,9 +29,15 @@ def is_eligible_member(obj):
         (not obj.cloned and obj.study_resident == YES)
         or (obj.cloned and obj.study_resident in [YES, NO])
     )
+
+    consent_model = django_apps.get_model('bcpp_subject', 'subjectconsent')
+    previously_consented = False
+    if consent_model.objects.filter(subject_identifier=obj.subject_identifier).exists():
+        previously_consented = True
+
     return (
         obj.age_in_years >= 16
-        and obj.age_in_years <= 64
+        and (obj.age_in_years <= 64 or previously_consented)
         and is_study_resident
         and obj.inability_to_participate == ABLE_TO_PARTICIPATE)
 
