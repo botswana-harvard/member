@@ -1,12 +1,13 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-
 from .constants import HEAD_OF_HOUSEHOLD
 
 from .models import (
     AbsentMember, EnrollmentChecklist, EnrollmentLoss,
     HouseholdHeadEligibility, HouseholdMember,
     RefusedMember, UndecidedMember, DeceasedMember, MovedMember)
+
+post_delete.providing_args = set(["instance", "using", "raw"])
 
 
 @receiver(post_save, weak=False, sender=HouseholdMember,
@@ -56,7 +57,7 @@ def enrollment_loss_on_post_save(sender, instance, raw, created, using, **kwargs
 
 @receiver(post_delete, weak=False, sender=EnrollmentLoss,
           dispatch_uid="enrollment_loss_on_post_delete")
-def enrollment_loss_on_post_delete(sender, instance, raw, using, **kwargs):
+def enrollment_loss_on_post_delete(sender, instance, using, raw=False, **kwargs):
     if not raw:
         instance.household_member.enrollment_loss_completed = False
         instance.household_member.save()
@@ -108,7 +109,7 @@ def undecided_member_on_post_delete(sender, instance, raw, using, **kwargs):
 
 @receiver(post_delete, weak=False, sender=RefusedMember,
           dispatch_uid="refused_member_on_post_delete")
-def refused_member_on_post_delete(sender, instance, raw, using, **kwargs):
+def refused_member_on_post_delete(sender, instance, using, raw, **kwargs):
     if not raw:
         instance.household_member.visit_attempts -= 1
         if instance.household_member.visit_attempts < 0:
