@@ -76,4 +76,4 @@ class EnrollmentChecklistAdmin(ModelAdminMixin, FieldsetsModelAdminMixin, admin.
         'confirm_participation': admin.VERTICAL,
     }
 
-    search_fields = ('household_member__first_name', 'household_member__pk')
+    search_fields = ('household_member__first_name', 'household_member__pk', 'household_member__subject_identifier')
