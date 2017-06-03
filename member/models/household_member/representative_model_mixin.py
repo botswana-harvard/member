@@ -2,7 +2,7 @@ from django.apps import apps as django_apps
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import models
 
-from plot.utils import get_anonymous_plot
+from plot.utils import get_clinic_n_anonymous_plot
 
 from ...choices import RELATIONS
 from ...constants import HEAD_OF_HOUSEHOLD
@@ -28,7 +28,11 @@ class RepresentativeModelMixin(models.Model):
 
     def common_clean(self):
         # confirm RepresentativeEligibility exists ...
-        plot = get_anonymous_plot()
+        plot_identifier = django_apps.get_app_config(
+            'plot').anonymous_plot_identifier
+        plot_type = 'anonymous'
+        plot = get_clinic_n_anonymous_plot(
+            plot_identifier=plot_identifier, plot_type=plot_type)
         if self.household_structure.household.plot != plot:
             try:
                 RepresentativeEligibility = django_apps.get_model(

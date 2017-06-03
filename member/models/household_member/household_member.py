@@ -15,11 +15,11 @@ from edc_base.utils import get_utcnow
 from edc_constants.choices import (
     GENDER, ALIVE_DEAD_UNKNOWN, YES_NO_NA, YES_NO_NA_DWTA)
 from edc_constants.constants import ALIVE, DEAD, YES
-from edc_dashboard.model_mixins import SearchSlugManager
+from edc_search.model_mixins import SearchSlugManager
 from edc_registration.model_mixins import UpdatesOrCreatesRegistrationModelMixin
 
 from household.models import HouseholdStructure
-from plot.utils import get_anonymous_plot
+from plot.utils import get_clinic_n_anonymous_plot
 from survey.model_mixins import SurveyScheduleModelMixin
 
 from ...choices import INABILITY_TO_PARTICIPATE_REASON
@@ -202,7 +202,11 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
     def anonymous(self):
         """Returns True if this member resides on the anonymous plot.
         """
-        plot = get_anonymous_plot()
+        plot_identifier = django_apps.get_app_config(
+            'plot').anonymous_plot_identifier
+        plot_type = 'anonymous'
+        plot = get_clinic_n_anonymous_plot(
+            plot_identifier=plot_identifier, plot_type=plot_type)
         if self.household_structure.household.plot == plot:
             return True
         return False
