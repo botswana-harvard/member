@@ -1,12 +1,13 @@
 from django import forms
 
-from edc_base.modelform_mixins import RequiredFieldValidationMixin, ApplicableValidationMixin
+from edc_base.modelform_validators import (
+    RequiredFieldValidator, ApplicableFieldValidator)
 from edc_constants.constants import YES, NO
 
 from ..models import HtcMember
 
 
-class HtcMemberForm(RequiredFieldValidationMixin, ApplicableValidationMixin,
+class HtcMemberForm(RequiredFieldValidator, ApplicableFieldValidator,
                     forms.ModelForm):
 
     def clean(self):

@@ -1,8 +1,8 @@
 from django import forms
 
-from edc_base.modelform_mixins import (
-    CommonCleanModelFormMixin, ApplicableValidationMixin,
-    RequiredFieldValidationMixin)
+from edc_base.modelform_mixins import CommonCleanModelFormMixin
+from edc_base.modelform_validators import (
+    RequiredFieldValidator, ApplicableFieldValidator)
 from edc_base.utils import get_utcnow
 from edc_constants.constants import YES, FEMALE, MALE, ALIVE, UNKNOWN
 from household.constants import (
@@ -14,8 +14,8 @@ from ..models import HouseholdMember, EnrollmentChecklist, DeceasedMember
 from ..models.household_member.utils import todays_log_entry_or_raise
 
 
-class HouseholdMemberForm(CommonCleanModelFormMixin, ApplicableValidationMixin,
-                          RequiredFieldValidationMixin, forms.ModelForm):
+class HouseholdMemberForm(CommonCleanModelFormMixin, ApplicableFieldValidator,
+                          RequiredFieldValidator, forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()

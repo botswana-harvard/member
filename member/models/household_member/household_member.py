@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.apps import apps as django_apps
 from django.core.validators import (
     MinLengthValidator, MaxLengthValidator, MinValueValidator,
     MaxValueValidator, RegexValidator)
@@ -15,7 +16,7 @@ from edc_base.utils import get_utcnow
 from edc_constants.choices import (
     GENDER, ALIVE_DEAD_UNKNOWN, YES_NO_NA, YES_NO_NA_DWTA)
 from edc_constants.constants import ALIVE, DEAD, YES
-from edc_dashboard.model_mixins import SearchSlugManager
+from edc_search.model_mixins import SearchSlugManager
 from edc_registration.model_mixins import UpdatesOrCreatesRegistrationModelMixin
 
 from household.models import HouseholdStructure
