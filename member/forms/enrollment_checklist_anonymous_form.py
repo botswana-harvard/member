@@ -9,7 +9,7 @@ from edc_constants.constants import NOT_APPLICABLE, YES, ALIVE, MALE, NO
 from household.models.household_structure.household_structure import HouseholdStructure
 from member.models import HouseholdMember
 from member.models.household_member.utils import is_minor, is_adult, is_child
-from plot.utils import get_clinic_n_anonymous_plot
+from plot.utils import get_anonymous_plot
 
 from ..models import EnrollmentChecklistAnonymous
 from ..constants import ABLE_TO_PARTICIPATE
@@ -52,11 +52,7 @@ class EnrollmentChecklistAnonymousForm(forms.ModelForm):
     def get_anonymous_member(self):
         current_survey_schedule = django_apps.get_app_config(
             'survey').current_survey_schedule
-        plot_identifier = django_apps.get_app_config(
-            'plot').anonymous_plot_identifier
-        plot_type = 'anonymous'
-        plot = get_clinic_n_anonymous_plot(
-            plot_identifier=plot_identifier, plot_type=plot_type)
+        plot = get_anonymous_plot()
         household_structure = HouseholdStructure.objects.get(
             household__plot=plot,
             survey_schedule=current_survey_schedule)

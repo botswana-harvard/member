@@ -10,7 +10,7 @@ from edc_constants.constants import YES, NO, ALIVE
 from household.constants import ELIGIBLE_REPRESENTATIVE_PRESENT
 from household.exceptions import HouseholdLogRequired
 from household.models import HouseholdLogEntry
-from plot.utils import get_clinic_n_anonymous_plot
+from plot.utils import get_anonymous_plot
 
 from ...constants import ABLE_TO_PARTICIPATE
 
@@ -78,11 +78,7 @@ def todays_log_entry_or_raise(household_structure=None,
 
     rdate = arrow.Arrow.fromdatetime(
         report_datetime, report_datetime.tzinfo)
-    plot_identifier = django_apps.get_app_config(
-        'plot').anonymous_plot_identifier
-    plot_type = 'anonymous'
-    anonymous_plot = get_clinic_n_anonymous_plot(
-        plot_identifier=plot_identifier, plot_type=plot_type)
+    anonymous_plot = get_anonymous_plot()
     # any log entries?
     if household_structure.householdlog.householdlogentry_set.all().count() == 0:
         if household_structure.household.plot == anonymous_plot:

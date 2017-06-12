@@ -1,11 +1,11 @@
 from django import forms
 
-from edc_base.modelform_mixins import OtherSpecifyValidationMixin
+from edc_base.modelform_validators import OtherSpecifyFieldValidator
 
 from ..models import HouseholdInfo, RepresentativeEligibility
 
 
-class HouseholdInfoForm (OtherSpecifyValidationMixin, forms.ModelForm):
+class HouseholdInfoForm (OtherSpecifyFieldValidator, forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()

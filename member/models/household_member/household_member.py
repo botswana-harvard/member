@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.apps import apps as django_apps
 from django.core.validators import (
     MinLengthValidator, MaxLengthValidator, MinValueValidator,
     MaxValueValidator, RegexValidator)
@@ -19,7 +20,7 @@ from edc_search.model_mixins import SearchSlugManager
 from edc_registration.model_mixins import UpdatesOrCreatesRegistrationModelMixin
 
 from household.models import HouseholdStructure
-from plot.utils import get_clinic_n_anonymous_plot
+from plot.utils import get_anonymous_plot
 from survey.model_mixins import SurveyScheduleModelMixin
 
 from ...choices import INABILITY_TO_PARTICIPATE_REASON
@@ -202,11 +203,7 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
     def anonymous(self):
         """Returns True if this member resides on the anonymous plot.
         """
-        plot_identifier = django_apps.get_app_config(
-            'plot').anonymous_plot_identifier
-        plot_type = 'anonymous'
-        plot = get_clinic_n_anonymous_plot(
-            plot_identifier=plot_identifier, plot_type=plot_type)
+        plot = get_anonymous_plot()
         if self.household_structure.household.plot == plot:
             return True
         return False
