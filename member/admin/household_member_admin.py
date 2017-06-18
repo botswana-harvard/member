@@ -3,8 +3,8 @@ from django.contrib import admin
 from edc_base.fieldsets import Fieldset
 from edc_base.modeladmin_mixins import TabularInlineMixin, audit_fieldset_tuple
 
-from bcpp.surveys import BCPP_YEAR_2, BCPP_YEAR_3
 from survey.admin import survey_schedule_fields, survey_schedule_fieldset_tuple
+from survey.site_surveys import site_surveys
 
 from ..admin_site import member_admin
 from ..forms import HouseholdMemberForm
@@ -42,10 +42,10 @@ class HouseholdMemberAdmin(ModelAdminMixin, FieldsetsModelAdminMixin,
     list_per_page = 15
 
     conditional_fieldsets = {
-        BCPP_YEAR_2: Fieldset(
+        site_surveys.constants.get('BCPP_YEAR_2'): Fieldset(
             *personal_details_fields,
             section='Updated Personal Details'),
-        BCPP_YEAR_3: Fieldset(
+        site_surveys.constants.get('BCPP_YEAR_3'): Fieldset(
             *personal_details_fields,
             section='Updated Personal Details'),
     }

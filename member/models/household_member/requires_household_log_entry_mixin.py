@@ -3,8 +3,7 @@ from django.db import models
 from edc_base.utils import get_utcnow
 
 from household.exceptions import HouseholdLogRequired
-
-from .utils import todays_log_entry_or_raise
+from household.models import todays_log_entry_or_raise
 
 
 class RequiresHouseholdLogEntryMixin(models.Model):

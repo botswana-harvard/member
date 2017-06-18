@@ -13,7 +13,6 @@ from ..choices import BLOCK_CONTINUE
 from ..constants import BLOCK_PARTICIPATION
 from ..exceptions import MemberEnrollmentError
 from ..managers import MemberEntryManager
-
 from .household_member import is_minor
 from .model_mixins import HouseholdMemberModelMixin
 

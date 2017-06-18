@@ -2,11 +2,9 @@ from django.test import TestCase, tag
 
 from edc_constants.constants import REFUSED, NO
 
-
 from ..constants import (
     ABSENT, UNDECIDED, DECEASED, HTC_ELIGIBLE, ELIGIBLE, INELIGIBLE)
 from ..participation_status import ParticipationStatus
-
 from .mixins import MemberMixin
 
 

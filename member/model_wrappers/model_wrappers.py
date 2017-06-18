@@ -3,7 +3,7 @@ from datetime import date
 from django.apps import apps as django_apps
 from django.core.exceptions import ObjectDoesNotExist
 
-from edc_dashboard.wrappers import ModelWrapper
+from edc_model_wrapper import ModelWrapper
 
 from ..models import (
     AbsentMember, UndecidedMember, RefusedMember,

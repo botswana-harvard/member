@@ -7,11 +7,11 @@ from model_mommy.recipe import Recipe
 from edc_base_test.utils import get_utcnow
 from edc_constants.constants import NOT_APPLICABLE, YES, ALIVE, FEMALE
 
+from .constants import ABLE_TO_PARTICIPATE
 from .models import (
     HouseholdMember, RepresentativeEligibility, HouseholdHeadEligibility,
     EnrollmentChecklist, AbsentMember, RefusedMember, UndecidedMember,
     DeceasedMember, HtcMember, MovedMember)
-from member.constants import ABLE_TO_PARTICIPATE
 
 
 fake = Faker()

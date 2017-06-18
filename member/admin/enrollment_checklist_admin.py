@@ -4,13 +4,11 @@ from django.utils.safestring import mark_safe
 from edc_base.fieldsets import Fieldset
 from edc_base.modeladmin_mixins import audit_fieldset_tuple
 
-from bcpp.surveys import BCPP_YEAR_2, BCPP_YEAR_3
 from survey.admin import survey_schedule_fieldset_tuple
 
 from ..admin_site import member_admin
 from ..forms import EnrollmentChecklistForm
 from ..models import EnrollmentChecklist
-
 from .modeladmin_mixins import ModelAdminMixin, FieldsetsModelAdminMixin
 
 
@@ -76,4 +74,5 @@ class EnrollmentChecklistAdmin(ModelAdminMixin, FieldsetsModelAdminMixin, admin.
         'confirm_participation': admin.VERTICAL,
     }
 
-    search_fields = ('household_member__first_name', 'household_member__pk', 'household_member__subject_identifier')
+    search_fields = ('household_member__first_name',
+                     'household_member__pk', 'household_member__subject_identifier')

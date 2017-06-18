@@ -6,7 +6,6 @@ from edc_base.model_mixins import BaseUuidModel
 from edc_constants.choices import TIME_OF_DAY, TIME_OF_WEEK
 
 from ..managers import MemberEntryManager
-
 from .model_mixins import HouseholdMemberModelMixin
 
 

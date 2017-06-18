@@ -6,7 +6,6 @@ from edc_base.model_mixins import BaseUuidModel
 from edc_constants.choices import YES_NO_UNKNOWN
 
 from ..managers import MemberEntryManager
-
 from .model_mixins import HouseholdMemberModelMixin
 
 

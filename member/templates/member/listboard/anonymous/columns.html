@@ -1,6 +1,0 @@
-<td>{{ result.household_member.first_name }} {{ result.household_member.initials }} {{ result.household_member.age_in_years }} {{ result.household_member.get_gender_display }} </td>
-<td>
-{% if result.household_member.subject_identifier|length == 36 %}<i class="fa fa-envelope-o"></i>{%else %}{{ result.household_member.subject_identifier }}{% endif %}</td>
-<td>{{ result.survey_schedule_object.name }}</td>
-<td>{{ result.household_member.modified|date:"Y-m-d H:i" }}</td>
-<td>{{ result.household_member.hostname_created }}</td>

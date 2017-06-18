@@ -15,7 +15,7 @@ from edc_base.utils import get_utcnow
 from edc_constants.choices import (
     GENDER, ALIVE_DEAD_UNKNOWN, YES_NO_NA, YES_NO_NA_DWTA)
 from edc_constants.constants import ALIVE, DEAD, YES
-from edc_dashboard.model_mixins import SearchSlugManager
+from edc_search.model_mixins import SearchSlugManager
 from edc_registration.model_mixins import UpdatesOrCreatesRegistrationModelMixin
 
 from household.models import HouseholdStructure
@@ -25,7 +25,6 @@ from survey.model_mixins import SurveyScheduleModelMixin
 from ...choices import INABILITY_TO_PARTICIPATE_REASON
 from ...exceptions import MemberValidationError
 from ...managers import HouseholdMemberManager
-
 from .clone_model_mixin import CloneModelMixin
 from .consent_model_mixin import ConsentModelMixin
 from .member_eligibility_model_mixin import MemberEligibilityModelMixin

@@ -1,8 +1,9 @@
 from django.test import TestCase
 
-from edc_constants.constants import MALE, ALIVE, YES, NO, NOT_APPLICABLE
-from member.forms.household_member_form import HouseholdMemberForm
+from edc_constants.constants import MALE, ALIVE, YES, NO
+
 from member.constants import ABLE_TO_PARTICIPATE
+from member.forms.household_member_form import HouseholdMemberForm
 
 
 class TestHouseholdMemberForm(TestCase):

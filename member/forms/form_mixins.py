@@ -7,8 +7,7 @@ from django.utils.timezone import get_default_timezone
 from edc_base.modelform_mixins import CommonCleanModelFormMixin
 
 from household.exceptions import HouseholdLogRequired
-
-from ..models.household_member import todays_log_entry_or_raise
+from household.models import todays_log_entry_or_raise
 
 
 class MemberFormMixin(CommonCleanModelFormMixin, forms.ModelForm):

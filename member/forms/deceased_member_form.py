@@ -1,17 +1,16 @@
 from django import forms
 
-from edc_base.modelform_mixins import OtherSpecifyValidationMixin
+from ..form_validators import DeceasedMemberFormValidator
 
 from ..models import DeceasedMember
 
 
-class DeceasedMemberForm (OtherSpecifyValidationMixin, forms.ModelForm):
+class DeceasedMemberForm (forms.ModelForm):
 
     def clean(self):
-        cleaned_data = self.cleaned_data
-        self.validate_other_specify(
-            'death_cause_info', 'death_cause_info_other')
-        return cleaned_data
+        cleaned_data = super().clean()
+        form_validator = DeceasedMemberFormValidator(cleaned_data=cleaned_data)
+        return form_validator.clean()
 
     class Meta:
         model = DeceasedMember

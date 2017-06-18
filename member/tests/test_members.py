@@ -7,10 +7,11 @@ from django.test import TestCase, tag
 from edc_base.utils import get_utcnow
 from edc_constants.constants import NO, DEAD, YES
 
-from household.constants import ELIGIBLE_REPRESENTATIVE_PRESENT, REFUSED_ENUMERATION, ELIGIBLE_REPRESENTATIVE_ABSENT,\
-    NO_HOUSEHOLD_INFORMANT
+from household.constants import (
+    ELIGIBLE_REPRESENTATIVE_PRESENT, REFUSED_ENUMERATION,
+    ELIGIBLE_REPRESENTATIVE_ABSENT, NO_HOUSEHOLD_INFORMANT)
 from household.exceptions import HouseholdLogRequired
-from household.models import HouseholdStructure, Household, HouseholdLog, HouseholdLogEntry
+from household.models import HouseholdStructure, Household
 from survey.site_surveys import site_surveys
 
 from ..clone import Clone
@@ -20,7 +21,6 @@ from ..exceptions import (
     MemberValidationError, CloneError)
 from ..forms import RepresentativeEligibilityForm
 from ..models import HouseholdMember
-
 from .mixins import MemberMixin
 
 

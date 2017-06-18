@@ -1,4 +1,4 @@
-from edc_dashboard.model_mixins import SearchSlugModelMixin as BaseSearchSlugModelMixin
+from edc_search.model_mixins import SearchSlugModelMixin as BaseSearchSlugModelMixin
 
 
 class SearchSlugModelMixin(BaseSearchSlugModelMixin):
