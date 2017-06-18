@@ -4,7 +4,7 @@ from model_mommy import mommy
 from random import choice
 
 from edc_base_test.exceptions import TestMixinError
-from edc_constants.constants import MALE, FEMALE, NOT_APPLICABLE, YES, NO
+from edc_constants.constants import MALE, FEMALE, NOT_APPLICABLE, YES, NO, ALIVE
 from edc_registration.models import RegisteredSubject
 
 from household.models import HouseholdStructure
@@ -43,7 +43,7 @@ class MemberTestMixin:
             first_name = fake.first_name().upper()
             last_name = fake.last_name().upper()
             gender = options.get('gender', choice([MALE, FEMALE]))
-            household_member = mommy.make_recipe(
+            household_member = mommy.make(
                 'member.householdmember',
                 household_structure=household_structure,
                 report_datetime=household_log_entry.report_datetime,
@@ -151,9 +151,13 @@ class MemberTestMixin:
                 options.update(
                     report_datetime=household_structure.report_datetime)
 
-        household_member = mommy.make_recipe(
+        household_member = mommy.make(
             'member.householdmember',
             household_structure=household_structure,
+            age_in_years=27,
+            survival_status=ALIVE,
+            study_resident=YES,
+            inability_to_participate=ABLE_TO_PARTICIPATE,
             **options)
 
         if not options and not household_member.eligible_member:

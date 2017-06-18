@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.apps import apps as django_apps
 from django.core.validators import (
     MinLengthValidator, MaxLengthValidator, MinValueValidator,
     MaxValueValidator, RegexValidator)
