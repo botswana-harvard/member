@@ -1,27 +1,40 @@
+from django.apps import apps as django_apps
 from dateutil.relativedelta import relativedelta
 from faker import Faker
 from model_mommy import mommy
 from random import choice
 
-from edc_base_test.exceptions import TestMixinError
-from edc_constants.constants import MALE, FEMALE, NOT_APPLICABLE, YES, NO, ALIVE
+from edc_constants.constants import MALE, FEMALE, YES, NO, ALIVE
 from edc_registration.models import RegisteredSubject
 
 from household.models import HouseholdStructure
+from household.tests import HouseholdTestHelper
 from survey.site_surveys import site_surveys
 
-from member.constants import HEAD_OF_HOUSEHOLD, ABLE_TO_PARTICIPATE
-from member.models import HouseholdMember, EnrollmentChecklist
+from ..constants import HEAD_OF_HOUSEHOLD, ABLE_TO_PARTICIPATE
+from ..models import HouseholdMember, EnrollmentChecklist
 
 
 fake = Faker()
 
 
-class MemberTestMixin:
+class MemberTestHelperError(Exception):
+    pass
+
+
+class MemberTestHelper:
+
+    household_helper = HouseholdTestHelper()
 
     def setUp(self):
-        super().setUp()
         self.study_site = '40'
+
+    def get_utcnow(self):
+        """Returns a datetime that is the earliest date of consent
+        allowed for the consent model.
+        """
+        edc_protocol_app_config = django_apps.get_app_config('edc_protocol')
+        return edc_protocol_app_config.study_open_datetime
 
     def _make_ready(self, household_structure, make_hoh=None, **options):
         """Returns household_structure after adding representative
@@ -75,7 +88,7 @@ class MemberTestMixin:
         if 'report_datetime' not in options:
             options['report_datetime'] = (
                 site_surveys.get_survey_schedules()[0].start)
-        household_structure = self.make_household_structure(
+        household_structure = self.household_helper.make_household_structure(
             survey_schedule=survey_schedule,
             **options)
         return self._make_ready(
@@ -98,7 +111,7 @@ class MemberTestMixin:
         if household_structure.next:
             survey_schedule = household_structure.next.survey_schedule_object
             if household_structure.next.householdlog.householdlogentry_set.all().count() > 0:
-                raise TestMixinError(
+                raise MemberTestHelperError(
                     'Household structure already "ready" for '
                     'enumeration. Got {}'.format(
                         household_structure.next))
@@ -161,7 +174,7 @@ class MemberTestMixin:
             **options)
 
         if not options and not household_member.eligible_member:
-            raise TestMixinError(
+            raise MemberTestHelperError(
                 'Default values expected to create an eligible '
                 'household member. Got eligible_member=False. Did '
                 'someone mess with the mommy recipe?')
@@ -192,7 +205,7 @@ class MemberTestMixin:
             'report_datetime',
             household_member.report_datetime)
         if 'age_in_years' in options:
-            raise TestMixinError('Invalid option. Got \'age_in_years\'')
+            raise MemberTestHelperError('Invalid option. Got \'age_in_years\'')
 
         try:
             registered_subject = RegisteredSubject.objects.get(

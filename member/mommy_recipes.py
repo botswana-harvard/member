@@ -29,7 +29,6 @@ householdmember = Recipe(
     gender=FEMALE,
     relation='cousin',
     subject_identifier=None,
-    subject_identifier_as_pk=None,
     subject_identifier_aka=None,
     internal_identifier=None,
 )

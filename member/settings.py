@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'plot.apps.AppConfig',
     'plot_form_validators.apps.AppConfig',
     'household.apps.AppConfig',
+    'survey.apps.AppConfig',
+    'edc_consent.apps.AppConfig',
     'member.apps.EdcDeviceAppConfig',
     'member.apps.EdcMapAppConfig',
     'member.apps.AppConfig',

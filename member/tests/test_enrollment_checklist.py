@@ -7,17 +7,17 @@ from edc_constants.constants import NO, FEMALE, MALE, YES
 
 from ..constants import BLOCK_PARTICIPATION
 from ..exceptions import MemberEnrollmentError
-from ..models import (
-    HouseholdMember, EnrollmentLoss, EnrollmentChecklist)
-
-from .mixins import MemberMixin
+from ..models import HouseholdMember, EnrollmentLoss, EnrollmentChecklist
+from .member_test_helper import MemberTestHelper
 
 
-class TestMembers(MemberMixin, TestCase):
+class TestMembers(TestCase):
+
+    member_helper = MemberTestHelper()
 
     def test_enrollment_checklist(self):
-        household_structure = self.make_household_ready_for_enumeration()
-        household_member = self.add_household_member(
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+        household_member = self.member_helper.add_household_member(
             household_structure=household_structure)
         mommy.make_recipe(
             'member.enrollmentchecklist',
@@ -29,8 +29,8 @@ class TestMembers(MemberMixin, TestCase):
         )
 
     def test_enrollment_checklist_to_household_member_age_mismatch(self):
-        household_structure = self.make_household_ready_for_enumeration()
-        household_member = self.add_household_member(
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+        household_member = self.member_helper.add_household_member(
             household_structure=household_structure,
             age_in_years=25)
         self.assertEqual(household_member.age_in_years, 25)
@@ -45,8 +45,8 @@ class TestMembers(MemberMixin, TestCase):
                  - relativedelta(years=35)).date())
 
     def test_enrollment_checklist_to_household_member_initials_mismatch(self):
-        household_structure = self.make_household_ready_for_enumeration()
-        household_member = self.add_household_member(
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+        household_member = self.member_helper.add_household_member(
             household_structure=household_structure,
             initials='AA')
         self.assertEqual(household_member.initials, 'AA')
@@ -61,8 +61,8 @@ class TestMembers(MemberMixin, TestCase):
             initials='XX')
 
     def test_enrollment_checklist_to_household_member_resident_mismatch(self):
-        household_structure = self.make_household_ready_for_enumeration()
-        household_member = self.add_household_member(
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+        household_member = self.member_helper.add_household_member(
             household_structure=household_structure,
             study_resident=YES)
         self.assertEqual(household_member.study_resident, YES)
@@ -78,8 +78,8 @@ class TestMembers(MemberMixin, TestCase):
             part_time_resident=NO)
 
     def test_enrollment_checklist_to_household_member_gender_mismatch(self):
-        household_structure = self.make_household_ready_for_enumeration()
-        household_member = self.add_household_member(
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+        household_member = self.member_helper.add_household_member(
             household_structure=household_structure,
             gender=MALE)
         self.assertEqual(household_member.gender, MALE)
@@ -96,9 +96,9 @@ class TestMembers(MemberMixin, TestCase):
 
     # test enrollment loss / ineligible by the enrollment checklist
     def test_enrollment_checklist_eligible(self):
-        household_structure = self.make_household_ready_for_enumeration(
+        household_structure = self.member_helper.make_household_ready_for_enumeration(
             make_hoh=False)
-        household_member = self.add_household_member(
+        household_member = self.member_helper.add_household_member(
             household_structure=household_structure)
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
@@ -118,8 +118,8 @@ class TestMembers(MemberMixin, TestCase):
         """Asserts cannot enter EnrollmentChecklist because
         member is not eligible for screening by age.
         """
-        household_structure = self.make_household_ready_for_enumeration()
-        household_member = self.add_household_member(
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+        household_member = self.member_helper.add_household_member(
             household_structure=household_structure,
             age_in_years=10)
         self.assertRaises(
@@ -133,8 +133,8 @@ class TestMembers(MemberMixin, TestCase):
                  - relativedelta(years=10)).date())
 
     def test_enrollment_checklist_ineligible_no_identity(self):
-        household_structure = self.make_household_ready_for_enumeration()
-        household_member = self.add_household_member(
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+        household_member = self.member_helper.add_household_member(
             household_structure=household_structure)
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
@@ -147,8 +147,8 @@ class TestMembers(MemberMixin, TestCase):
         self.assertIn('identity', enrollment_checklist.loss_reason)
 
     def test_enrollment_checklist_ineligible_by_household_residency(self):
-        household_structure = self.make_household_ready_for_enumeration()
-        household_member = self.add_household_member(
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+        household_member = self.member_helper.add_household_member(
             household_structure=household_structure)
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
@@ -161,8 +161,8 @@ class TestMembers(MemberMixin, TestCase):
         self.assertIn('household residency', enrollment_checklist.loss_reason)
 
     def test_enrollment_checklist_ineligible_by_part_time_resident(self):
-        household_structure = self.make_household_ready_for_enumeration()
-        household_member = self.add_household_member(
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+        household_member = self.member_helper.add_household_member(
             household_structure=household_structure)
         self.assertRaises(
             MemberEnrollmentError,
@@ -176,8 +176,8 @@ class TestMembers(MemberMixin, TestCase):
             part_time_resident=NO)
 
     def test_enrollment_checklist_ineligible_by_citizenship1(self):
-        household_structure = self.make_household_ready_for_enumeration()
-        household_member = self.add_household_member(
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+        household_member = self.member_helper.add_household_member(
             household_structure=household_structure)
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
@@ -193,8 +193,8 @@ class TestMembers(MemberMixin, TestCase):
             enrollment_checklist.loss_reason)
 
     def test_enrollment_checklist_ineligible_by_citizenship2(self):
-        household_structure = self.make_household_ready_for_enumeration()
-        household_member = self.add_household_member(
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+        household_member = self.member_helper.add_household_member(
             household_structure=household_structure)
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
@@ -212,8 +212,8 @@ class TestMembers(MemberMixin, TestCase):
             enrollment_checklist.loss_reason)
 
     def test_enrollment_checklist_ineligible_by_literacy(self):
-        household_structure = self.make_household_ready_for_enumeration()
-        household_member = self.add_household_member(
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+        household_member = self.member_helper.add_household_member(
             household_structure=household_structure)
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
@@ -228,8 +228,8 @@ class TestMembers(MemberMixin, TestCase):
             enrollment_checklist.loss_reason)
 
     def test_enrollment_checklist_ineligible_by_blocked_participation(self):
-        household_structure = self.make_household_ready_for_enumeration()
-        household_member = self.add_household_member(
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+        household_member = self.member_helper.add_household_member(
             household_structure=household_structure)
         enrollment_checklist = mommy.make_recipe(
             'member.enrollmentchecklist',
@@ -244,8 +244,8 @@ class TestMembers(MemberMixin, TestCase):
             enrollment_checklist.loss_reason)
 
     def test_enrollment_checklist_ineligible_by_minor_no_guardian(self):
-        household_structure = self.make_household_ready_for_enumeration()
-        household_member = self.add_household_member(
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+        household_member = self.member_helper.add_household_member(
             household_structure=household_structure,
             report_datetime=household_structure.report_datetime,
             age_in_years=17)
@@ -262,8 +262,8 @@ class TestMembers(MemberMixin, TestCase):
             enrollment_checklist.loss_reason)
 
     def test_enrollment_checklist_creates_loss_on_ineligible(self):
-        household_structure = self.make_household_ready_for_enumeration()
-        household_member = self.add_household_member(
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+        household_member = self.member_helper.add_household_member(
             household_structure=household_structure)
         mommy.make_recipe(
             'member.enrollmentchecklist',
@@ -279,8 +279,8 @@ class TestMembers(MemberMixin, TestCase):
             self.fail('EnrollmentLoss.DoesNotExist unexpectedly raised.')
 
     def test_enrollment_checklist_does_not_create_loss_on_eligible(self):
-        household_structure = self.make_household_ready_for_enumeration()
-        household_member = self.add_household_member(
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+        household_member = self.member_helper.add_household_member(
             household_structure=household_structure)
         mommy.make_recipe(
             'member.enrollmentchecklist',
@@ -299,8 +299,8 @@ class TestMembers(MemberMixin, TestCase):
         """Asserts changing household meber to ineligible
         deletes EnrollmentChecklist.
         """
-        household_structure = self.make_household_ready_for_enumeration()
-        household_member = self.add_household_member(
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+        household_member = self.member_helper.add_household_member(
             household_structure=household_structure)
         mommy.make_recipe(
             'member.enrollmentchecklist',
@@ -324,8 +324,8 @@ class TestMembers(MemberMixin, TestCase):
             pass
 
     def test_enrollment_checklist_ineligible_updates_householdmember(self):
-        household_structure = self.make_household_ready_for_enumeration()
-        household_member = self.add_household_member(
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+        household_member = self.member_helper.add_household_member(
             household_structure=household_structure)
         mommy.make_recipe(
             'member.enrollmentchecklist',
@@ -341,8 +341,8 @@ class TestMembers(MemberMixin, TestCase):
         self.assertFalse(household_member.eligible_subject)
 
     def test_enrollment_checklist_eligible_updates_householdmember(self):
-        household_structure = self.make_household_ready_for_enumeration()
-        household_member = self.add_household_member(
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+        household_member = self.member_helper.add_household_member(
             household_structure=household_structure)
         mommy.make_recipe(
             'member.enrollmentchecklist',

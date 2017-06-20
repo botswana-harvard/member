@@ -2,14 +2,16 @@ from django.test import TestCase
 
 from edc_constants.constants import MALE, ALIVE, YES, NO
 
-from member.constants import ABLE_TO_PARTICIPATE
-from member.forms.household_member_form import HouseholdMemberForm
+from ..constants import ABLE_TO_PARTICIPATE
+from ..forms import HouseholdMemberForm
+from .member_test_helper import MemberTestHelper
 
 
 class TestHouseholdMemberForm(TestCase):
 
+    member_helper = MemberTestHelper()
+
     def setUp(self):
-        super().setUp()
         self.subject_visit = self.make_subject_visit_for_consented_subject(
             'T0')
         self.options = {
@@ -34,7 +36,7 @@ class TestHouseholdMemberForm(TestCase):
             'updated_after_auto_filled': False,
             'additional_key': None,
             'subject_visit': self.subject_visit.id,
-            'report_datetime': self.get_utcnow(),
+            'report_datetime': self.member_helper.get_utcnow(),
         }
 
     def test_valid_form(self):
