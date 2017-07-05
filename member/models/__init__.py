@@ -9,7 +9,7 @@ from .household_member import HouseholdMember
 from .htc_member import HtcMember
 from .htc_member_history import HtcMemberHistory
 from .list_models import TransportMode, ElectricalAppliances
-from .member_appointment import MemberAppointment
+from .member_appointment import MemberAppointment, IN_PROGRESS_APPT
 from .moved_member import MovedMember
 from .refused_member import RefusedMember
 from .refused_member_history import RefusedMemberHistory

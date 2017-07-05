@@ -1,12 +1,25 @@
 from django.db import models
 
-from edc_appointment.choices import APPT_STATUS
 from edc_base.model_managers import HistoricalRecords
 from edc_base.model_mixins import BaseUuidModel
 from edc_constants.choices import TIME_OF_DAY, TIME_OF_WEEK
 
 from ..managers import MemberEntryManager
 from .model_mixins import HouseholdMemberModelMixin
+
+CANCELLED_APPT = 'cancelled'
+COMPLETE_APPT = 'done'
+INCOMPLETE_APPT = 'incomplete'
+IN_PROGRESS_APPT = 'in_progress'
+NEW_APPT = 'new'
+
+APPT_STATUS = (
+    (NEW_APPT, 'New'),
+    (IN_PROGRESS_APPT, 'In Progress'),
+    (INCOMPLETE_APPT, 'Incomplete'),
+    (COMPLETE_APPT, 'Done'),
+    (CANCELLED_APPT, 'Cancelled'),
+)
 
 
 class MemberAppointment(HouseholdMemberModelMixin, BaseUuidModel):

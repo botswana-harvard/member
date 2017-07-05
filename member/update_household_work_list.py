@@ -3,11 +3,10 @@ from datetime import date
 from django.apps import apps as django_apps
 
 from edc_constants.constants import DONE
-from edc_appointment.constants import IN_PROGRESS_APPT
 
 from household.models import HouseholdStructure, HouseholdWorkList, HouseholdLogEntry
 
-from .models import MemberAppointment, HouseholdMember
+from .models import MemberAppointment, HouseholdMember, IN_PROGRESS_APPT
 
 
 def update_household_work_list(label=None, household_structure=None):
