@@ -117,7 +117,7 @@ class MemberTestHelper:
                     'Household structure already "ready" for '
                     'enumeration. Got {}'.format(
                         household_structure.next))
-            self._add_attempts(
+            self.household_helper.add_attempts(
                 household_structure.next,
                 survey_schedule=survey_schedule,
                 **options)

@@ -18,8 +18,8 @@ class EnrollmentChecklistAnonymousAdmin(ModelAdminMixin, admin.ModelAdmin):
     date_hierarchy = 'report_datetime'
 
     additional_instructions = mark_safe(
-        '<i class="fa fa-user-secret"></i> This form is a tool to assist the Interviewer to confirm the '
-        'Eligibility status of the ANONYMOUS subject.')
+        '<i class="fa fa-user-secret"></i> This form is a tool to assist the '
+        'Interviewer to confirm the Eligibility status of the ANONYMOUS subject.')
 
     fieldsets = (
         (None, {

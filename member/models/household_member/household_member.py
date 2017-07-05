@@ -194,6 +194,12 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
     natural_key.dependencies = ['household.householdstructure']
 
     @property
+    def registration_options(self):
+        options = super().registration_options
+        options.update(registration_identifier=self.internal_identifier.hex)
+        return options
+
+    @property
     def anonymous(self):
         """Returns True if this member resides on the anonymous plot.
         """

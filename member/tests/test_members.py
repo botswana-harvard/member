@@ -39,17 +39,14 @@ class TestMembers(TestCase):
             make_hoh=False,
             report_datetime=self.survey_schedule_object.start)
 
-    
     def test_add_first_member(self):
         self.member_helper.add_household_member(
             self.household_structure, relation=HEAD_OF_HOUSEHOLD)
 
-    
     def test_add_first_member_raises_if_not_hoh(self):
         self.member_helper.add_household_member(
             self.household_structure, relation='husband')
 
-    
     def test_cannot_add_another_member_without_hoh_eligibility(self):
         self.member_helper.add_household_member(
             self.household_structure, relation=HEAD_OF_HOUSEHOLD)
@@ -58,7 +55,6 @@ class TestMembers(TestCase):
             self.member_helper.add_household_member,
             self.household_structure, relation='husband')
 
-    
     def test_add_another_member_when_hoh_eligibility_exists(self):
         """Assert can add head of household.
         """
@@ -73,7 +69,6 @@ class TestMembers(TestCase):
         self.member_helper.add_household_member(
             self.household_structure, relation='Mother')
 
-    
     def test_add_ineligible_member_by_residency(self):
         household_member = mommy.make_recipe(
             'member.householdmember',
@@ -82,7 +77,6 @@ class TestMembers(TestCase):
             study_resident=NO)
         self.assertFalse(household_member.eligible_member)
 
-    
     def test_add_ineligible_member_by_ability(self):
         household_member = mommy.make_recipe(
             'member.householdmember',
@@ -91,7 +85,6 @@ class TestMembers(TestCase):
             inability_to_participate=MENTAL_INCAPACITY)
         self.assertFalse(household_member.eligible_member)
 
-    
     def test_add_ineligible_member_by_survival(self):
         household_member = mommy.make_recipe(
             'member.householdmember',
@@ -101,7 +94,6 @@ class TestMembers(TestCase):
             present_today=NO)
         self.assertFalse(household_member.eligible_member)
 
-    
     def test_absent_uniqueness(self):
         report_datetime = self.household_structure.survey_schedule_object.start
         household_member = self.member_helper.add_household_member(
@@ -116,7 +108,6 @@ class TestMembers(TestCase):
             household_member=household_member,
             report_datetime=report_datetime)
 
-    
     def test_undecided_uniqueness(self):
         report_datetime = self.member_helper.get_utcnow()
         household_structure = self.member_helper.make_household_ready_for_enumeration(
@@ -133,7 +124,6 @@ class TestMembers(TestCase):
             household_member=household_member,
             report_datetime=report_datetime)
 
-    
     def test_member_visit_attempts(self):
         household_structure = self.member_helper.make_household_ready_for_enumeration(
             make_hoh=False)
@@ -163,14 +153,12 @@ class TestMembers(TestCase):
             report_datetime=report_datetime)
         self.assertEqual(household_member.visit_attempts, 4)
 
-    
     def test_plot_eligible_members_increments(self):
         household_structure = self.member_helper.make_household_ready_for_enumeration(
             make_hoh=False)
         self.assertEqual(
             household_structure.household.plot.eligible_members, 0)
 
-    
     def test_add_members_updates_household_structure(self):
         household_structure = self.member_helper.make_household_ready_for_enumeration(
             make_hoh=False)
@@ -184,7 +172,6 @@ class TestMembers(TestCase):
         self.assertTrue(household_structure.enumerated)
         self.assertIsNotNone(household_structure.enumerated_datetime)
 
-    
     def test_delete_members_updates_household_structure(self):
         household_structure = self.member_helper.make_household_ready_for_enumeration(
             make_hoh=False)
@@ -200,7 +187,6 @@ class TestMembers(TestCase):
         self.assertFalse(household_structure.enumerated)
         self.assertIsNone(household_structure.enumerated_datetime)
 
-    
     def test_mixin_returns_household_structure_for_survey(self):
         for survey_schedule in site_surveys.get_survey_schedules(current=True):
             household_structure = self.member_helper.make_household_ready_for_enumeration(
@@ -223,7 +209,6 @@ class TestMembers2(TestCase):
         site_mappers.register(TestMapper)
         self.survey_schedule_object = site_surveys.get_survey_schedules()[0]
 
-    
     def test_cant_add_representative_eligibility_with_no_todays_log_entry(self):
         plot = self.household_helper.make_confirmed_plot(
             household_count=1,
@@ -274,33 +259,28 @@ class TestMembers3(TestCase):
             gender=FEMALE,
             relation=HEAD_OF_HOUSEHOLD)
 
-    
     def test_subject_identifier_is_uuid_by_default(self):
         household_member = HouseholdMember.objects.create(**self.defaults)
         self.assertIsNotNone(household_member.subject_identifier)
         self.assertRegex(household_member.subject_identifier, UUID_PATTERN)
 
-    
     def test_subject_identifier_pk_is_uuid_by_default(self):
         household_member = HouseholdMember.objects.create(**self.defaults)
         self.assertIsNotNone(household_member.subject_identifier_as_pk)
         self.assertRegex(
             str(household_member.subject_identifier_as_pk), UUID_PATTERN)
 
-    
     def test_subject_identifier_pk_equals_subject_identifier_initially(self):
         household_member = HouseholdMember.objects.create(**self.defaults)
         self.assertEqual(household_member.subject_identifier,
                          household_member.subject_identifier_as_pk.hex)
 
-    
     def test_internal_identifier_is_uuid_by_default(self):
         household_member = HouseholdMember.objects.create(**self.defaults)
         self.assertIsNotNone(household_member.internal_identifier)
         self.assertRegex(
             str(household_member.internal_identifier), UUID_PATTERN)
 
-    
     def test_internal_identifier_does_not_change_on_save(self):
         household_member = HouseholdMember.objects.create(**self.defaults)
         internal_identifier = household_member.internal_identifier
