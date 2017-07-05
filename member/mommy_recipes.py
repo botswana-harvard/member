@@ -4,7 +4,7 @@ from dateutil.relativedelta import relativedelta
 from faker import Faker
 from model_mommy.recipe import Recipe
 
-from edc_base_test.utils import get_utcnow
+from edc_protocol.tests import get_utcnow
 from edc_constants.constants import NOT_APPLICABLE, YES, ALIVE, FEMALE
 
 from .constants import ABLE_TO_PARTICIPATE

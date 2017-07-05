@@ -4,13 +4,13 @@ from django.test import TestCase, tag
 from edc_base.utils import get_utcnow
 from edc_map.site_mappers import site_mappers
 from household.constants import REFUSED_ENUMERATION, NO_HOUSEHOLD_INFORMANT
+from household.tests import HouseholdTestHelper
 from survey.tests import SurveyTestHelper
 
 from ..constants import ELIGIBLE_REPRESENTATIVE_ABSENT
 from ..forms import RepresentativeEligibilityForm
 from .mappers import TestMapper
 from .member_test_helper import MemberTestHelper
-from household.tests.household_test_helper import HouseholdTestHelper
 
 
 @tag('form')

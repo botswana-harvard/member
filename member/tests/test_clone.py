@@ -3,6 +3,7 @@ from django.test import TestCase, tag
 from faker import Faker
 
 from edc_map.site_mappers import site_mappers
+from household.models import HouseholdStructure
 from member_clone.clone import Clone
 from survey.site_surveys import site_surveys
 from survey.tests import SurveyTestHelper
@@ -10,7 +11,6 @@ from survey.tests import SurveyTestHelper
 from ..models import HouseholdMember
 from .member_test_helper import MemberTestHelper
 from .mappers import TestMapper
-from household.models.household_structure.household_structure import HouseholdStructure
 
 fake = Faker()
 
