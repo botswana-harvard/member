@@ -11,6 +11,8 @@ git+https://github.com/botswana-harvard/edc-map@develop#edc-map
 git+https://github.com/botswana-harvard/edc-search@develop#edc-search
 git+https://github.com/botswana-harvard/edc-sync@develop#edc-sync
 git+https://github.com/botswana-harvard/edc-timepoint@develop#edc_timepoint
+git+https://github.com/botswana-harvard/edc-model-wrapper@develop#edc-model-wrapper
+git+https://github.com/botswana-harvard/enumeration@develop#enumeration
 git+https://github.com/botswana-harvard/household@develop#household
 git+https://github.com/botswana-harvard/plot@develop#plot
 git+https://github.com/botswana-harvard/plot-form-validators@develop#plot-form-validators

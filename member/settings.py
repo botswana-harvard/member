@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'edc_protocol.apps.AppConfig',
     'edc_registration.apps.AppConfig',
     'edc_sync.apps.AppConfig',
+    'enumeration.apps.AppConfig',
     'household.apps.AppConfig',
     'plot.apps.AppConfig',
     'plot_form_validators.apps.AppConfig',
