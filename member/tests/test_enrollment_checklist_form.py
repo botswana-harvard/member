@@ -56,6 +56,8 @@ class TestHouseholdMemberForm(TestCase):
 
     def test_valid_form(self):
         form = HouseholdMemberForm(data=self.options)
+        form.is_valid()
+        print(form.errors)
         self.assertTrue(form.is_valid())
 
     def test_valid_initials(self):

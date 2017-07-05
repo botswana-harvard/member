@@ -58,17 +58,14 @@ class TestHousehold(TestCase):
         self.household_helper.add_enumeration_attempt(
             household_structure,
             report_datetime=self.member_helper.get_utcnow())
-
         mommy.make_recipe(
             'member.representativeeligibility',
-            household_structure=household_structure
-        )
+            household_structure=household_structure)
         mommy.make_recipe(
             'member.householdmember',
             household_structure=household_structure,)
         household_log = HouseholdLog.objects.get(
             household_structure=household_structure)
-
         options = {
             'household_status': ELIGIBLE_REPRESENTATIVE_PRESENT,
             'household_log': household_log.id,
@@ -76,4 +73,6 @@ class TestHousehold(TestCase):
             'survey_schedule': site_surveys.get_survey_schedules(current=True)[0]
         }
         form = HouseholdLogEntryForm(data=options)
+        form.is_valid()
+        print(form.errors)
         self.assertTrue(form.is_valid())
