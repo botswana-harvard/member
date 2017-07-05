@@ -9,15 +9,17 @@ from edc_base.utils import age
 from edc_constants.choices import GENDER, YES_NO, YES_NO_NA
 from edc_constants.constants import NOT_APPLICABLE, NO, YES
 
+from ..age_helper import AgeHelper
 from ..choices import BLOCK_CONTINUE
 from ..constants import BLOCK_PARTICIPATION
 from ..exceptions import MemberEnrollmentError
 from ..managers import MemberEntryManager
-from .household_member import is_minor
 from .model_mixins import HouseholdMemberModelMixin
 
 
 class EnrollmentModelMixin(models.Model):
+
+    age_helper_cls = AgeHelper
 
     is_eligible = models.BooleanField(default=False)
 
@@ -99,7 +101,9 @@ class EnrollmentModelMixin(models.Model):
             self.non_citizen = True
         if self.literacy == NO:
             loss_reason.append('Illiterate with no literate witness.')
-        if is_minor(self.household_member.age_in_years) and self.guardian != YES:
+        age_helper = self.age_helper_cls(
+            age_in_years=self.household_member.age_in_years)
+        if age_helper.is_minor and self.guardian != YES:
             loss_reason.append('Minor without guardian available.')
         if self.confirm_participation == BLOCK_PARTICIPATION:
             loss_reason.append('Already enrolled.')

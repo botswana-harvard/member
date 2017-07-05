@@ -54,7 +54,7 @@ class TestHousehold(TestCase):
         self.assertFalse(form.is_valid())
 
     def test_eligible_member_present_saves(self):
-        household_structure = self.make_household_structure()
+        household_structure = self.household_helper.make_household_structure()
         self.household_helper.add_enumeration_attempt(
             household_structure,
             report_datetime=self.member_helper.get_utcnow())

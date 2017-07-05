@@ -53,12 +53,6 @@ relations.sort()
 RELATIONS = [(HEAD_OF_HOUSEHOLD, 'HEAD of HOUSEHOLD')] + \
     relations + [(UNKNOWN, 'UNKNOWN')] + [(NOT_APPLICABLE, 'Not Applicable')]
 
-DETAILS_CHANGE_REASON = (
-    ('married', 'Married'),
-    ('parent_married', 'Parent Married'),
-    (OTHER, 'Other')
-)
-
 INABILITY_TO_PARTICIPATE_REASON = (
     (ABLE_TO_PARTICIPATE, ('ABLE to participate')),
     (MENTAL_INCAPACITY, ('Mental Incapacity')),

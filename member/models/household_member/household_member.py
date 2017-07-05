@@ -1,32 +1,28 @@
 from uuid import uuid4
 
-from django.core.exceptions import ObjectDoesNotExist
-from django.apps import apps as django_apps
-from django.core.validators import (
-    MinLengthValidator, MaxLengthValidator, MinValueValidator,
-    MaxValueValidator, RegexValidator)
-from django_crypto_fields.fields import FirstnameField
+from django.core.validators import MaxValueValidator, RegexValidator
+from django.core.validators import MinLengthValidator, MaxLengthValidator, MinValueValidator
 from django.db import models
+from django_crypto_fields.fields import FirstnameField
 
 from edc_base.model_fields import OtherCharField
 from edc_base.model_managers import HistoricalRecords
 from edc_base.model_mixins import BaseUuidModel
 from edc_base.model_validators import datetime_not_future
 from edc_base.utils import get_utcnow
-from edc_constants.choices import (
-    GENDER, ALIVE_DEAD_UNKNOWN, YES_NO_NA, YES_NO_NA_DWTA)
+from edc_constants.choices import GENDER, ALIVE_DEAD_UNKNOWN, YES_NO_NA, YES_NO_NA_DWTA
 from edc_constants.constants import ALIVE, DEAD, YES
 from edc_search.model_mixins import SearchSlugManager
 from edc_registration.model_mixins import UpdatesOrCreatesRegistrationModelMixin
 
 from household.models import HouseholdStructure
+from member_clone.model_mixins import CloneModelMixin, NextMemberModelMixin
 from plot.utils import get_anonymous_plot
 from survey.model_mixins import SurveyScheduleModelMixin
 
 from ...choices import INABILITY_TO_PARTICIPATE_REASON
 from ...exceptions import MemberValidationError
 from ...managers import HouseholdMemberManager
-from .clone_model_mixin import CloneModelMixin
 from .consent_model_mixin import ConsentModelMixin
 from .member_eligibility_model_mixin import MemberEligibilityModelMixin
 from .member_identifier_model_mixin import MemberIdentifierModelMixin
@@ -42,8 +38,8 @@ class Manager(HouseholdMemberManager, SearchSlugManager):
 
 class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
                       RepresentativeModelMixin,
-                      CloneModelMixin, ConsentModelMixin, MemberStatusModelMixin,
-                      MemberEligibilityModelMixin,
+                      CloneModelMixin, NextMemberModelMixin, ConsentModelMixin,
+                      MemberStatusModelMixin, MemberEligibilityModelMixin,
                       MemberIdentifierModelMixin, RequiresHouseholdLogEntryMixin,
                       SurveyScheduleModelMixin, SearchSlugModelMixin, BaseUuidModel):
     """A model completed by the user to represent an enumerated
@@ -181,9 +177,8 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
     history = HistoricalRecords()
 
     def __str__(self):
-        return '{} {} {}{} {}'.format(
-            self.first_name, self.initials, self.age_in_years,
-            self.gender, self.household_structure.survey_schedule)
+        return (f'{self.first_name} {self.initials} {self.age_in_years}{self.gender} '
+                f'{self.household_structure.survey_schedule}')
 
     def save(self, *args, **kwargs):
         self.household_identifier = (
@@ -207,56 +202,6 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
             return True
         return False
 
-    @property
-    def next(self):
-        """Returns a household_member instance or None that is the
-        cloned household_member instance in the next
-        household_structure.
-        """
-        next_member = None
-        household_structure = self.household_structure.next
-        while household_structure:
-            if household_structure.next:
-                try:
-                    next_member = household_structure.next.householdmember_set.get(
-                        internal_identifier=self.internal_identifier,
-                        survey_schedule=self.survey_schedule_object.next.field_value)
-                    break
-                except ObjectDoesNotExist:
-                    next_member = None
-            else:
-                next_member = None
-            household_structure = self.household_structure.next
-        return next_member
-
-    @property
-    def previous(self):
-        """Returns a household_member instance or None that is the
-        cloned household_member instance in the previous
-        household_structure.
-        """
-        previous_member = None
-        household_structure = self.household_structure.previous
-        while household_structure:
-            if household_structure.previous:
-                try:
-                    previous_member = (
-                        household_structure.previous.householdmember_set.get(
-                            internal_identifier=self.internal_identifier))
-                    break
-                except ObjectDoesNotExist:
-                    try:
-                        previous_member = (
-                            household_structure.householdmember_set.get(
-                                internal_identifier=self.internal_identifier))
-                        break
-                    except ObjectDoesNotExist:
-                        previous_member = None
-            else:
-                previous_member = None
-            household_structure = household_structure.previous
-        return previous_member
-
     def common_clean(self):
         if self.survival_status == DEAD and self.present_today == YES:
             raise MemberValidationError(
@@ -275,4 +220,5 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
         unique_together = (
             ('internal_identifier', 'household_structure'),
             ('first_name', 'initials', 'household_structure'))
-        index_together = [['id', 'subject_identifier', 'created'], ]
+        index_together = [['internal_identifier',
+                           'subject_identifier', 'created'], ]

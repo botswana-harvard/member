@@ -3,14 +3,11 @@
 import sys
 import os
 
-from pathlib import PurePath
 from edc_device.constants import CENTRAL_SERVER
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
+APP_NAME = 'member'
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = ')78^w@s3^kt)6lu6()tomqjg#8_%!381-nx5dtu#i=kn@68h_^'
@@ -19,7 +16,6 @@ SECRET_KEY = ')78^w@s3^kt)6lu6()tomqjg#8_%!381-nx5dtu#i=kn@68h_^'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-APP_NAME = 'member'
 # Application definition
 
 INSTALLED_APPS = [
@@ -32,7 +28,10 @@ INSTALLED_APPS = [
     'crispy_forms',
     'django_crypto_fields.apps.AppConfig',
     'django_revision.apps.AppConfig',
+    'rest_framework.authtoken',
     'edc_base.apps.AppConfig',
+    'edc_sync.apps.AppConfig',
+    'edc_device.apps.AppConfig',
     'edc_identifier.apps.AppConfig',
     'edc_protocol.apps.AppConfig',
     'edc_registration.apps.AppConfig',
@@ -42,13 +41,11 @@ INSTALLED_APPS = [
     'household.apps.AppConfig',
     'survey.apps.AppConfig',
     'edc_consent.apps.AppConfig',
-    'member.apps.EdcDeviceAppConfig',
+    'member_clone.apps.AppConfig',
+    'member_form_validators.apps.AppConfig',
     'member.apps.EdcMapAppConfig',
     'member.apps.AppConfig',
 ]
-
-# if 'test' in sys.argv:
-#     INSTALLED_APPS = INSTALLED_APPS = ['example_survey.apps.AppConfig']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -84,25 +81,6 @@ WSGI_APPLICATION = 'member.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
-if 'test' in sys.argv:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'edc',
-            'USER': 'postgres',
-            'PASSWORD': 'postgres',
-            'HOST': '127.0.0.1',
-            'PORT': '5432',
-            'TEST': {'NAME': 'testmember'}
-        }
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
-    }
 
 DATABASES = {
     'default': {
@@ -151,8 +129,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'member', 'static')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'member', 'media')
-CURRENT_MAP_AREA = 'test_community'
-DEVICE_ID = '99'
 
 KEY_PATH = os.path.join(BASE_DIR, 'crypto_fields')
 GIT_DIR = BASE_DIR
@@ -163,6 +139,7 @@ DEVICE_ID = '99'
 DEVICE_ROLE = CENTRAL_SERVER
 SURVEY_GROUP_NAME = 'test_survey'
 SURVEY_SCHEDULE_NAME = 'year-1'
+LOAD_SURVEYS = 'manual'  # 'manual' or 'autodetect' (default)
 
 if 'test' in sys.argv:
 

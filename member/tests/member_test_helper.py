@@ -1,8 +1,10 @@
+import string
+import random
+
 from django.apps import apps as django_apps
 from dateutil.relativedelta import relativedelta
 from faker import Faker
 from model_mommy import mommy
-from random import choice
 
 from edc_constants.constants import MALE, FEMALE, YES, NO, ALIVE
 from edc_registration.models import RegisteredSubject
@@ -55,7 +57,7 @@ class MemberTestHelper:
         if make_hoh:
             first_name = fake.first_name().upper()
             last_name = fake.last_name().upper()
-            gender = options.get('gender', choice([MALE, FEMALE]))
+            gender = options.get('gender', random.choice([MALE, FEMALE]))
             household_member = mommy.make(
                 'member.householdmember',
                 household_structure=household_structure,
@@ -150,9 +152,15 @@ class MemberTestHelper:
 
         first_name = fake.first_name().upper()
         last_name = fake.last_name().upper()
+        middle_initial = random.choice(string.ascii_uppercase)
         options.update(first_name=options.get('first_name', first_name))
         options.update(
-            initials=options.get('initials', first_name[0] + last_name[0]))
+            initials=options.get('initials', first_name[0] + middle_initial + last_name[0]))
+        options.update(age_in_years=options.get('age_in_years', 27))
+        options.update(survival_status=options.get('survival_status', ALIVE))
+        options.update(study_resident=options.get('study_resident', YES))
+        options.update(inability_to_participate=options.get(
+            'inability_to_participate', ABLE_TO_PARTICIPATE))
 
         if not options.get('report_datetime'):
             last = (household_structure.householdlog.
@@ -166,12 +174,7 @@ class MemberTestHelper:
 
         household_member = mommy.make(
             'member.householdmember',
-            household_structure=household_structure,
-            age_in_years=27,
-            survival_status=ALIVE,
-            study_resident=YES,
-            inability_to_participate=ABLE_TO_PARTICIPATE,
-            **options)
+            household_structure=household_structure, **options)
 
         if not options and not household_member.eligible_member:
             raise MemberTestHelperError(

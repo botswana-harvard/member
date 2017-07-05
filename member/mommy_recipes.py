@@ -8,10 +8,9 @@ from edc_base_test.utils import get_utcnow
 from edc_constants.constants import NOT_APPLICABLE, YES, ALIVE, FEMALE
 
 from .constants import ABLE_TO_PARTICIPATE
-from .models import (
-    HouseholdMember, RepresentativeEligibility, HouseholdHeadEligibility,
-    EnrollmentChecklist, AbsentMember, RefusedMember, UndecidedMember,
-    DeceasedMember, HtcMember, MovedMember)
+from .models import HouseholdMember, RepresentativeEligibility, HouseholdHeadEligibility
+from .models import EnrollmentChecklist, AbsentMember, RefusedMember, UndecidedMember
+from .models import DeceasedMember, HtcMember, MovedMember
 
 
 fake = Faker()

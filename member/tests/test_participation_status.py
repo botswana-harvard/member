@@ -12,7 +12,6 @@ from .member_test_helper import MemberTestHelper
 from .mappers import TestMapper
 
 
-@tag('PP')
 class TestMembers(TestCase):
 
     member_helper = MemberTestHelper()

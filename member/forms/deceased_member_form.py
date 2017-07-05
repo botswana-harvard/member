@@ -1,6 +1,7 @@
 from django import forms
 
-from ..form_validators import DeceasedMemberFormValidator
+from member_form_validators.form_validators import DeceasedMemberFormValidator
+
 from ..models import DeceasedMember
 
 

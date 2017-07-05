@@ -27,10 +27,10 @@ class TestSurvey(TestCase):
         site_mappers.register(TestMapper)
 
     def test_household_member(self):
-        self.survey_schedule = self.survey_helper.get_survey_schedule(0)
-
+        survey_schedule = site_surveys.get_survey_schedules(
+            current=True)[0]
         household_structure = self.member_helper.make_household_ready_for_enumeration(
-            survey_schedule=self.survey_schedule)
+            survey_schedule=survey_schedule)
 
         household_member = self.member_helper.add_household_member(
             household_structure)
@@ -52,22 +52,23 @@ class TestSurvey(TestCase):
 
         for index, survey_schedule in enumerate(
                 site_surveys.get_survey_schedules(group_name='test_survey')):
-            household_structure = self.member_helper.make_household_ready_for_enumeration(
-                survey_schedule=survey_schedule)
-            household_member = self.member_helper.add_household_member(
-                household_structure)
-            self.assertEqual(
-                household_member.survey_schedule,
-                'test_survey.year-{}.test_community'.format(index + 1))
-            self.assertEqual(
-                household_member.survey_schedule_object.field_value,
-                'test_survey.year-{}.test_community'.format(index + 1))
-            self.assertEqual(
-                household_member.survey_schedule_object.name,
-                'year-{}'.format(index + 1))
-            self.assertEqual(
-                household_member.survey_schedule_object.group_name,
-                'test_survey')
-            self.assertEqual(
-                household_member.survey_schedule_object.short_name,
-                'test_survey.year-{}'.format(index + 1))
+            with self.subTest(index=index, survey_schedule=survey_schedule):
+                household_structure = self.member_helper.make_household_ready_for_enumeration(
+                    survey_schedule=survey_schedule)
+                household_member = self.member_helper.add_household_member(
+                    household_structure)
+                self.assertEqual(
+                    household_member.survey_schedule,
+                    'test_survey.year-{}.test_community'.format(index + 1))
+                self.assertEqual(
+                    household_member.survey_schedule_object.field_value,
+                    'test_survey.year-{}.test_community'.format(index + 1))
+                self.assertEqual(
+                    household_member.survey_schedule_object.name,
+                    'year-{}'.format(index + 1))
+                self.assertEqual(
+                    household_member.survey_schedule_object.group_name,
+                    'test_survey')
+                self.assertEqual(
+                    household_member.survey_schedule_object.short_name,
+                    'test_survey.year-{}'.format(index + 1))
