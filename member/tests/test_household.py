@@ -73,6 +73,4 @@ class TestHousehold(TestCase):
             'survey_schedule': site_surveys.get_survey_schedules(current=True)[0]
         }
         form = HouseholdLogEntryForm(data=options)
-        form.is_valid()
-        print(form.errors)
         self.assertTrue(form.is_valid())
