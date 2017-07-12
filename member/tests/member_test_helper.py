@@ -91,7 +91,7 @@ class MemberTestHelper:
             options['report_datetime'] = (
                 site_surveys.get_survey_schedules()[0].start)
         household_structure = self.household_helper.make_household_structure(
-            survey_schedule=survey_schedule,
+            survey_schedule=survey_schedule, attempts=1,
             **options)
         return self._make_ready(
             household_structure, make_hoh=make_hoh, **options)
@@ -138,10 +138,10 @@ class MemberTestHelper:
             household_structure, survey_schedule=survey_schedule,
             make_hoh=make_hoh, **options)
 
-    def make_enumerated_household_with_male_member(self, survey_schedule=None):
-        household_structure = self.make_household_ready_for_enumeration(
-            make_hoh=True, survey_schedule=survey_schedule, gender=MALE)
-        return household_structure
+#     def make_enumerated_household_with_male_member(self, survey_schedule=None):
+#         household_structure = self.make_household_ready_for_enumeration(
+#             make_hoh=True, survey_schedule=survey_schedule, gender=MALE)
+#         return household_structure
 
     def add_household_member(self, household_structure, **options):
         """Returns a household member that is by default is
