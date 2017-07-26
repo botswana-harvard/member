@@ -9,8 +9,6 @@ from ..models import (
     AbsentMember, UndecidedMember, RefusedMember,
     DeceasedMember, EnrollmentChecklist, HtcMember)
 
-app_config = django_apps.get_app_config('member')
-
 
 class HouseholdFormsModelWrapperMixin(ModelWrapper):
     """For models with a FK to household_structure.
@@ -164,7 +162,8 @@ class HouseholdInfoModelWrapper(HouseholdFormsModelWrapperMixin):
 class HouseholdMemberModelWrapper(ModelWrapper):
 
     model_name = 'member.householdmember'
-    next_url_name = app_config.listboard_url_name
+    next_url_name = django_apps.get_app_config(
+        'member_dashboard').listboard_url_name
     extra_querystring_attrs = {
         'member.householdmember': [
             'household_structure',
