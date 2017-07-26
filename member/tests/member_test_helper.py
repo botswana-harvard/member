@@ -74,8 +74,8 @@ class MemberTestHelper:
             pk=household_structure.pk)
         return household_structure
 
-    def make_household_ready_for_enumeration(self, make_hoh=None,
-                                             survey_schedule=None, **options):
+    def make_household_ready_for_enumeration(
+            self, make_hoh=None, survey_schedule=None, attempts=None, **options):
         """Returns household_structure after adding representative
         eligibility.
 
@@ -85,8 +85,7 @@ class MemberTestHelper:
         * survey_schedule: a survey schedule object. Default: first
           survey_schedule from `site_surveys.get_survey_schedules`.
         """
-
-        options.update(attempts=options.get('attempts', 1))
+        attempts = attempts or 1
         if 'report_datetime' not in options:
             options['report_datetime'] = (
                 site_surveys.get_survey_schedules()[0].start)
@@ -94,7 +93,7 @@ class MemberTestHelper:
             survey_schedule=survey_schedule, attempts=1,
             **options)
         return self._make_ready(
-            household_structure, make_hoh=make_hoh, **options)
+            household_structure, make_hoh=make_hoh, attempts=attempts, **options)
 
     def get_next_household_structure_ready(self, household_structure,
                                            make_hoh=None, **options):

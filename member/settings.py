@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'member_clone.apps.AppConfig',
     'member_form_validators.apps.AppConfig',
     'member.apps.EdcMapAppConfig',
+    'member_dashboard.apps.AppConfig',
     'member.apps.AppConfig',
 ]
 
