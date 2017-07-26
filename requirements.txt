@@ -18,5 +18,5 @@ git+https://github.com/botswana-harvard/plot@develop#plot
 git+https://github.com/botswana-harvard/plot-form-validators@develop#plot-form-validators
 git+https://github.com/botswana-harvard/member-form-validators@develop#member-form-validators
 git+https://github.com/botswana-harvard/member-clone@develop#member-clone
-git+https://github.com/botswana-harvard/member-dashboard@develop#member-clone
+git+https://github.com/botswana-harvard/member-dashboard@develop#member-dashboard
 git+https://github.com/botswana-harvard/survey@develop#survey
