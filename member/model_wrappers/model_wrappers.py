@@ -185,7 +185,7 @@ class HouseholdMemberModelWrapper(ModelWrapper):
     @property
     def absent_members(self):
         return (AbsentMemberModelWrapper(obj)
-                for obj in self.wrapped_object.absentmember_set.all())
+                for obj in self.object.absentmember_set.all())
 
     @property
     def today_absent_member(self):
@@ -205,7 +205,7 @@ class HouseholdMemberModelWrapper(ModelWrapper):
     @property
     def undecided_members(self):
         return (UndecidedMemberModelWrapper(obj)
-                for obj in self.wrapped_object.undecidedmember_set.all())
+                for obj in self.object.undecidedmember_set.all())
 
     @property
     def new_undecided_member(self):
@@ -215,7 +215,7 @@ class HouseholdMemberModelWrapper(ModelWrapper):
     @property
     def refused_member(self):
         try:
-            return RefusedMemberModelWrapper(self.wrapped_object.refusedmember)
+            return RefusedMemberModelWrapper(self.object.refusedmember)
         except ObjectDoesNotExist:
             return RefusedMemberModelWrapper(
                 RefusedMember(household_member=self.object))
@@ -223,7 +223,7 @@ class HouseholdMemberModelWrapper(ModelWrapper):
     @property
     def deceased_member(self):
         try:
-            return DeceasedMemberModelWrapper(self.wrapped_object.deceasedmember)
+            return DeceasedMemberModelWrapper(self.object.deceasedmember)
         except ObjectDoesNotExist:
             return DeceasedMemberModelWrapper(
                 DeceasedMember(household_member=self.object))
@@ -231,7 +231,7 @@ class HouseholdMemberModelWrapper(ModelWrapper):
     @property
     def htc_member(self):
         try:
-            return HtcMemberModelWrapper(self.wrapped_object.htcmember)
+            return HtcMemberModelWrapper(self.object.htcmember)
         except ObjectDoesNotExist:
             return HtcMemberModelWrapper(
                 HtcMember(household_member=self.object))
@@ -239,7 +239,7 @@ class HouseholdMemberModelWrapper(ModelWrapper):
     @property
     def enrollment_checklist(self):
         try:
-            return EnrollmentChecklistModelWrapper(self.wrapped_object.enrollmentchecklist)
+            return EnrollmentChecklistModelWrapper(self.object.enrollmentchecklist)
         except ObjectDoesNotExist:
             return EnrollmentChecklistModelWrapper(
                 EnrollmentChecklist(household_member=self.object))
