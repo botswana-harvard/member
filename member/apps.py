@@ -4,6 +4,7 @@ from django.conf import settings
 
 class AppConfig(DjangoApponfig):
     name = 'member'
+    admin_site_name = 'member_admin'
 
     def ready(self):
         from member.signals import (
