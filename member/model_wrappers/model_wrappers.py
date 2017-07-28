@@ -150,6 +150,15 @@ class HouseholdMemberModelWrapper(ModelWrapper):
     next_url_attrs = [
         'household_identifier',
         'survey_schedule']
+    url_instance_attrs = [
+        'household_identifier',
+        'survey_schedule',
+        'household_structure',
+        'internal_identifier']
+    
+    @property
+    def household_structure(self):
+        return self.object.household_structure.id
 
     @property
     def is_consented(self):
@@ -158,10 +167,6 @@ class HouseholdMemberModelWrapper(ModelWrapper):
     @property
     def household_identifier(self):
         return self.object.household_structure.household.household_identifier
-
-    @property
-    def household_structure(self):
-        return self.object.household_structure.id
 
     @property
     def survey_schedule(self):
