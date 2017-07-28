@@ -16,7 +16,7 @@ from ..models import RepresentativeEligibility
 class RepresentativeEligibilityForm(forms.ModelForm):
 
     def clean(self):
-        cleaned_data = super(RepresentativeEligibilityForm, self).clean()
+        cleaned_data = super().clean()
         household_structure = cleaned_data.get('household_structure')
 
         self.validate_refused_enumeration()

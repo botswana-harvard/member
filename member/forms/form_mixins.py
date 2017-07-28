@@ -13,7 +13,7 @@ from household.models import todays_log_entry_or_raise
 class MemberFormMixin(CommonCleanModelFormMixin, forms.ModelForm):
 
     def clean(self):
-        cleaned_data = super(MemberFormMixin, self).clean()
+        cleaned_data = super().clean()
         try:
             todays_log_entry_or_raise(
                 household_structure=cleaned_data.get(
