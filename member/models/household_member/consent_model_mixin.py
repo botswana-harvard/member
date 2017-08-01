@@ -21,7 +21,7 @@ class ConsentModelMixin(models.Model):
         if not self._consent_object:
             if self.anonymous:
                 anonymous_consent_group = django_apps.get_app_config(
-                    'edc_consent').anonymous_consent_group
+                    'bcpp_consent').anonymous_consent_group
                 try:
                     self._consent_object = site_consents.get_consent(
                         report_datetime=self.report_datetime,
