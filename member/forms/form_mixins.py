@@ -5,12 +5,12 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.timezone import get_default_timezone
 
 from edc_base.modelform_mixins import CommonCleanModelFormMixin
-
+from edc_base.modelform_validators import FormValidatorMixin
 from household.exceptions import HouseholdLogRequired
-from household.models import todays_log_entry_or_raise
+from household.utils import todays_log_entry_or_raise
 
 
-class MemberFormMixin(CommonCleanModelFormMixin, forms.ModelForm):
+class MemberFormMixin(FormValidatorMixin, CommonCleanModelFormMixin, forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()

@@ -1,11 +1,14 @@
 from django import forms
 
+from edc_base.modelform_validators import FormValidatorMixin
 from member_form_validators.form_validators import HouseholdMemberFormValidator
 
 from ..models import HouseholdMember
 
 
-class HouseholdMemberForm (forms.ModelForm):
+class HouseholdMemberForm (FormValidatorMixin, forms.ModelForm):
+
+    form_validator_cls = HouseholdMemberFormValidator
 
     #     details_change_reason = forms.ChoiceField(
     #         label='If YES, please specify the reason',
@@ -13,14 +16,6 @@ class HouseholdMemberForm (forms.ModelForm):
     #         required=False,
     #         choices=DETAILS_CHANGE_REASON,
     #         help_text=('if personal detail changed indicate the reason.'))
-
-    def clean(self):
-        cleaned_data = super().clean()
-        form_validator = HouseholdMemberFormValidator(
-            cleaned_data=cleaned_data,
-            instance=self.instance)
-        form_validator.validate()
-        return cleaned_data
 
     class Meta:
         model = HouseholdMember

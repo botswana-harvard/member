@@ -7,7 +7,7 @@ from edc_base.utils import get_utcnow
 from household.models import HouseholdLogEntry
 from household.constants import REFUSED_ENUMERATION, ELIGIBLE_REPRESENTATIVE_ABSENT
 from household.constants import NO_HOUSEHOLD_INFORMANT
-from household.models import todays_log_entry_or_raise
+from household.utils import todays_log_entry_or_raise
 
 from ..exceptions import EnumerationRepresentativeError
 from ..models import RepresentativeEligibility

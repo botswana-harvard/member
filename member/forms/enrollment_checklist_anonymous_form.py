@@ -6,7 +6,7 @@ from django.conf import settings
 
 from edc_constants.constants import YES, ALIVE, MALE, NO
 
-from household.models.household_structure.household_structure import HouseholdStructure
+from household.models.household_structure import HouseholdStructure
 from member.models import HouseholdMember
 from plot.utils import get_anonymous_plot
 

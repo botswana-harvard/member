@@ -1,19 +1,13 @@
 from django import forms
-
+from edc_base.modelform_validators import FormValidatorMixin
 from member_form_validators.form_validators import HouseholdInfoFormValidator
 
 from ..models import HouseholdInfo
 
 
-class HouseholdInfoForm (forms.ModelForm):
+class HouseholdInfoForm (FormValidatorMixin, forms.ModelForm):
 
-    def clean(self):
-        cleaned_data = super().clean()
-        form_validator = HouseholdInfoFormValidator(
-            cleaned_data=cleaned_data,
-            instance=self.instance)
-        cleaned_data = form_validator.clean()
-        return cleaned_data
+    form_validator_cls = HouseholdInfoFormValidator
 
     class Meta:
         model = HouseholdInfo
