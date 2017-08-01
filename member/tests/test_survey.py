@@ -1,21 +1,39 @@
+from django.apps import apps as django_apps
 from django.test import TestCase, tag
 
+from edc_map.site_mappers import site_mappers
 from survey.site_surveys import site_surveys
+from survey.tests.survey_test_helper import SurveyTestHelper
 
-from .mixins import MemberMixin
+from .mappers import TestMapper
+from .member_test_helper import MemberTestHelper
+from household.tests import HouseholdTestHelper
 
 
-class TestSurvey(MemberMixin, TestCase):
+@tag('survey')
+class TestSurvey(TestCase):
 
     """Tests to assert survey attrs."""
 
+    member_helper = MemberTestHelper()
+    household_helper = HouseholdTestHelper()
+    survey_helper = SurveyTestHelper()
+
+    def setUp(self):
+        self.survey_helper.load_test_surveys()
+        django_apps.app_configs['edc_device'].device_id = '99'
+        site_mappers.registry = {}
+        site_mappers.loaded = False
+        site_mappers.register(TestMapper)
+
     def test_household_member(self):
-        self.survey_schedule = self.get_survey_schedule(0)
+        survey_schedule = site_surveys.get_survey_schedules(
+            current=True)[0]
+        household_structure = self.member_helper.make_household_ready_for_enumeration(
+            survey_schedule=survey_schedule)
 
-        household_structure = self.make_household_ready_for_enumeration(
-            survey_schedule=self.survey_schedule)
-
-        household_member = self.add_household_member(household_structure)
+        household_member = self.member_helper.add_household_member(
+            household_structure)
 
         self.assertIsNotNone(household_member.survey_schedule)
         self.assertIsNotNone(household_member.survey_schedule_object)
@@ -26,28 +44,31 @@ class TestSurvey(MemberMixin, TestCase):
 
     def test_household_member_survey_schedule_set_correctly(self):
 
-        survey_schedules = site_surveys.get_survey_schedules(group_name='example-survey')
+        survey_schedules = site_surveys.get_survey_schedules(
+            group_name='test_survey')
 
         if not survey_schedules:
             raise AssertionError('survey_schedules is unexpectedly None')
 
         for index, survey_schedule in enumerate(
-                site_surveys.get_survey_schedules(group_name='example-survey')):
-            household_structure = self.make_household_ready_for_enumeration(
-                survey_schedule=survey_schedule)
-            household_member = self.add_household_member(household_structure)
-            self.assertEqual(
-                household_member.survey_schedule,
-                'example-survey.example-survey-{}.test_community'.format(index + 1))
-            self.assertEqual(
-                household_member.survey_schedule_object.field_value,
-                'example-survey.example-survey-{}.test_community'.format(index + 1))
-            self.assertEqual(
-                household_member.survey_schedule_object.name,
-                'example-survey-{}'.format(index + 1))
-            self.assertEqual(
-                household_member.survey_schedule_object.group_name,
-                'example-survey')
-            self.assertEqual(
-                household_member.survey_schedule_object.short_name,
-                'example-survey.example-survey-{}'.format(index + 1))
+                site_surveys.get_survey_schedules(group_name='test_survey')):
+            with self.subTest(index=index, survey_schedule=survey_schedule):
+                household_structure = self.member_helper.make_household_ready_for_enumeration(
+                    survey_schedule=survey_schedule)
+                household_member = self.member_helper.add_household_member(
+                    household_structure)
+                self.assertEqual(
+                    household_member.survey_schedule,
+                    'test_survey.year-{}.test_community'.format(index + 1))
+                self.assertEqual(
+                    household_member.survey_schedule_object.field_value,
+                    'test_survey.year-{}.test_community'.format(index + 1))
+                self.assertEqual(
+                    household_member.survey_schedule_object.name,
+                    'year-{}'.format(index + 1))
+                self.assertEqual(
+                    household_member.survey_schedule_object.group_name,
+                    'test_survey')
+                self.assertEqual(
+                    household_member.survey_schedule_object.short_name,
+                    'test_survey.year-{}'.format(index + 1))

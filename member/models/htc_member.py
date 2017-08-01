@@ -17,9 +17,12 @@ HIV_RESULT = tuple(HIV_RESULT)
 
 class HtcTrackingIdentifier(ShortIdentifier):
 
-    name = 'htctrackingidentifier'
+    history_model = 'edc_identifier.identifierhistory'
     identifier_pattern = r'^[A-Z0-9]{6}$'
-    random_string_pattern = r'^[A-Z0-9]{6}$'
+    name = 'htctrackingidentifier'
+    prefix_pattern = '^HTC[0-9]{2}$'
+    random_string_length = 6
+    random_string_pattern = r'[A-Z0-9]+'  # alhpanumeric
 
 
 class MyManager(models.Manager):

@@ -8,10 +8,12 @@ from edc_constants.constants import NOT_APPLICABLE, NO, YES
 from edc_registration.models import RegisteredSubject
 
 from ..models import EnrollmentChecklist
-from ..models.household_member.utils import is_minor, is_adult, is_child
+from ..age_helper import AgeHelper
 
 
 class EnrollmentChecklistForm(CommonCleanModelFormMixin, forms.ModelForm):
+
+    age_helper_cls = AgeHelper
 
     def clean(self):
         cleaned_data = super().clean()
@@ -107,16 +109,9 @@ class EnrollmentChecklistForm(CommonCleanModelFormMixin, forms.ModelForm):
                     cleaned_data.get('report_datetime')).years
             except AgeValueError as e:
                 raise forms.ValidationError({'dob': str(e)})
-            if is_minor(age_in_years) and cleaned_data.get('guardian') == NOT_APPLICABLE:
-                raise forms.ValidationError(
-                    {'guardian': 'Subject a minor. Got {}y'.format(age_in_years)})
-            if (is_adult(age_in_years)
-                    and not cleaned_data.get('guardian') == NOT_APPLICABLE):
-                raise forms.ValidationError(
-                    {'guardian': 'Subject a not minor. Got {}y'.format(age_in_years)})
-            if is_child(age_in_years):
-                raise forms.ValidationError(
-                    {'dob': 'Subject is a child. Got {}y.'.format(age_in_years)})
+            age_helper = self.age_helper_cls(
+                age_in_years=age_in_years, **cleaned_data)
+            age_helper.validate_or_raise()
 
     def validate_study_participation(self):
         cleaned_data = self.cleaned_data

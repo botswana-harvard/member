@@ -10,7 +10,8 @@ from .model_mixins import MemberEntryMixin
 
 class AbsentMember(MemberEntryMixin, BaseUuidModel):
     """A model completed by the user that indicates the reason a household member
-    is absent for each time the RA visits."""
+    is absent for each time the RA visits.
+    """
 
     reason = models.CharField(
         verbose_name="Reason?",
@@ -31,5 +32,3 @@ class AbsentMember(MemberEntryMixin, BaseUuidModel):
 
     class Meta(MemberEntryMixin.Meta):
         app_label = 'member'
-        verbose_name = "Absent member"
-        verbose_name_plural = "Absent members"

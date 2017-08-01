@@ -1,27 +1,42 @@
+import string
+import random
+
+from django.apps import apps as django_apps
 from dateutil.relativedelta import relativedelta
 from faker import Faker
 from model_mommy import mommy
-from random import choice
 
-from edc_base_test.exceptions import TestMixinError
-from edc_constants.constants import MALE, FEMALE, NOT_APPLICABLE, YES, NO
+from edc_constants.constants import MALE, FEMALE, YES, NO, ALIVE
 from edc_registration.models import RegisteredSubject
 
 from household.models import HouseholdStructure
+from household.tests import HouseholdTestHelper
 from survey.site_surveys import site_surveys
 
-from member.constants import HEAD_OF_HOUSEHOLD, ABLE_TO_PARTICIPATE
-from member.models import HouseholdMember, EnrollmentChecklist
+from ..constants import HEAD_OF_HOUSEHOLD, ABLE_TO_PARTICIPATE
+from ..models import HouseholdMember, EnrollmentChecklist
 
 
 fake = Faker()
 
 
-class MemberTestMixin:
+class MemberTestHelperError(Exception):
+    pass
+
+
+class MemberTestHelper:
+
+    household_helper = HouseholdTestHelper()
 
     def setUp(self):
-        super().setUp()
         self.study_site = '40'
+
+    def get_utcnow(self):
+        """Returns a datetime that is the earliest date of consent
+        allowed for the consent model.
+        """
+        edc_protocol_app_config = django_apps.get_app_config('edc_protocol')
+        return edc_protocol_app_config.study_open_datetime
 
     def _make_ready(self, household_structure, make_hoh=None, **options):
         """Returns household_structure after adding representative
@@ -42,8 +57,8 @@ class MemberTestMixin:
         if make_hoh:
             first_name = fake.first_name().upper()
             last_name = fake.last_name().upper()
-            gender = options.get('gender', choice([MALE, FEMALE]))
-            household_member = mommy.make_recipe(
+            gender = options.get('gender', random.choice([MALE, FEMALE]))
+            household_member = mommy.make(
                 'member.householdmember',
                 household_structure=household_structure,
                 report_datetime=household_log_entry.report_datetime,
@@ -59,8 +74,8 @@ class MemberTestMixin:
             pk=household_structure.pk)
         return household_structure
 
-    def make_household_ready_for_enumeration(self, make_hoh=None,
-                                             survey_schedule=None, **options):
+    def make_household_ready_for_enumeration(
+            self, make_hoh=None, survey_schedule=None, attempts=None, **options):
         """Returns household_structure after adding representative
         eligibility.
 
@@ -70,16 +85,15 @@ class MemberTestMixin:
         * survey_schedule: a survey schedule object. Default: first
           survey_schedule from `site_surveys.get_survey_schedules`.
         """
-
-        options.update(attempts=options.get('attempts', 1))
+        attempts = attempts or 1
         if 'report_datetime' not in options:
             options['report_datetime'] = (
                 site_surveys.get_survey_schedules()[0].start)
-        household_structure = self.make_household_structure(
-            survey_schedule=survey_schedule,
+        household_structure = self.household_helper.make_household_structure(
+            survey_schedule=survey_schedule, attempts=1,
             **options)
         return self._make_ready(
-            household_structure, make_hoh=make_hoh, **options)
+            household_structure, make_hoh=make_hoh, attempts=attempts, **options)
 
     def get_next_household_structure_ready(self, household_structure,
                                            make_hoh=None, **options):
@@ -98,11 +112,11 @@ class MemberTestMixin:
         if household_structure.next:
             survey_schedule = household_structure.next.survey_schedule_object
             if household_structure.next.householdlog.householdlogentry_set.all().count() > 0:
-                raise TestMixinError(
+                raise MemberTestHelperError(
                     'Household structure already "ready" for '
                     'enumeration. Got {}'.format(
                         household_structure.next))
-            self._add_attempts(
+            self.household_helper.add_attempts(
                 household_structure.next,
                 survey_schedule=survey_schedule,
                 **options)
@@ -123,10 +137,10 @@ class MemberTestMixin:
             household_structure, survey_schedule=survey_schedule,
             make_hoh=make_hoh, **options)
 
-    def make_enumerated_household_with_male_member(self, survey_schedule=None):
-        household_structure = self.make_household_ready_for_enumeration(
-            make_hoh=True, survey_schedule=survey_schedule, gender=MALE)
-        return household_structure
+#     def make_enumerated_household_with_male_member(self, survey_schedule=None):
+#         household_structure = self.make_household_ready_for_enumeration(
+#             make_hoh=True, survey_schedule=survey_schedule, gender=MALE)
+#         return household_structure
 
     def add_household_member(self, household_structure, **options):
         """Returns a household member that is by default is
@@ -137,9 +151,15 @@ class MemberTestMixin:
 
         first_name = fake.first_name().upper()
         last_name = fake.last_name().upper()
+        middle_initial = random.choice(string.ascii_uppercase)
         options.update(first_name=options.get('first_name', first_name))
         options.update(
-            initials=options.get('initials', first_name[0] + last_name[0]))
+            initials=options.get('initials', first_name[0] + middle_initial + last_name[0]))
+        options.update(age_in_years=options.get('age_in_years', 27))
+        options.update(survival_status=options.get('survival_status', ALIVE))
+        options.update(study_resident=options.get('study_resident', YES))
+        options.update(inability_to_participate=options.get(
+            'inability_to_participate', ABLE_TO_PARTICIPATE))
 
         if not options.get('report_datetime'):
             last = (household_structure.householdlog.
@@ -151,13 +171,12 @@ class MemberTestMixin:
                 options.update(
                     report_datetime=household_structure.report_datetime)
 
-        household_member = mommy.make_recipe(
+        household_member = mommy.make(
             'member.householdmember',
-            household_structure=household_structure,
-            **options)
+            household_structure=household_structure, **options)
 
         if not options and not household_member.eligible_member:
-            raise TestMixinError(
+            raise MemberTestHelperError(
                 'Default values expected to create an eligible '
                 'household member. Got eligible_member=False. Did '
                 'someone mess with the mommy recipe?')
@@ -188,7 +207,7 @@ class MemberTestMixin:
             'report_datetime',
             household_member.report_datetime)
         if 'age_in_years' in options:
-            raise TestMixinError('Invalid option. Got \'age_in_years\'')
+            raise MemberTestHelperError('Invalid option. Got \'age_in_years\'')
 
         try:
             registered_subject = RegisteredSubject.objects.get(

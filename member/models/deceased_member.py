@@ -6,7 +6,6 @@ from edc_base.model_validators import date_not_future
 from edc_constants.choices import DEATH_RELATIONSIP_TO_STUDY
 
 from ..managers import MemberEntryManager
-
 from .model_mixins import HouseholdMemberModelMixin
 
 
@@ -21,15 +20,13 @@ class DeceasedMember(HouseholdMemberModelMixin, BaseUuidModel):
         verbose_name='Date of Death:',
         validators=[
             date_not_future],
-        help_text='',
-    )
+        help_text='')
 
     site_aware_date = models.DateField(
         verbose_name='Date site aware of Death:',
         validators=[
             date_not_future],
-        help_text='',
-    )
+        help_text='')
 
     death_cause = models.TextField(
         max_length=1000,
@@ -42,23 +39,20 @@ class DeceasedMember(HouseholdMemberModelMixin, BaseUuidModel):
             'time of death. '),
         help_text=(
             'Note: Cardiac and pulmonary arrest are not major reasons and '
-            'should not be used to describe major cause')
-    )
+            'should not be used to describe major cause'))
 
     duration_of_illness = models.IntegerField(
         verbose_name=(
             'Duration of acute illness directly causing death '
             '(in days, or choose Unknown)?'),
         help_text='in days',
-        default=0,
-    )
+        default=0)
 
     relationship_death_study = models.CharField(
         verbose_name='What is the relationship of the death to study participation?',
         max_length=50,
         choices=DEATH_RELATIONSIP_TO_STUDY,
-        help_text='',
-    )
+        help_text='')
 
     objects = MemberEntryManager()
 

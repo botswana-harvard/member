@@ -4,14 +4,13 @@ from dateutil.relativedelta import relativedelta
 from faker import Faker
 from model_mommy.recipe import Recipe
 
-from edc_base_test.utils import get_utcnow
+from edc_protocol.tests import get_utcnow
 from edc_constants.constants import NOT_APPLICABLE, YES, ALIVE, FEMALE
 
-from .models import (
-    HouseholdMember, RepresentativeEligibility, HouseholdHeadEligibility,
-    EnrollmentChecklist, AbsentMember, RefusedMember, UndecidedMember,
-    DeceasedMember, HtcMember, MovedMember)
-from member.constants import ABLE_TO_PARTICIPATE
+from .constants import ABLE_TO_PARTICIPATE
+from .models import HouseholdMember, RepresentativeEligibility, HouseholdHeadEligibility
+from .models import EnrollmentChecklist, AbsentMember, RefusedMember, UndecidedMember
+from .models import DeceasedMember, HtcMember, MovedMember
 
 
 fake = Faker()
@@ -29,7 +28,6 @@ householdmember = Recipe(
     gender=FEMALE,
     relation='cousin',
     subject_identifier=None,
-    subject_identifier_as_pk=None,
     subject_identifier_aka=None,
     internal_identifier=None,
 )

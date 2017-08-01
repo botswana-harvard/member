@@ -1,5 +1,4 @@
 from ..models import AbsentMember
-
 from .form_mixins import MemberFormMixin
 
 

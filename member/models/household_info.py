@@ -6,12 +6,12 @@ from edc_base.model_mixins import BaseUuidModel
 from edc_base.utils import get_utcnow
 
 from household.models import HouseholdStructure
+from survey.model_mixins import SurveyScheduleModelMixin
 
 from ..choices import (
     FLOORING_TYPE, WATER_SOURCE, ENERGY_SOURCE, TOILET_FACILITY, SMALLER_MEALS)
 from .list_models import ElectricalAppliances, TransportMode
 from .model_mixins import RequiresHouseholdLogEntryMixin
-from survey.model_mixins import SurveyScheduleModelMixin
 
 
 class MyManager(models.Manager):

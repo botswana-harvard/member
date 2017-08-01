@@ -1,22 +1,39 @@
-from django.test import TestCase
+from django.apps import apps as django_apps
+from django.test import TestCase, tag
 
-#from .test_mixins import SubjectMixin
-from edc_constants.constants import MALE, ALIVE, YES, NO, NOT_APPLICABLE
-from member.forms.household_member_form import HouseholdMemberForm
-from member.constants import ABLE_TO_PARTICIPATE
+from edc_constants.constants import MALE, ALIVE, YES, NO
+from edc_map.site_mappers import site_mappers
+from survey.tests import SurveyTestHelper
+
+from ..constants import ABLE_TO_PARTICIPATE
+from ..forms import HouseholdMemberForm
+from .member_test_helper import MemberTestHelper
+from .mappers import TestMapper
 
 
 class TestHouseholdMemberForm(TestCase):
 
+    member_helper = MemberTestHelper()
+    survey_helper = SurveyTestHelper()
+
     def setUp(self):
-        super().setUp()
-        self.subject_visit = self.make_subject_visit_for_consented_subject(
-            'T0')
-        #self.family_planning = FamilyPlanning.objects.create(name='Condoms, consistent use (male or female)', short_name='Condoms, consistent use (male or female)')
+        self.survey_helper.load_test_surveys(load_all=True)
+        django_apps.app_configs['edc_device'].device_id = '99'
+        site_mappers.registry = {}
+        site_mappers.loaded = False
+        site_mappers.register(TestMapper)
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+
         self.options = {
+            'household_identifier': household_structure.household.household_identifier,
             'internal_identifier': '343216789',
-            'first_name': 'Neo',
+            'subject_identifier': '123456',
+            'survey_schedule': household_structure.survey_schedule,
+            'household_structure': household_structure.id,
+            'household_log': household_structure.householdlog.id,
+            'first_name': 'NEO',
             'initials': 'NJK',
+            'relation': 'son',
             'gender': MALE,
             'age_in_years': 22,
             'survival_status': ALIVE,
@@ -25,7 +42,6 @@ class TestHouseholdMemberForm(TestCase):
             'inability_to_participate_other': None,
             'study_resident': NO,
             'personal_details_changed': NO,
-            'details_change_reason': 'Married',
             'visit_attempts': 3,
             'eligible_htc': True,
             'refused_htc': False,
@@ -34,8 +50,8 @@ class TestHouseholdMemberForm(TestCase):
             'auto_filled': False,
             'updated_after_auto_filled': False,
             'additional_key': None,
-            'subject_visit': self.subject_visit.id,
-            'report_datetime': self.get_utcnow(),
+            'report_datetime': (household_structure.householdlog.
+                                householdlogentry_set.all()[0].report_datetime),
         }
 
     def test_valid_form(self):
@@ -43,7 +59,9 @@ class TestHouseholdMemberForm(TestCase):
         self.assertTrue(form.is_valid())
 
     def test_valid_initials(self):
-        """Assert participant provided correct initials"""
+        """Assert participant provided correct initials.
+        """
         self.options.update(initials='BHJ')
         form = HouseholdMemberForm(data=self.options)
-        self.AssertFalse(form.is_valid)
+        self.assertFalse(form.is_valid())
+        self.assertIn('initials', form._errors)

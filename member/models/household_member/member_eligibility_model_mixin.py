@@ -1,9 +1,11 @@
 from django.db import models
 
-from .utils import is_eligible_member
+from ...eligibile_member_helper import EligibileMemberHelper
 
 
 class MemberEligibilityModelMixin(models.Model):
+
+    eligibility_helper_cls = EligibileMemberHelper
 
     eligible_member = models.BooleanField(
         default=False,
@@ -24,7 +26,8 @@ class MemberEligibilityModelMixin(models.Model):
         help_text="updated by enrollment loss save method only.")
 
     def save(self, *args, **kwargs):
-        self.eligible_member = is_eligible_member(self)
+        eligibility_helper = self.eligibility_helper_cls(**self.__dict__)
+        self.eligible_member = eligibility_helper.is_eligible_member
         super().save(*args, **kwargs)
 
     class Meta:

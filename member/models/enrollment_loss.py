@@ -8,8 +8,10 @@ from .model_mixins import HouseholdMemberModelMixin
 
 
 class EnrollmentLoss(HouseholdMemberModelMixin, BaseUuidModel):
-    """A system model auto created that captures the reason for a present BHS eligible member
-    who passes BHS eligibility but is not participating in the BHS."""
+    """A system model auto created that captures the reason
+    for a present BHS eligible member who passes BHS
+    eligibility but is not participating in the BHS.
+    """
 
     reason = models.TextField(
         verbose_name='Reason not eligible',

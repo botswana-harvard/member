@@ -6,6 +6,7 @@ from .models import (
     AbsentMember, EnrollmentChecklist, EnrollmentLoss,
     HouseholdHeadEligibility, HouseholdMember,
     RefusedMember, UndecidedMember, DeceasedMember, MovedMember)
+from member.models.enrollment_checklist_anonymous import EnrollmentChecklistAnonymous
 
 
 @receiver(post_save, weak=False, sender=HouseholdMember,
@@ -155,3 +156,33 @@ def moved_member_on_post_delete(sender, instance, using, **kwargs):
     if instance.household_member.visit_attempts < 0:
         instance.household_member.visit_attempts = 0
     instance.household_member.save()
+
+
+@receiver(post_save, weak=False, dispatch_uid="enrollment_checklist_on_post_save")
+def enrollment_checklist_on_post_save(
+        sender, instance, raw, created, using, **kwargs):
+    """Updates adds or removes the Loss form.
+    """
+    if not raw:
+        if sender in [EnrollmentChecklist, EnrollmentChecklistAnonymous]:
+            if not instance.is_eligible:
+                try:
+                    enrollment_loss = EnrollmentLoss.objects.using(using).get(
+                        household_member=instance.household_member)
+                    enrollment_loss.report_datetime = instance.report_datetime
+                    enrollment_loss.reason = instance.loss_reason
+                    enrollment_loss.save()
+                except EnrollmentLoss.DoesNotExist:
+                    enrollment_loss = EnrollmentLoss(
+                        household_member=instance.household_member,
+                        report_datetime=instance.report_datetime,
+                        reason=instance.loss_reason)
+                    enrollment_loss.save()
+                instance.household_member.eligible_subject = False
+
+            else:
+                enrollment_loss = EnrollmentLoss.objects.filter(
+                    household_member=instance.household_member).delete()
+                instance.household_member.eligible_subject = True
+            instance.household_member.enrollment_checklist_completed = True
+            instance.household_member.save()

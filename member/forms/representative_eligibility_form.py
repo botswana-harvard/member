@@ -3,19 +3,20 @@ from django.db.models import Max
 from django.forms import ValidationError
 
 from edc_base.utils import get_utcnow
-from household.models import HouseholdLogEntry
-from household.constants import REFUSED_ENUMERATION, ELIGIBLE_REPRESENTATIVE_ABSENT,\
-    NO_HOUSEHOLD_INFORMANT
 
-from ..models import RepresentativeEligibility
-from ..models.household_member.utils import todays_log_entry_or_raise
+from household.models import HouseholdLogEntry
+from household.constants import REFUSED_ENUMERATION, ELIGIBLE_REPRESENTATIVE_ABSENT
+from household.constants import NO_HOUSEHOLD_INFORMANT
+from household.utils import todays_log_entry_or_raise
+
 from ..exceptions import EnumerationRepresentativeError
+from ..models import RepresentativeEligibility
 
 
 class RepresentativeEligibilityForm(forms.ModelForm):
 
     def clean(self):
-        cleaned_data = super(RepresentativeEligibilityForm, self).clean()
+        cleaned_data = super().clean()
         household_structure = cleaned_data.get('household_structure')
 
         self.validate_refused_enumeration()

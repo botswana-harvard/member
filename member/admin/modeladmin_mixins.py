@@ -16,6 +16,7 @@ from survey import S
 from survey.admin import survey_schedule_fields
 
 from ..models import HouseholdMember
+from survey.site_surveys import site_surveys
 
 
 class HouseholdMemberAdminMixin:
@@ -94,6 +95,7 @@ class FieldsetsModelAdminMixin(BaseFieldsetsModelAdminMixin):
         if hasattr(household_member, 'previous'):
             previous = household_member.previous
             if previous:
-                key = S(
-                    request.GET.get('survey_schedule')).survey_schedule_name
+                survey_schedule_object = site_surveys.get_survey_schedule_from_field_value(
+                    request.GET.get('survey_schedule'))
+                key = survey_schedule_object.name
         return key

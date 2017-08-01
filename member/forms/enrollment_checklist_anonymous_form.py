@@ -4,20 +4,22 @@ from django import forms
 from django.apps import apps as django_apps
 from django.conf import settings
 
-from edc_constants.constants import NOT_APPLICABLE, YES, ALIVE, MALE, NO
+from edc_constants.constants import YES, ALIVE, MALE, NO
 
-from household.models.household_structure.household_structure import HouseholdStructure
+from household.models.household_structure import HouseholdStructure
 from member.models import HouseholdMember
-from member.models.household_member.utils import is_minor, is_adult, is_child
 from plot.utils import get_anonymous_plot
 
 from ..models import EnrollmentChecklistAnonymous
 from ..constants import ABLE_TO_PARTICIPATE
+from ..age_helper import AgeHelper
 
 fake = Faker()
 
 
 class EnrollmentChecklistAnonymousForm(forms.ModelForm):
+
+    age_helper_cls = AgeHelper
 
     def clean(self):
         cleaned_data = super().clean()
@@ -79,18 +81,8 @@ class EnrollmentChecklistAnonymousForm(forms.ModelForm):
 
     def validate_age(self):
         cleaned_data = self.cleaned_data
-        age_in_years = cleaned_data.get('age_in_years')
-        if not age_in_years:
-            raise forms.ValidationError({'age_in_years': ''})
-        elif is_child(age_in_years):
-            raise forms.ValidationError(
-                {'age_in_years': 'Subject is a child. Got {}y.'.format(age_in_years)})
-        elif is_minor(age_in_years) and cleaned_data.get('guardian') in [NO, NOT_APPLICABLE]:
-            raise forms.ValidationError(
-                {'guardian': 'Subject a minor. Got {}y'.format(age_in_years)})
-        elif is_adult(age_in_years) and cleaned_data.get('guardian') in [YES, NO]:
-            raise forms.ValidationError(
-                {'guardian': 'Subject a not minor. Got {}y'.format(age_in_years)})
+        age_helper = self.age_helper_cls(**cleaned_data)
+        age_helper.validate_or_raise()
 
     class Meta:
         model = EnrollmentChecklistAnonymous

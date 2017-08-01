@@ -3,14 +3,11 @@
 import sys
 import os
 
-from pathlib import PurePath
+from edc_device.constants import CENTRAL_SERVER
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
+APP_NAME = 'member'
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = ')78^w@s3^kt)6lu6()tomqjg#8_%!381-nx5dtu#i=kn@68h_^'
@@ -19,8 +16,6 @@ SECRET_KEY = ')78^w@s3^kt)6lu6()tomqjg#8_%!381-nx5dtu#i=kn@68h_^'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -33,24 +28,25 @@ INSTALLED_APPS = [
     'crispy_forms',
     'django_crypto_fields.apps.AppConfig',
     'django_revision.apps.AppConfig',
+    'rest_framework.authtoken',
     'edc_base.apps.AppConfig',
     'edc_consent.apps.AppConfig',
+    'edc_device.apps.AppConfig',
     'edc_identifier.apps.AppConfig',
     'edc_protocol.apps.AppConfig',
     'edc_registration.apps.AppConfig',
+    'edc_sync.apps.AppConfig',
     'enumeration.apps.AppConfig',
-    'member.apps.AppConfig',
-    'plot.apps.AppConfig',
-    'example_survey.apps.AppConfig',
-    'example_survey.apps.EdcBaseTestAppConfig',
-    'example_survey.apps.SurveyAppConfig',
-    'example_survey.apps.EdcMapAppConfig',
-    'example_survey.apps.EdcDeviceAppConfig',
     'household.apps.AppConfig',
+    'plot.apps.AppConfig',
+    'plot_form_validators.apps.AppConfig',
+    'survey.apps.AppConfig',
+    'member_clone.apps.AppConfig',
+    'member_form_validators.apps.AppConfig',
+    'member.apps.EdcMapAppConfig',
+    'member_dashboard.apps.AppConfig',
+    'member.apps.AppConfig',
 ]
-
-# if 'test' in sys.argv:
-#     INSTALLED_APPS = INSTALLED_APPS = ['example_survey.apps.AppConfig']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -86,25 +82,6 @@ WSGI_APPLICATION = 'member.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
-if 'test' in sys.argv:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'edc',
-            'USER': 'postgres',
-            'PASSWORD': 'postgres',
-            'HOST': '127.0.0.1',
-            'PORT': '5432',
-            'TEST': {'NAME': 'testmember'}
-        }
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
-    }
 
 DATABASES = {
     'default': {
@@ -112,37 +89,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
-# and 'mysql' not in DATABASES.get('default').get('ENGINE'):
-if 'test' in sys.argv:
-    MIGRATION_MODULES = {
-        "django_crypto_fields": None,
-        "edc_call_manager": None,
-        "edc_appointment": None,
-        "edc_call_manager": None,
-        "edc_consent": None,
-        "edc_death_report": None,
-        "edc_export": None,
-        "edc_identifier": None,
-        "edc_metadata": None,
-        "edc_registration": None,
-        "edc_sync": None,
-        "bcpp": None,
-        "bcpp_subject": None,
-        "plot": None,
-        "household": None,
-        "member": None,
-        "survey": None,
-        'admin': None,
-        "auth": None,
-        'bcpp_map': None,
-        'contenttypes': None,
-        'sessions': None,
-    }
-if 'test' in sys.argv:
-    PASSWORD_HASHERS = ('django_plainpasswordhasher.PlainPasswordHasher', )
-if 'test' in sys.argv:
-    DEFAULT_FILE_STORAGE = 'inmemorystorage.InMemoryStorage'
 
 
 # Password validation
@@ -177,16 +123,33 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'member', 'media')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+KEY_PATH = os.path.join(BASE_DIR, 'crypto_fields')
+GIT_DIR = BASE_DIR
+
+ANONYMOUS_ENABLED = True
 CURRENT_MAP_AREA = 'test_community'
 DEVICE_ID = '99'
-
-KEY_PATH = str(PurePath(BASE_DIR).joinpath('crypto_fields'))
+DEVICE_ROLE = CENTRAL_SERVER
+SURVEY_GROUP_NAME = 'test_survey'
+SURVEY_SCHEDULE_NAME = 'year-1'
+LOAD_SURVEYS = 'manual'  # 'manual' or 'autodetect' (default)
 
 if 'test' in sys.argv:
-    SURVEY_GROUP_NAME = 'test_survey'
+
+    class DisableMigrations:
+        def __contains__(self, item):
+            return True
+
+        def __getitem__(self, item):
+            return None
+
+    MIGRATION_MODULES = DisableMigrations()
+    PASSWORD_HASHERS = ('django.contrib.auth.hashers.MD5PasswordHasher', )
+    DEFAULT_FILE_STORAGE = 'inmemorystorage.InMemoryStorage'

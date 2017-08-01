@@ -3,7 +3,6 @@ from django import forms
 from edc_constants.constants import YES, NO
 
 from ..models import MovedMember
-
 from .form_mixins import MemberFormMixin
 
 

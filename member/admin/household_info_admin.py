@@ -6,7 +6,6 @@ from survey.admin import survey_schedule_fieldset_tuple
 from ..admin_site import member_admin
 from ..forms import HouseholdInfoForm
 from ..models import HouseholdInfo
-
 from .modeladmin_mixins import ModelAdminMixin
 
 
