@@ -11,10 +11,8 @@ from ..constants import ELIGIBLE_REPRESENTATIVE_ABSENT
 from ..forms import RepresentativeEligibilityForm, HouseholdMemberForm
 from .mappers import TestMapper
 from .member_test_helper import MemberTestHelper
-from pprint import pprint
 
 
-@tag('form')
 class TestHouseholdMemberFormValidator(TestCase):
 
     member_helper = MemberTestHelper()
@@ -64,7 +62,6 @@ class TestHouseholdMemberFormValidator(TestCase):
         form = RepresentativeEligibilityForm(data=options)
         self.assertFalse(form.is_valid())
 
-    @tag('1')
     def test_member_form(self):
         household_structure = self.household_helper.make_household_structure()
         options = {
