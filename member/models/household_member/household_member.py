@@ -206,6 +206,10 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
         return 'internal_identifier'
 
     @property
+    def registered_subject_unique_field(self):
+        return 'registration_identifier'
+
+    @property
     def registration_options(self):
         options = super().registration_options
         options.update(registration_identifier=self.internal_identifier.hex)
