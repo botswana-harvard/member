@@ -8,12 +8,11 @@ from household.tests import HouseholdTestHelper
 from survey.tests import SurveyTestHelper
 
 from ..constants import ELIGIBLE_REPRESENTATIVE_ABSENT
-from ..forms import RepresentativeEligibilityForm
+from ..forms import RepresentativeEligibilityForm, HouseholdMemberForm
 from .mappers import TestMapper
 from .member_test_helper import MemberTestHelper
 
 
-@tag('form')
 class TestHouseholdMemberFormValidator(TestCase):
 
     member_helper = MemberTestHelper()
@@ -61,4 +60,11 @@ class TestHouseholdMemberFormValidator(TestCase):
         options = {
             'household_structure': household_structure.id}
         form = RepresentativeEligibilityForm(data=options)
+        self.assertFalse(form.is_valid())
+
+    def test_member_form(self):
+        household_structure = self.household_helper.make_household_structure()
+        options = {
+            'household_structure': household_structure.id}
+        form = HouseholdMemberForm(data=options)
         self.assertFalse(form.is_valid())

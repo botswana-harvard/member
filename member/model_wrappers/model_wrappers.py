@@ -15,7 +15,7 @@ class HouseholdFormsModelWrapperMixin(ModelWrapper):
     """
     next_url_name = django_apps.get_app_config(
         'enumeration').dashboard_url_name
-    url_instance_attrs = [
+    next_url_attrs = [
         'household_identifier', 'survey_schedule', 'household_structure']
 
     @property
@@ -44,7 +44,7 @@ class MemberStatusModelWrapperMixin(ModelWrapper):
 
     next_url_name = django_apps.get_app_config(
         'enumeration').dashboard_url_name
-    url_instance_attrs = [
+    next_url_attrs = [
         'household_identifier', 'survey_schedule', 'household_member']
 
     @property
@@ -150,12 +150,7 @@ class HouseholdMemberModelWrapper(ModelWrapper):
     next_url_attrs = [
         'household_identifier',
         'survey_schedule']
-    url_instance_attrs = [
-        'household_identifier',
-        'survey_schedule',
-        'household_structure',
-        'internal_identifier']
-    
+
     @property
     def household_structure(self):
         return self.object.household_structure.id

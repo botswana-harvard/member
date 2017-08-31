@@ -193,6 +193,22 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
                 + self.household_structure.natural_key())
     natural_key.dependencies = ['household.householdstructure']
 
+    def update_subject_identifier_on_save(self):
+        """Overridden to not set the subject identifier on save.
+        """
+        if not self.subject_identifier:
+            self.subject_identifier = self.subject_identifier_as_pk.hex
+            self.subject_identifier_aka = self.subject_identifier_as_pk.hex
+        return self.subject_identifier
+
+    @property
+    def registration_unique_field(self):
+        return 'internal_identifier'
+
+    @property
+    def registered_subject_unique_field(self):
+        return 'registration_identifier'
+
     @property
     def registration_options(self):
         options = super().registration_options
