@@ -1,5 +1,7 @@
+from datetime import datetime
 from django.core.management.base import BaseCommand
 
+from edc_sync.models import OutgoingTransaction
 from ...models import (
     HouseholdMember, HouseholdHeadEligibility, EnrollmentChecklist,
     AbsentMember, DeceasedMember, HtcMember, RefusedMember, UndecidedMember)
@@ -70,6 +72,12 @@ def delete_household_members(map_area=None, survey_schedule=None, consent_versio
         print(f'Succefully deleted {household_member}. {count} out of {members_to_delete}')
 
 
+def ignore_delete_transactions():
+    OutgoingTransaction.objects.filter(
+        action='D', created__date=datetime.today().date()).update(
+            is_ignored=True, is_consumed_server=True)
+
+
 class Command(BaseCommand):
 
     help = 'Delete year 3 system cloned members'
@@ -89,4 +97,5 @@ class Command(BaseCommand):
         delete_household_members(
             map_area=map_area, survey_schedule=survey_schedule,
             consent_version=consent_version)
+        ignore_delete_transactions()
         self.stdout.write(self.style.SUCCESS('Succefully deleted members.'))
