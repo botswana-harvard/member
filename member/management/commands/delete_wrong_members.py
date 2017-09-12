@@ -23,11 +23,7 @@ def delete_household_members(map_area=None, survey_schedule=None, consent_versio
             consented += 1
         except SubjectConsent.DoesNotExist:
             not_household_members.append(household_member)
-    print(
-        '••••••••••••••••••CONSENTED MEMBERS ARE•••••••••••••••••••••••••••• ')
     print(f'consented: {consented}')
-    print(
-        '••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••• ')
     members_to_delete = len(not_household_members)
     for household_member in not_household_members:
         HouseholdHeadEligibility.objects.filter(
@@ -37,11 +33,7 @@ def delete_household_members(map_area=None, survey_schedule=None, consent_versio
                 household_member=household_member).delete()
         except HouseholdLogRequired:
             print(
-                '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-            print(
                 f'Failed because of HouseholdLogRequired for {household_member}, {household_member.subject_identifier}')
-            print(
-                '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
         DeceasedMember.objects.filter(
             household_member=household_member).delete()
         HtcMember.objects.filter(
@@ -55,11 +47,7 @@ def delete_household_members(map_area=None, survey_schedule=None, consent_versio
                 household_member=household_member).delete()
         except TypeError:
             print(
-                '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-            print(
                 f'Failed to delete enrollment checklist for {household_member}, {household_member.subject_identifier}')
-            print(
-                '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
         else:
             if not AbsentMember.objects.filter(
                     household_member=household_member):
