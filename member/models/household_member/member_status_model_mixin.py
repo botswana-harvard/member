@@ -29,6 +29,10 @@ class MemberStatusModelMixin(models.Model):
         default=False,
         help_text="Updated by the enrollment checklist")
 
+    moved = models.BooleanField(
+        default=False,
+        help_text="Updated by the member moved")
+
     @property
     def reported(self):
         return True if (
