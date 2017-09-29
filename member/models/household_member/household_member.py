@@ -11,7 +11,7 @@ from edc_base.model_mixins import BaseUuidModel
 from edc_base.model_validators import datetime_not_future
 from edc_base.utils import get_utcnow
 from edc_constants.choices import GENDER, ALIVE_DEAD_UNKNOWN, YES_NO_NA, YES_NO_NA_DWTA
-from edc_constants.constants import ALIVE, DEAD, YES
+from edc_constants.constants import ALIVE, DEAD, YES, NOT_APPLICABLE
 from edc_search.model_mixins import SearchSlugManager
 from edc_registration.model_mixins import UpdatesOrCreatesRegistrationModelMixin
 
@@ -105,6 +105,14 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
     present_today = models.CharField(
         verbose_name='Is the member present today?',
         max_length=3,
+        choices=YES_NO_NA,
+        null=True,
+        blank=False)
+
+    has_moved = models.CharField(
+        verbose_name='Has the member moved out of this household?',
+        max_length=3,
+        default=NOT_APPLICABLE,
         choices=YES_NO_NA,
         null=True,
         blank=False)

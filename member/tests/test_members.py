@@ -3,9 +3,10 @@ from model_mommy import mommy
 
 from django.apps import apps as django_apps
 from django.db.utils import IntegrityError
-from django.test import TestCase, tag
+from django.test import TestCase
 
-from edc_constants.constants import NO, DEAD, YES, UUID_PATTERN, ALIVE, FEMALE
+from edc_constants.constants import NO, DEAD, YES, UUID_PATTERN, ALIVE, FEMALE,\
+    NOT_APPLICABLE
 from edc_map.site_mappers import site_mappers
 
 from household.constants import ELIGIBLE_REPRESENTATIVE_PRESENT
@@ -17,7 +18,7 @@ from survey.site_surveys import site_surveys
 
 from ..constants import MENTAL_INCAPACITY, HEAD_OF_HOUSEHOLD, ABLE_TO_PARTICIPATE
 from ..exceptions import EnumerationRepresentativeError
-from ..models import HouseholdMember
+from ..models import HouseholdMember, MovedMember
 from .member_test_helper import MemberTestHelper
 from .mappers import TestMapper
 
@@ -123,6 +124,58 @@ class TestMembers(TestCase):
             self.member_helper.make_undecided_member,
             household_member=household_member,
             report_datetime=report_datetime)
+
+    def test_moved_uniqueness(self):
+        report_datetime = self.member_helper.get_utcnow()
+        household_structure = self.member_helper.make_household_ready_for_enumeration(
+            report_datetime=report_datetime)
+        household_member = self.member_helper.add_household_member(
+            household_structure=household_structure,
+            report_datetime=report_datetime)
+        household_member = self.member_helper.make_moved_member(
+            household_member=household_member,
+            report_datetime=report_datetime)
+        self.assertRaises(
+            IntegrityError,
+            self.member_helper.make_moved_member,
+            household_member=household_member,
+            report_datetime=report_datetime)
+
+    def test_moved_delete_on_not_applicable(self):
+        report_datetime = self.member_helper.get_utcnow()
+        household_structure = self.member_helper.make_household_ready_for_enumeration(
+            report_datetime=report_datetime)
+        household_member = self.member_helper.add_household_member(
+            household_structure=household_structure,
+            report_datetime=report_datetime)
+        household_member = self.member_helper.make_moved_member(
+            household_member=household_member,
+            report_datetime=report_datetime)
+        self.assertEqual(MovedMember.objects.all().count(), 1)
+        household_member = HouseholdMember.objects.get(pk=household_member.pk)
+        self.assertEqual(household_member.has_moved, YES)
+        self.assertTrue(household_member.moved)
+        household_member.has_moved = NOT_APPLICABLE
+        household_member.save()
+        self.assertEqual(MovedMember.objects.all().count(), 0)
+
+    def test_moved_delete_on_no(self):
+        report_datetime = self.member_helper.get_utcnow()
+        household_structure = self.member_helper.make_household_ready_for_enumeration(
+            report_datetime=report_datetime)
+        household_member = self.member_helper.add_household_member(
+            household_structure=household_structure,
+            report_datetime=report_datetime)
+        household_member = self.member_helper.make_moved_member(
+            household_member=household_member,
+            report_datetime=report_datetime)
+        self.assertEqual(MovedMember.objects.all().count(), 1)
+        household_member = HouseholdMember.objects.get(pk=household_member.pk)
+        self.assertEqual(household_member.has_moved, YES)
+        self.assertTrue(household_member.moved)
+        household_member.has_moved = NO
+        household_member.save()
+        self.assertEqual(MovedMember.objects.all().count(), 0)
 
     def test_member_visit_attempts(self):
         household_structure = self.member_helper.make_household_ready_for_enumeration(

@@ -1,15 +1,16 @@
 from django.apps import apps as django_apps
-from django.test import TestCase, tag
+from django.test import TestCase
 
 from edc_constants.constants import REFUSED, NO
 from edc_map.site_mappers import site_mappers
 from survey.tests import SurveyTestHelper
 
 from ..constants import (
-    ABSENT, UNDECIDED, DECEASED, HTC_ELIGIBLE, ELIGIBLE, INELIGIBLE)
+    ABSENT, UNDECIDED, DECEASED, HTC_ELIGIBLE, ELIGIBLE, INELIGIBLE, MOVED)
 from ..participation_status import ParticipationStatus
-from .member_test_helper import MemberTestHelper
+from ..models import HouseholdMember
 from .mappers import TestMapper
+from .member_test_helper import MemberTestHelper
 
 
 class TestMembers(TestCase):
@@ -64,6 +65,21 @@ class TestMembers(TestCase):
             report_datetime=report_datetime)
         participation_status = ParticipationStatus(household_member)
         self.assertEqual(participation_status.participation_status, ABSENT)
+
+    def test_member_status_for_moved(self):
+        household_structure = self.member_helper.make_household_ready_for_enumeration()
+        report_datetime = household_structure.householdlog.householdlogentry_set.all().order_by(
+            'report_datetime').last().report_datetime
+        household_member = self.member_helper.add_household_member(
+            household_structure=household_structure,
+            report_datetime=report_datetime)
+        household_member = self.member_helper.make_moved_member(
+            household_member=household_member,
+            report_datetime=report_datetime)
+        participation_status = ParticipationStatus(household_member)
+        self.assertEqual(participation_status.participation_status, MOVED)
+        household_member = HouseholdMember.objects.get(pk=household_member.pk)
+        self.assertTrue(household_member.moved)
 
     def test_member_status_for_refused(self):
         household_structure = self.member_helper.make_household_ready_for_enumeration()

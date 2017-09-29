@@ -7,6 +7,7 @@ from .models import (
     HouseholdHeadEligibility, HouseholdMember,
     RefusedMember, UndecidedMember, DeceasedMember, MovedMember)
 from member.models.enrollment_checklist_anonymous import EnrollmentChecklistAnonymous
+from edc_constants.constants import NOT_APPLICABLE, NO
 
 
 @receiver(post_save, weak=False, sender=HouseholdMember,
@@ -22,6 +23,9 @@ def household_member_on_post_save(sender, instance, raw, created, using, **kwarg
                 instance.household_structure.save()
         if not instance.eligible_member:
             EnrollmentChecklist.objects.filter(
+                household_member=instance).delete()
+        if instance.has_moved in [NO, NOT_APPLICABLE]:
+            MovedMember.objects.filter(
                 household_member=instance).delete()
 
 
@@ -146,6 +150,7 @@ def moved_member_on_post_save(sender, instance, raw, created, using, **kwargs):
     if not raw:
         if created:
             instance.household_member.visit_attempts += 1
+            instance.household_member.moved = True
         instance.household_member.save()
 
 
@@ -155,6 +160,7 @@ def moved_member_on_post_delete(sender, instance, using, **kwargs):
     instance.household_member.visit_attempts -= 1
     if instance.household_member.visit_attempts < 0:
         instance.household_member.visit_attempts = 0
+        instance.household_member.moved = False
     instance.household_member.save()
 
 

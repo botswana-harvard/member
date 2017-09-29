@@ -43,6 +43,7 @@ class TestHouseholdMemberForm(TestCase):
             'study_resident': NO,
             'personal_details_changed': NO,
             'visit_attempts': 3,
+            'has_moved': NO,
             'eligible_htc': True,
             'refused_htc': False,
             'htc': True,

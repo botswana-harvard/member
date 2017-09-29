@@ -64,3 +64,4 @@ class MovedMember(HouseholdMemberModelMixin, BaseUuidModel):
 
     class Meta(HouseholdMemberModelMixin.Meta):
         app_label = 'member'
+        unique_together = ('household_member', 'report_datetime')

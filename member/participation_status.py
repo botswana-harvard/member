@@ -4,7 +4,7 @@ from edc_constants.constants import CONSENTED
 
 from .constants import (
     AVAILABLE, DECEASED, HTC_ELIGIBLE, ABSENT, UNDECIDED, ELIGIBLE,
-    INELIGIBLE, REFUSED, REFUSED_HTC)
+    INELIGIBLE, REFUSED, REFUSED_HTC, MOVED)
 
 
 class ParticipationStatus:
@@ -32,6 +32,13 @@ class ParticipationStatus:
                     participation_status = None
                 else:
                     participation_status = HTC_ELIGIBLE
+            if not participation_status:
+                try:
+                    household_member.movedmember
+                except ObjectDoesNotExist:
+                    participation_status = None
+                else:
+                    participation_status = MOVED
             if not participation_status:
                 try:
                     household_member.refusedmember

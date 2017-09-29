@@ -273,6 +273,9 @@ class MemberTestHelper:
         """Returns a household member after adding a undecided
         member report.
         """
+        household_member.has_moved = YES
+        household_member.save()
+        household_member = HouseholdMember.objects.get(pk=household_member.pk)
         options.update(report_datetime=options.get(
             'report_datetime',
             household_member.report_datetime))
