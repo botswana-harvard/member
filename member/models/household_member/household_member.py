@@ -4,7 +4,6 @@ from django.core.validators import MaxValueValidator, RegexValidator
 from django.core.validators import MinLengthValidator, MaxLengthValidator, MinValueValidator
 from django.db import models
 from django_crypto_fields.fields import FirstnameField
-
 from edc_base.model_fields import OtherCharField
 from edc_base.model_managers import HistoricalRecords
 from edc_base.model_mixins import BaseUuidModel
@@ -12,13 +11,13 @@ from edc_base.model_validators import datetime_not_future
 from edc_base.utils import get_utcnow
 from edc_constants.choices import GENDER, ALIVE_DEAD_UNKNOWN, YES_NO_NA, YES_NO_NA_DWTA
 from edc_constants.constants import ALIVE, DEAD, YES, NOT_APPLICABLE
-from edc_search.model_mixins import SearchSlugManager
 from edc_registration.model_mixins import UpdatesOrCreatesRegistrationModelMixin
-
+from edc_search.model_mixins import SearchSlugManager
 from household.models import HouseholdStructure
-from member_clone.model_mixins import CloneModelMixin, NextMemberModelMixin
 from plot.utils import get_anonymous_plot
 from survey.model_mixins import SurveyScheduleModelMixin
+
+from member_clone.model_mixins import CloneModelMixin, NextMemberModelMixin
 
 from ...choices import INABILITY_TO_PARTICIPATE_REASON
 from ...exceptions import MemberValidationError
@@ -121,7 +120,6 @@ class HouseholdMember(UpdatesOrCreatesRegistrationModelMixin,
         verbose_name='Do any of the following reasons apply to the participant?',
         max_length=17,
         null=True,
-        blank=False,
         choices=INABILITY_TO_PARTICIPATE_REASON,
         help_text=('Participant can only participate if ABLE is selected. '
                    '(Any other reason make the participant unable to take '

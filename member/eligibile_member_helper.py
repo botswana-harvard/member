@@ -1,4 +1,4 @@
-from edc_constants.constants import YES, NO, ALIVE, CONSENTED
+from edc_constants.constants import YES, NO, ALIVE, CONSENTED, NOT_APPLICABLE
 from edc_registration.models import RegisteredSubject
 
 from .constants import ABLE_TO_PARTICIPATE
@@ -29,7 +29,7 @@ class EligibileMemberHelper:
             return False
         is_study_resident = (
             (not self.cloned and self.study_resident == YES)
-            or (self.cloned and self.study_resident in [YES, NO])
+            or (self.cloned and self.study_resident in [YES, NO, NOT_APPLICABLE])
         )
 
         previously_consented = False
@@ -46,4 +46,4 @@ class EligibileMemberHelper:
             self.age_in_years >= 16
             and (self.age_in_years <= 64 or previously_consented)
             and is_study_resident
-            and self.inability_to_participate == ABLE_TO_PARTICIPATE)
+            and self.inability_to_participate in [ABLE_TO_PARTICIPATE, NOT_APPLICABLE])
