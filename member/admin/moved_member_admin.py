@@ -38,6 +38,7 @@ class MovedMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
 
     search_fields = [
         'household_member__first_name',
+        'household_member__subject_identifier',
         'household_member__household_structure__household__household_identifier']
 
     list_filter = (
