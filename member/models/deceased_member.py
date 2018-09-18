@@ -53,6 +53,19 @@ class DeceasedMember(HouseholdMemberModelMixin, BaseUuidModel):
         max_length=50,
         choices=DEATH_RELATIONSIP_TO_STUDY,
         help_text='')
+    
+    extra_death_info = models.TextField(
+        max_length=1000,
+        blank=True,
+        null=True,
+        verbose_name=(
+            'Extra information collected from other sources, specifically the death registry.'))
+    
+    extra_death_info_date = models.DateField(
+        verbose_name='Date extra information captured:',
+        validators=[date_not_future],
+        blank=True,
+        null=True)
 
     objects = MemberEntryManager()
 
