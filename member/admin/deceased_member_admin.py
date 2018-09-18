@@ -23,7 +23,9 @@ class DeceasedMemberAdmin(ModelAdminMixin, admin.ModelAdmin):
                 'site_aware_date',
                 'death_cause',
                 'duration_of_illness',
-                'relationship_death_study')}),
+                'relationship_death_study',
+                'extra_death_info',
+                'extra_death_info_date')}),
         survey_schedule_fieldset_tuple,
         audit_fieldset_tuple,
     )
